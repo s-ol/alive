@@ -51,21 +51,50 @@ describe 'nexpr parsing', ->
 
     assert.is.equal ' 3\tok-yes\n', node\stringify!
 
-test 'sexpr parsing', ->
-  str = '( 3   ok-yes
-  "friend" )'
-  node = sexpr\match str
+describe 'sexpr', ->
+  test 'basic parsing', ->
+    str = '( 3   ok-yes
+    "friend" )'
+    node = sexpr\match str
 
-  assert.is.equal '(', node.style
-  assert.is.equal 3, #node
-  assert.is.equal 3, node[1].value
-  assert.is.equal 'ok-yes', node[2].value
-  assert.is.equal 'friend', node[3].value
+    assert.is.equal '(', node.style
+    assert.is.equal 3, #node
+    assert.is.equal 3, node[1].value
+    assert.is.equal 'ok-yes', node[2].value
+    assert.is.equal 'friend', node[3].value
 
-  assert.is.equal str, node\stringify!
+    assert.is.equal str, node\stringify!
 
-test 'mixed parsing', ->
-  str = '( 3   ok-yes
-  "friend" )'
-  node = program\match str
-  assert.is.equal str, node\stringify!
+  test 'tag parsing', ->
+    str = '([42]tagged 2)'
+    node = sexpr\match str
+
+    assert.is.equal '(', node.style
+    assert.is.equal 2, #node
+    assert.is.equal 'tagged', node[1].value
+    assert.is.equal 2, node[2].value
+
+    assert.is.equal 42, node.tag
+    assert.is.equal str, node\stringify!
+
+describe 'resynthesis', ->
+  test 'mixed parsing', ->
+    str = '( 3   ok-yes
+    "friend" )'
+    node = program\match str
+    assert.is.equal str, node\stringify!
+
+  test 'complex', ->
+    str = '
+  (osc "/radius" (lfo (cc 14)))
+
+  (osc rot
+    (step
+      (note "kick")
+      (random-rot)
+      (random-rot)
+      (random-rot)
+      (random-rot)
+    )
+  ) '
+    assert.is.equal str, (program\match str)\stringify!

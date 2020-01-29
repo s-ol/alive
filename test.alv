@@ -1,0 +1,17 @@
+(osc "/radius" (lfo (cc 14)))
+
+(set kick (note 38))
+(set pitch (const 440))
+
+(osc rot
+  (step
+    kick
+    (random-rot)
+    (random-rot)
+    (random-rot)
+    (random-rot)
+  )
+)
+
+(amp (env kick 02 10 05)
+     (sineosc pitch))
