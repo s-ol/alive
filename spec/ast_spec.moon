@@ -10,6 +10,6 @@ describe 'Xpr', ->
     root = Xpr { '', ac, ' ', b, '' }, 'naked'
 
     iter = root\walk_sexpr!
-    for res in *{ ac, b, aa, ab }
+    for res in *{ ac, aa, ab, b }
       assert.is.equal res, iter!
     assert.is.nil iter!

@@ -7,17 +7,44 @@ describe 'atom parsing', ->
     assert.is.equal 'some-toast', sym.value
     assert.is.equal 'some-toast', sym\stringify!
 
-  test 'numbers', ->
-    num = atom\match '1234 nope'
-    assert.is.equal '1234', num.raw
-    assert.is.equal 1234, num.value
-    assert.is.equal '1234', num\stringify!
+  describe 'numbers', ->
+    it 'parses ints', ->
+      num = atom\match '1234 nope'
+      assert.is.equal '1234', num.raw
+      assert.is.equal 1234, num.value
+      assert.is.equal '1234', num\stringify!
 
-  test 'strings', ->
-    str = atom\match '"help some stuff!" nope'
-    assert.is.equal 'help some stuff!', str.raw
-    assert.is.equal 'help some stuff!', str.value
-    assert.is.equal '"help some stuff!"', str\stringify!
+    it 'parses floats', ->
+      num = atom\match '0.123 nope'
+      assert.is.equal 0.123, num.value
+      assert.is.equal '0.123', num\stringify!
+
+      num = atom\match '.123 nope'
+      assert.is.equal .123, num.value
+      assert.is.equal '.123', num\stringify!
+
+      num = atom\match '0. nope'
+      assert.is.equal 0, num.value
+      assert.is.equal '0.', num\stringify!
+
+  describe 'strings', ->
+    it 'parses double-quote strings', ->
+      str = atom\match '"help some stuff!" nope'
+      assert.is.equal 'help some stuff!', str.raw
+      assert.is.equal 'help some stuff!', str.value
+      assert.is.equal '"help some stuff!"', str\stringify!
+
+    it 'parses single-quote strings', ->
+      str = atom\match "'help some stuff!' nope"
+      assert.is.equal "help some stuff!", str.raw
+      assert.is.equal "help some stuff!", str.value
+      assert.is.equal "'help some stuff!'", str\stringify!
+
+    it 'handles escapes', ->
+      str = atom\match '"string with \\"quote\\"s"'
+      assert.is.equal 'string with \\"quote\\"s', str.raw
+      assert.is.equal 'string with "quote"s', str.value
+      assert.is.equal '"string with \\"quote\\"s"', str\stringify!
 
 test 'whitespace parsing', ->
   assert.is.equal '  ', space\match '  '

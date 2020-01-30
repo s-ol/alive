@@ -1,26 +1,36 @@
-lpeg = require 'lpeg'
 import Atom, Xpr from require 'ast'
+import R, S, P, V, C, Ct from require 'lpeg'
 
-space  = (lpeg.S ' \t\r\n') ^ 1 / 1
-mspace = (lpeg.S ' \t\r\n') ^ 0 / 1
+-- whitespace
+space  = (S ' \t\r\n') ^ 1 / 1 -- required whitespace
+mspace = (S ' \t\r\n') ^ 0 / 1 -- optional whitespace
 
-sym = ((lpeg.R 'az', 'AZ') + (lpeg.S '-_+*')) ^ 1 / Atom.make_sym
-str = '"' * (lpeg.C (1 - lpeg.P '"') ^ 0) * '"' / Atom.make_str
-num = (lpeg.R '09', 'AZ') ^ 1 / Atom.make_num
-atom = sym + num + str
+-- atoms
+sym = ((R 'az', 'AZ') + (S '-_+*/.!?')) ^ 1 / Atom.make_sym
 
-expr = (lpeg.V 'sexpr') + atom
-explist = lpeg.Ct mspace * (lpeg.V 'expr') * (space * (lpeg.V 'expr')) ^ 0 * mspace
+strd = '"' * (C ((P'\\"') + (P '\\\\') + (1 - P '"')) ^ 0) * '"' / Atom.make_strd
+strq = "'" * (C ((P"\\'") + (P '\\\\') + (1 - P "'")) ^ 0) * "'" / Atom.make_strq
+str = strd + strq
 
-tag = (lpeg.P '[') * num * (lpeg.P ']')
-sexpr = (lpeg.P '(') * tag^-1 * (lpeg.V 'explist') * (lpeg.P ')') / Xpr.make_sexpr
+digit = R '09'
+int = digit^1
+float = (digit^1 * '.' * digit^0) + (digit^0 * '.' * digit^1)
+num = (float + int) / Atom.make_num
 
-nexpr = lpeg.P {
-  (lpeg.V 'explist') / Xpr.make_nexpr
+atom = num + sym + str
+
+expr = (V 'sexpr') + atom
+explist = Ct mspace * (V 'expr') * (space * (V 'expr')) ^ 0 * mspace
+
+tag = (P '[') * num * (P ']')
+sexpr = (P '(') * tag^-1 * (V 'explist') * (P ')') / Xpr.make_sexpr
+
+nexpr = P {
+  (V 'explist') / Xpr.make_nexpr
   :expr, :explist, :sexpr
 }
 
-sexpr = lpeg.P {
+sexpr = P {
   'sexpr'
   :expr, :explist, :sexpr
 }
