@@ -3,7 +3,11 @@ import R, S, P, V, C, Ct from require 'lpeg'
 
 -- whitespace
 wc = S ' \t\r\n'
-comment = (P '#(') * (1 - P ')')^0 * (P ')')
+comment = P {
+  'comment',
+  expr: (P '(') * ((V 'expr') + (1 - P ')'))^0 * (P ')')
+  comment: (P '#(') * ((V 'expr') + (1 - P ')'))^0 * (P ')')
+}
 space  = (wc^1 * (comment * wc^1)^0) / 1 -- required whitespace
 mspace = (comment + wc)^0 / 1            -- optional whitespace
 
@@ -40,6 +44,7 @@ sexpr = P {
 program = nexpr * -1
 
 {
+  :comment
   :space
   :atom
   :expr

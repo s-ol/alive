@@ -1,4 +1,4 @@
-import space, atom, expr, explist, sexpr, nexpr, program from require 'parsing'
+import space, atom, expr, explist, sexpr, nexpr, program, comment from require 'parsing'
 
 describe 'atom parsing', ->
   test 'symbols', ->
@@ -103,6 +103,19 @@ describe 'sexpr', ->
 
     assert.is.equal 42, node.tag
     assert.is.equal str, node\stringify!
+
+describe 'comments', ->
+  comment = comment / 1
+  test 'simple parsing', ->
+    str = '#(this is a comment)'
+    assert.is.equal str, comment\match str
+
+  test 'nested parsing', ->
+    str = '#(this is a comment (with nested parenthesis))'
+    assert.is.equal str, comment\match str
+
+    str = '#(this is a comment #(with nested comments))'
+    assert.is.equal str, comment\match str
 
 describe 'resynthesis', ->
   test 'mixed parsing', ->
