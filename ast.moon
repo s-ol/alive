@@ -1,3 +1,6 @@
+import Constant from require 'base'
+unpack or= table.unpack
+
 unescape = (str) ->
   str = str\gsub '\\"', '"'
   str = str\gsub "\\'", "'"
@@ -5,7 +8,8 @@ unescape = (str) ->
   str
 
 class Atom
-  new: (@raw, @style='', @value) =>
+  new: (@raw, @style='', value) =>
+    @value = Constant value
 
   _walk_sexpr: =>
 
@@ -25,6 +29,8 @@ class Atom
   @make_strd: (match) -> Atom match, '"', unescape match
   @make_strq: (match) -> Atom match, "'", unescape match
 
+  __tostring: => @stringify!
+
 class Xpr
   new: (parts, @style='(', tag) =>
     @white = {}
@@ -35,7 +41,7 @@ class Xpr
       @white[i/2] = parts[i+1]
 
     if tag
-      @tag = tag.value
+      @tag = tag.value\getc!
 
   _walk_sexpr: =>
     -- depth first
@@ -44,6 +50,9 @@ class Xpr
 
     if @style == '('
       coroutine.yield @
+
+  head: => @[1].value
+  tail: => unpack [p.value for p in *@[2,]]
 
   walk_sexpr: =>
     coroutine.wrap -> @_walk_sexpr!
@@ -71,6 +80,8 @@ class Xpr
       Xpr tag, '('
 
   make_nexpr: (parts) -> Xpr parts, 'naked'
+
+  __tostring: => @stringify!
 
 {
   :Atom

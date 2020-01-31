@@ -1,0 +1,2 @@
+MODS = {'gui'}
+require 'boot'

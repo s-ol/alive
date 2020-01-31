@@ -4,46 +4,46 @@ describe 'atom parsing', ->
   test 'symbols', ->
     sym = atom\match 'some-toast help'
     assert.is.equal 'some-toast', sym.raw
-    assert.is.equal 'some-toast', sym.value
+    assert.is.equal 'some-toast', sym.value\getc!
     assert.is.equal 'some-toast', sym\stringify!
 
   describe 'numbers', ->
     it 'parses ints', ->
       num = atom\match '1234 nope'
       assert.is.equal '1234', num.raw
-      assert.is.equal 1234, num.value
+      assert.is.equal 1234, num.value\getc!
       assert.is.equal '1234', num\stringify!
 
     it 'parses floats', ->
       num = atom\match '0.123 nope'
-      assert.is.equal 0.123, num.value
+      assert.is.equal 0.123, num.value\getc!
       assert.is.equal '0.123', num\stringify!
 
       num = atom\match '.123 nope'
-      assert.is.equal .123, num.value
+      assert.is.equal .123, num.value\getc!
       assert.is.equal '.123', num\stringify!
 
       num = atom\match '0. nope'
-      assert.is.equal 0, num.value
+      assert.is.equal 0, num.value\getc!
       assert.is.equal '0.', num\stringify!
 
   describe 'strings', ->
     it 'parses double-quote strings', ->
       str = atom\match '"help some stuff!" nope'
       assert.is.equal 'help some stuff!', str.raw
-      assert.is.equal 'help some stuff!', str.value
+      assert.is.equal 'help some stuff!', str.value\getc!
       assert.is.equal '"help some stuff!"', str\stringify!
 
     it 'parses single-quote strings', ->
       str = atom\match "'help some stuff!' nope"
       assert.is.equal "help some stuff!", str.raw
-      assert.is.equal "help some stuff!", str.value
+      assert.is.equal "help some stuff!", str.value\getc!
       assert.is.equal "'help some stuff!'", str\stringify!
 
     it 'handles escapes', ->
       str = atom\match '"string with \\"quote\\"s"'
       assert.is.equal 'string with \\"quote\\"s', str.raw
-      assert.is.equal 'string with "quote"s', str.value
+      assert.is.equal 'string with "quote"s', str.value\getc!
       assert.is.equal '"string with \\"quote\\"s"', str\stringify!
 
 test 'whitespace parsing', ->
@@ -55,8 +55,8 @@ describe 'nexpr parsing', ->
     node = nexpr\match ' 3\tok-yes'
 
     assert.is.equal 2, #node
-    assert.is.equal 3, node[1].value
-    assert.is.equal 'ok-yes', node[2].value
+    assert.is.equal 3, node[1].value\getc!
+    assert.is.equal 'ok-yes', node[2].value\getc!
 
     assert.is.equal ' 3\tok-yes', node\stringify!
 
@@ -64,8 +64,8 @@ describe 'nexpr parsing', ->
     node = nexpr\match '3\tok-yes\n'
 
     assert.is.equal 2, #node
-    assert.is.equal 3, node[1].value
-    assert.is.equal 'ok-yes', node[2].value
+    assert.is.equal 3, node[1].value\getc!
+    assert.is.equal 'ok-yes', node[2].value\getc!
 
     assert.is.equal '3\tok-yes\n', node\stringify!
 
@@ -73,8 +73,8 @@ describe 'nexpr parsing', ->
     node = nexpr\match ' 3\tok-yes\n'
 
     assert.is.equal 2, #node
-    assert.is.equal 3, node[1].value
-    assert.is.equal 'ok-yes', node[2].value
+    assert.is.equal 3, node[1].value\getc!
+    assert.is.equal 'ok-yes', node[2].value\getc!
 
     assert.is.equal ' 3\tok-yes\n', node\stringify!
 
@@ -86,9 +86,9 @@ describe 'sexpr', ->
 
     assert.is.equal '(', node.style
     assert.is.equal 3, #node
-    assert.is.equal 3, node[1].value
-    assert.is.equal 'ok-yes', node[2].value
-    assert.is.equal 'friend', node[3].value
+    assert.is.equal 3, node[1].value\getc!
+    assert.is.equal 'ok-yes', node[2].value\getc!
+    assert.is.equal 'friend', node[3].value\getc!
 
     assert.is.equal str, node\stringify!
 
@@ -98,8 +98,8 @@ describe 'sexpr', ->
 
     assert.is.equal '(', node.style
     assert.is.equal 2, #node
-    assert.is.equal 'tagged', node[1].value
-    assert.is.equal 2, node[2].value
+    assert.is.equal 'tagged', node[1].value\getc!
+    assert.is.equal 2, node[2].value\getc!
 
     assert.is.equal 42, node.tag
     assert.is.equal str, node\stringify!
@@ -113,15 +113,20 @@ describe 'resynthesis', ->
 
   test 'complex', ->
     str = '
+  #(send a CC controlled LFO to /radius)
   (osc "/radius" (lfo (cc 14)))
 
   (osc rot
     (step
+      #(whenever a kick is received...)
       (note "kick")
+
+      #(..cycle through random rotation values)
       (random-rot)
       (random-rot)
       (random-rot)
       (random-rot)
     )
   ) '
-    assert.is.equal str, (program\match str)\stringify!
+    matched = assert.is.truthy program\match str
+    assert.is.equal str, matched\stringify!
