@@ -1,4 +1,4 @@
-import Constant from require 'base'
+import Const from require 'base'
 unpack or= table.unpack
 
 unescape = (str) ->
@@ -9,7 +9,7 @@ unescape = (str) ->
 
 class Atom
   new: (@raw, @style='', value) =>
-    @value = Constant value
+    @value = Const value
 
   _walk_sexpr: =>
 
@@ -81,7 +81,11 @@ class Xpr
 
   make_nexpr: (parts) -> Xpr parts, 'naked'
 
-  __tostring: => @stringify!
+  __tostring: =>
+    if @tag
+      "<Xpr[#{@tag}] #{@value}>"
+    else
+      "<Xpr #{@value}>"
 
 {
   :Atom

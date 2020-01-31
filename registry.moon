@@ -3,6 +3,12 @@ class Registry
     @globals = {}
     @map = {}
 
+  add_module: (name, tbl=require "lib.#{name}") =>
+    for k,v in pairs tbl
+      @globals["#{name}/#{k}"] = v
+
+  --
+
   gentag: => #@map + 1
 
   patch: (sexpr) =>
@@ -38,13 +44,6 @@ class Registry
         @destroy_expr expr
         @map[tag] = nil
 
-  --
-
-  update: (dt) =>
-    -- for tag, sexpr in pairs @map
-    for sexpr in @root\walk_sexpr!
-      sexpr.value\update dt
-
   spawn_expr: (sexpr) =>
     ref = sexpr\head!\getc!
     if sexpr.tag
@@ -52,7 +51,7 @@ class Registry
     else
       print "spawning '#{ref}'"
 
-    def = rawget @globals, ref
+    def = assert @globals[ref], "no such function: '#{ref}'"
     sexpr.value = def sexpr
 
   patch_expr: (new, old) =>
@@ -68,5 +67,16 @@ class Registry
   destroy_expr: (sexpr) =>
     sexpr.value\destroy!
     print "destroying [#{sexpr.tag}]"
+
+  --
+
+  update: (dt) =>
+    -- for tag, sexpr in pairs @map
+    for sexpr in @root\walk_sexpr!
+      continue unless sexpr.value
+
+      ok, err = pcall sexpr.value.update, sexpr.value, dt
+      if not ok
+        print "@#{sexpr}: #{err}"
 
 :Registry

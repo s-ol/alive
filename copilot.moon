@@ -20,17 +20,21 @@ class Copilot
       error "not a file: #{@file}"
 
   patch: =>
+    root = assert (program\match slurp @file), "parse error"
+    @registry\patch_root root
+    spit @file, root\stringify!
+
+  poll: =>
     { :mode, :modification } = (lfs.attributes @file) or {}
     if mode != 'file'
       return
 
     if @last_modification < modification
       print "---"
+      ok, err = pcall @patch, @
+      if not ok
+        print "ERROR: #{err}"
 
-      root = assert (program\match slurp @file), "error parsing"
-      @registry\patch_root root
-
-      spit @file, root\stringify!
       @last_modification = os.time!
 
 :Copilot

@@ -1,17 +1,20 @@
-(osc "/radius" (lfo (cc 14)))
+#(this is a comment)
+([2]debug/out 'a' ([6]math/mix 0.5 1 ([5]time/lfo 1)))
 
-(set kick (note 38))
-(set pitch (const 440))
 
-(osc rot
-  (step
-    kick
-    (random-rot)
-    (random-rot)
-    (random-rot)
-    (random-rot)
-  )
-)
+([16]util/pick 2 3)
 
-(amp (env kick 02 10 05)
-     (sineosc pitch))
+([14]math/mix 0 2 0.5)
+
+([13]debug/out 'b' ([12]math/mix 0 ([11]util/pick ([10]time/tick 4)
+  0.25
+  0.5
+  0.75
+  1) ([3]time/lfo 1 tri)))
+
+([9]debug/out 'name' ([8]util/pick ([7]time/tick 1)
+  0.1
+  0.6
+  0.3
+  0.9))
+

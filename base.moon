@@ -1,11 +1,11 @@
-class Constant
+class Const
   new: (@value) =>
   get: => @value
   getc: => @value
 
   __tostring: => "<const: #{@value}>"
 
-class OP
+class Op
   new: (@node) =>
     @setup @node\tail!
 
@@ -27,6 +27,6 @@ class OP
         cls.__base.__tostring = @__tostring
 
 {
-  :Constant
-  :OP
+  :Const
+  :Op
 }
