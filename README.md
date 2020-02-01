@@ -1,10 +1,10 @@
 # alive-coding
 
-This is an experimental livecoding langauge and environment, in which
+This is an experimental livecoding language and environment, in which
 expressions persist and update until they are removed from the source code, and
 the interpreter keeps no state that you cannot manipulate directly in the
-source. All this is enabled with a purely text-based language and works without
-special editor support.
+source. This yields a direct-manipulation like experience with a purely
+text-based language and works without special editor support.
 
 ## dependencies
 
