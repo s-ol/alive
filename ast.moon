@@ -8,10 +8,12 @@ unescape = (str) ->
   str
 
 class Atom
+  type: 'Atom'
+
   new: (@raw, @style='', value) =>
     @value = Const value
 
-  _walk_sexpr: =>
+  _walk: => coroutine.yield @type, @
 
   stringify: =>
     switch @style
@@ -32,6 +34,8 @@ class Atom
   __tostring: => @stringify!
 
 class Xpr
+  type: 'Xpr'
+  
   new: (parts, @style='(', tag) =>
     @white = {}
     @white[0] = parts[1]
@@ -43,19 +47,21 @@ class Xpr
     if tag
       @tag = tag.value\getc!
 
-  _walk_sexpr: =>
-    -- depth first
-    for frag in *@
-      frag\_walk_sexpr!
+  _walk: (dir, yield_self=true) =>
+    coroutine.yield @type, @ if yield_self and dir == 'outin'
 
-    if @style == '('
-      coroutine.yield @
+    for frag in *@
+      frag\_walk dir
+
+    coroutine.yield @type, @ if yield_self and dir == 'inout'
+
 
   head: => @[1].value
   tail: => unpack [p.value for p in *@[2,]]
 
-  walk_sexpr: =>
-    coroutine.wrap -> @_walk_sexpr!
+  walk: (dir, yield_self=true) =>
+    assert dir == 'inout' or dir == 'outin', "dir has to be either inout or outin"
+    coroutine.wrap -> @_walk dir, yield_self
 
   stringify: =>
     buf = ''

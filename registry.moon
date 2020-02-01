@@ -25,7 +25,9 @@ class Registry
     seen = {}
     to_tag = {}
 
-    for sexpr in @root\walk_sexpr!
+    for typ, sexpr in @root\walk 'inout', false
+      continue unless typ == 'Xpr'
+
       if not sexpr.tag
         @spawn_expr sexpr
         table.insert to_tag, sexpr
@@ -72,7 +74,8 @@ class Registry
 
   update: (dt) =>
     -- for tag, sexpr in pairs @map
-    for sexpr in @root\walk_sexpr!
+    for typ, sexpr in @root\walk 'inout', false
+      continue unless typ == 'Xpr'
       continue unless sexpr.value
 
       ok, err = pcall sexpr.value.update, sexpr.value, dt
