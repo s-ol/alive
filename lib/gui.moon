@@ -1,5 +1,6 @@
 { graphics: lg } = love
 import Op from require 'base'
+import Registry from require 'registry'
 import Copilot from require 'copilot'
 
 class out extends Op
@@ -31,6 +32,7 @@ class out extends Op
       lg.print name, x, MARGIN + HEIGHT + MARGIN
       x += WIDTH + MARGIN
 
+env = Registry!
 copilot = Copilot arg[#arg], env
 
 love.update = (dt) ->

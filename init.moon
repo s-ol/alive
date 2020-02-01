@@ -1,17 +1,6 @@
-import Registry from require 'registry'
-
-env = Registry!
-env\add_module 'math'
-env\add_module 'time'
-env\add_module 'util'
-env\add_module 'osc'
-env\add_module 'debug'
-
-if ... == 'init'
-  return env
-
 -- run from CLI
 import clock_gettime, nanosleep, CLOCK_MONOTONIC from require 'posix.time'
+import Registry from require 'registry'
 import Copilot from require 'copilot'
 
 delta = do
@@ -25,7 +14,9 @@ delta = do
     with time - (last or time)
       last = time
 
+env = Registry!
 copilot = Copilot arg[1], env
+
 while true
   copilot\poll!
 

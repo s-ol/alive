@@ -86,9 +86,17 @@ class Xpr
       @white[i/2] = parts[i+1]
 
   expand: (scope) =>
-    scope = Scope @, scope
-    for child in *@
-      child\expand scope
+    head = @[1]
+    head\expand scope
+
+    @scope = Scope @, scope
+
+    if head.value.type == 'macro'
+      macro = head.value\getc!
+      macro scope, @
+    else
+      for child in *@[2,]
+        child\expand scope
 
   link: =>
     head = @head!
@@ -128,10 +136,15 @@ class Xpr
   make_nexpr: (...) -> Xpr 'naked', ...
 
   __tostring: =>
-    if @tag
-      "<Xpr[#{@tag}] #{@value}>"
-    else
-      "<Xpr #{@value}>"
+    if @style == 'naked'
+      return 'ROOT'
+
+    buf = "("
+    buf ..= "[#{@tag}]" if @tag
+    buf ..= "#{@[1].raw}"
+    buf ..= " ..." if #@ > 1
+    buf ..= ")"
+    buf
 
 {
   :Atom

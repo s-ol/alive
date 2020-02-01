@@ -3,6 +3,9 @@ import Scope from require 'scope'
 class Registry
   new: (@env) =>
     @globals = Scope!
+    for k, v in pairs require 'lib.builtin'
+      @globals\set_raw k, v
+
     @map = {}
 
   add_module: (name) =>
@@ -27,7 +30,8 @@ class Registry
     to_tag = {}
 
     scope = Scope @root, @globals
-    @root\expand scope
+    for child in *@root
+      child\expand scope
 
     for typ, node in @root\walk 'inout', false
       node\link!
@@ -54,7 +58,10 @@ class Registry
         @map[tag] = nil
 
   spawn_expr: (sexpr) =>
-    def = sexpr\head!\getc!
+    head = sexpr\head!
+    return if head.type == 'macro'
+
+    def = head\getc!
     if sexpr.tag
       print "respawning [#{sexpr.tag}]: '#{def}'"
     else
@@ -63,8 +70,12 @@ class Registry
     sexpr.value = def sexpr
 
   patch_expr: (new, old) =>
-    if new\head!\getc! == old\head!\getc!
+    head = new\head!
+
+    if head\getc! == old\head!\getc!
       -- same function, can be patched
+      return if head.type == 'macro'
+
       print "patching [#{new.tag}]"
       new.value = old.value
       new.value\patch new
@@ -73,6 +84,9 @@ class Registry
       @spawn_expr new
 
   destroy_expr: (sexpr) =>
+    head = sexpr\head!
+    return if head.type == 'macro'
+
     sexpr.value\destroy!
     print "destroying [#{sexpr.tag}]"
 
@@ -80,10 +94,10 @@ class Registry
 
   tb = (msg) -> debug.traceback msg, 2
   update: (dt) =>
-    -- for tag, sexpr in pairs @map
     for typ, sexpr in @root\walk 'inout', false
       continue unless typ == 'Xpr'
-      continue unless sexpr.value
+      -- continue unless sexpr.value and sexpr.value.update
+      continue unless sexpr\head!.type == 'opdef'
 
       ok, err = xpcall sexpr.value.update, tb, sexpr.value, dt
       if not ok

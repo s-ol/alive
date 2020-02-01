@@ -35,13 +35,22 @@ describe 'Scope', ->
       assert.is.equal 'opdef', got.type
       assert.is.equal TestOp, got.value
 
+    test 'Scopes', ->
+      sub = Scope!
+      scope\set_raw 'sub', sub
+
+      got = scope\get 'sub'
+      assert.is.equal 'scope', got.type
+      assert.is.equal sub, got.value
+
     test 'tables', ->
       pi = Const 'num', 3.14
       scope\set_raw 'math',  { :pi }
 
-      math = scope\get 'math'
-      assert.is.equal Scope, math.__class
-      assert.is.equal pi, math\get 'pi'
+      got = scope\get 'math'
+      assert.is.equal 'scope', got.type
+      assert.is.equal Scope, got.value.__class
+      assert.is.equal pi, got.value\get 'pi'
       assert.is.equal pi, scope\get 'math/pi'
 
   it 'constifies in from_table', ->
@@ -68,8 +77,8 @@ describe 'Scope', ->
     assert.is.equal 'opdef', got.type
     assert.is.equal TestOp, got.value
 
-    assert.is.equal Scope, (scope\get 'math').__class
-    assert.is.equal pi, (scope\get 'math')\get 'pi'
+    got = scope\get 'math'
+    assert.is.equal 'scope', got.type
     assert.is.equal pi, scope\get 'math/pi'
 
   it 'gets from nested scopes', ->
@@ -78,9 +87,9 @@ describe 'Scope', ->
     b = Scope!
 
     pi = Const 'num', 3.14
-    b\set 'test', pi
-    a\set 'child', b
-    root\set 'deep', a
+    b\set_raw 'test', pi
+    a\set_raw 'child', b
+    root\set_raw 'deep', a
 
     assert.is.equal pi, root\get 'deep/child/test'
 

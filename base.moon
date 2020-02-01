@@ -1,7 +1,7 @@
 import is_object from require 'moon'
 
 class Const
-  types = { str: true, num: true, op: true, opdef: true }
+  types = { sym: true, scope: true, str: true, num: true, op: true, opdef: true, macro: true }
   new: (@type, @value) =>
     assert types[@type], "invalid Const type: #{@type}"
 
