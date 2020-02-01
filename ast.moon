@@ -1,5 +1,14 @@
 import Const from require 'base'
+import Scope from require 'scope'
 unpack or= table.unpack
+
+hash = (tbl) ->
+  mt = getmetatable tbl
+  setmetatable tbl, nil
+  str = tostring tbl
+  setmetatable tbl, mt
+
+  '#' .. str\sub 10
 
 class ASTNode
   -- first pass (outin):
@@ -23,13 +32,13 @@ class Atom
     str = str\gsub "\\\\", "\\"
     str
   expand: (scope) =>
-    @value = Const switch @atom_type
+    @value = switch @atom_type
       when 'num'
-        tonumber @raw
-      when 'sym'
-        assert scope[@raw], "undefined reference to symbol '#{@raw}'"
+        Const 'num', tonumber @raw
       when 'strq', 'strd'
-        unescape @raw
+        Const 'str', unescape @raw
+      when 'sym'
+        assert (scope\get @raw), "undefined reference to symbol '#{@raw}'"
       else
         error "unknown atom type: '#{@atom_type}'"
 
@@ -53,7 +62,8 @@ class Atom
   @make_strd: (match) -> Atom match, 'strd'
   @make_strq: (match) -> Atom match, 'strq'
 
-  __tostring: => @stringify!
+  __tostring: =>
+    "<Atom#{hash @} #{@stringify!}>"
 
 class Xpr
   type: 'Xpr'
@@ -76,8 +86,12 @@ class Xpr
       @white[i/2] = parts[i+1]
 
   expand: (scope) =>
+    scope = Scope @, scope
+    for child in *@
+      child\expand scope
 
   link: =>
+    head = @head!
 
   head: => @[1].value
   tail: => unpack [p.value for p in *@[2,]]

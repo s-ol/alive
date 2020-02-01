@@ -24,6 +24,7 @@ class Copilot
     @registry\patch_root root
     spit @file, root\stringify!
 
+  tb = (msg) -> debug.traceback msg, 2
   poll: =>
     { :mode, :modification } = (lfs.attributes @file) or {}
     if mode != 'file'
@@ -31,7 +32,7 @@ class Copilot
 
     if @last_modification < modification
       print "---"
-      ok, err = pcall @patch, @
+      ok, err = xpcall @patch, tb, @
       if not ok
         print "ERROR: #{err}"
 

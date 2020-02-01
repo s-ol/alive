@@ -1,11 +1,12 @@
+import Scope from require 'scope'
+
 class Registry
   new: (@env) =>
-    @globals = {}
+    @globals = Scope!
     @map = {}
 
-  add_module: (name, tbl=require "lib.#{name}") =>
-    for k,v in pairs tbl
-      @globals["#{name}/#{k}"] = v
+  add_module: (name) =>
+    @globals\set_raw name, require "lib.#{name}"
 
   --
 
@@ -25,12 +26,14 @@ class Registry
     seen = {}
     to_tag = {}
 
-    for typ, atom in @root\walk 'outin', false
-      continue unless typ == 'Atom'
-      atom\expand @globals
+    scope = Scope @root, @globals
+    @root\expand scope
 
-    for typ, sexpr in @root\walk 'inout', false
+    for typ, node in @root\walk 'inout', false
+      node\link!
+
       continue unless typ == 'Xpr'
+      sexpr = node
 
       if not sexpr.tag
         @spawn_expr sexpr
@@ -75,13 +78,14 @@ class Registry
 
   --
 
+  tb = (msg) -> debug.traceback msg, 2
   update: (dt) =>
     -- for tag, sexpr in pairs @map
     for typ, sexpr in @root\walk 'inout', false
       continue unless typ == 'Xpr'
       continue unless sexpr.value
 
-      ok, err = pcall sexpr.value.update, sexpr.value, dt
+      ok, err = xpcall sexpr.value.update, tb, sexpr.value, dt
       if not ok
         print "@#{sexpr}: #{err}"
 

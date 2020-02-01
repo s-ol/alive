@@ -1,9 +1,14 @@
+import is_object from require 'moon'
+
 class Const
-  new: (@value) =>
+  types = { str: true, num: true, op: true, opdef: true }
+  new: (@type, @value) =>
+    assert types[@type], "invalid Const type: #{@type}"
+
   get: => @value
   getc: => @value
 
-  __tostring: => "<const: #{@value}>"
+  __tostring: => "<#{@type}: #{@value}>"
 
 class Op
   new: (@node) =>

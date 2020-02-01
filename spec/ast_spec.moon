@@ -1,4 +1,5 @@
 import Atom, Xpr from require 'ast'
+import Scope from require 'scope'
 
 describe 'Atom', ->
   expand = (typ, str, ...) ->
@@ -8,11 +9,13 @@ describe 'Atom', ->
 
   describe 'sym', ->
     it 'expand correctly', ->
-      env = { a: 1, b: 2, c: 44, 'long_name': 'str',
-              'name/with/slash': {} }
+      values = { a: 1, b: 2, c: 44, 'long_name': 'str',
+                 'name/with/slash': 3 }
 
-      for k,v in pairs env
-        assert.is.equal v, expand 'sym', k, env
+      scope = Scope.from_table values
+
+      for k,v in pairs values
+        assert.is.equal v, expand 'sym', k, scope
 
   describe 'num', ->
     it 'expand correctly', ->

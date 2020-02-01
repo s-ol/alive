@@ -50,6 +50,8 @@ module = {
   :div, '/': div
 
   mix: func_op 'mix', 3, (a, b, i) -> i*b + (1-i)*a
+
+  pi: math.pi, huge: math.huge
 }
 
 for name, arity in pairs {

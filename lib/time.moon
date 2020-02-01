@@ -6,7 +6,9 @@ class lfo extends Op
     super ...
     @phase = 0
 
-  setup: (@freq, @wave=Const 'sin') =>
+
+  default_wave = Const 'str', 'sin'
+  setup: (@freq, @wave=default_wave) =>
 
   update: (dt) =>
     @phase += dt * @freq\get!
