@@ -1,12 +1,6 @@
 import Const from require 'base'
 unpack or= table.unpack
 
-unescape = (str) ->
-  str = str\gsub '\\"', '"'
-  str = str\gsub "\\'", "'"
-  str = str\gsub "\\\\", "\\"
-  str
-
 class ASTNode
   -- first pass (outin):
   -- * expand macros
@@ -23,13 +17,18 @@ class Atom
 
   new: (@raw, @atom_type) =>
 
+  unescape = (str) ->
+    str = str\gsub '\\"', '"'
+    str = str\gsub "\\'", "'"
+    str = str\gsub "\\\\", "\\"
+    str
   expand: (scope) =>
     @value = Const switch @atom_type
       when 'num'
         tonumber @raw
       when 'sym'
         assert scope[@raw], "undefined reference to symbol '#{@raw}'"
-      when 'strq', 'std'
+      when 'strq', 'strd'
         unescape @raw
       else
         error "unknown atom type: '#{@atom_type}'"
