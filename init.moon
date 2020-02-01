@@ -4,6 +4,7 @@ env = Registry!
 env\add_module 'math'
 env\add_module 'time'
 env\add_module 'util'
+env\add_module 'osc'
 env\add_module 'debug'
 
 if ... == 'init'
