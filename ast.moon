@@ -7,36 +7,68 @@ unescape = (str) ->
   str = str\gsub "\\\\", "\\"
   str
 
+class ASTNode
+  -- first pass (outin):
+  -- * expand macros
+  -- * define scoped values
+  -- * evaluate references
+  expand: (scope) =>
+
+  -- second pass (inout):
+  -- * setup OPs (spawn/patch)
+  link: =>
+
 class Atom
   type: 'Atom'
 
-  new: (@raw, @style='', value) =>
-    @value = Const value
+  new: (@raw, @atom_type) =>
+
+  expand: (scope) =>
+    @value = Const switch @atom_type
+      when 'num'
+        tonumber @raw
+      when 'sym'
+        assert scope[@raw], "undefined reference to symbol '#{@raw}'"
+      when 'strq', 'std'
+        unescape @raw
+      else
+        error "unknown atom type: '#{@atom_type}'"
+
+  link: =>
 
   _walk: => coroutine.yield @type, @
 
   stringify: =>
-    switch @style
-      when ''
+    switch @atom_type
+      when 'sym', 'num'
         @raw
-      when '"'
-        "\"#{@raw}\""
-      when "'"
+      when 'strq'
         "'#{@raw}'"
+      when 'strd'
+        "\"#{@raw}\""
       else
-        error "unknown atom style: '#{@style}'"
+        error "unknown atom type: '#{@atom_type}'"
 
-  @make_num: (match, ...) -> Atom match, '', tonumber match
-  @make_sym: (match) -> Atom match, '', match
-  @make_strd: (match) -> Atom match, '"', unescape match
-  @make_strq: (match) -> Atom match, "'", unescape match
+  @make_num:  (match) -> Atom match, 'num'
+  @make_sym:  (match) -> Atom match, 'sym'
+  @make_strd: (match) -> Atom match, 'strd'
+  @make_strq: (match) -> Atom match, 'strq'
 
   __tostring: => @stringify!
 
 class Xpr
   type: 'Xpr'
-  
-  new: (parts, @style='(', tag) =>
+
+  -- either:
+  -- * style, tag, parts
+  -- * style, parts
+  new: (@style, tag, parts) =>
+    if not parts
+      parts = tag
+      tag = nil
+
+    @tag = tag
+
     @white = {}
     @white[0] = parts[1]
 
@@ -44,8 +76,12 @@ class Xpr
       @[i/2] = parts[i]
       @white[i/2] = parts[i+1]
 
-    if tag
-      @tag = tag.value\getc!
+  expand: (scope) =>
+
+  link: =>
+
+  head: => @[1].value
+  tail: => unpack [p.value for p in *@[2,]]
 
   _walk: (dir, yield_self=true) =>
     coroutine.yield @type, @ if yield_self and dir == 'outin'
@@ -54,10 +90,6 @@ class Xpr
       frag\_walk dir
 
     coroutine.yield @type, @ if yield_self and dir == 'inout'
-
-
-  head: => @[1].value
-  tail: => unpack [p.value for p in *@[2,]]
 
   walk: (dir, yield_self=true) =>
     assert dir == 'inout' or dir == 'outin', "dir has to be either inout or outin"
@@ -79,13 +111,8 @@ class Xpr
       else
         error "unknown sexpr style: '#{@style}'"
 
-  make_sexpr: (tag, parts) ->
-    if parts
-      Xpr parts, '(', tag
-    else
-      Xpr tag, '('
-
-  make_nexpr: (parts) -> Xpr parts, 'naked'
+  make_sexpr: (...) -> Xpr '(', ...
+  make_nexpr: (...) -> Xpr 'naked', ...
 
   __tostring: =>
     if @tag

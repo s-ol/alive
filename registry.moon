@@ -25,6 +25,10 @@ class Registry
     seen = {}
     to_tag = {}
 
+    for typ, atom in @root\walk 'outin', false
+      continue unless typ == 'Atom'
+      atom\expand @globals
+
     for typ, sexpr in @root\walk 'inout', false
       continue unless typ == 'Xpr'
 
@@ -47,13 +51,12 @@ class Registry
         @map[tag] = nil
 
   spawn_expr: (sexpr) =>
-    ref = sexpr\head!\getc!
+    def = sexpr\head!\getc!
     if sexpr.tag
-      print "respawning [#{sexpr.tag}]: '#{ref}'"
+      print "respawning [#{sexpr.tag}]: '#{def}'"
     else
-      print "spawning '#{ref}'"
+      print "spawning '#{def}'"
 
-    def = assert @globals[ref], "no such function: '#{ref}'"
     sexpr.value = def sexpr
 
   patch_expr: (new, old) =>

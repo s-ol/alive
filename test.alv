@@ -1,2 +1,4 @@
-([2]osc/out '127.0.0.1' 9000 '/param/radius/set' ([1]time/lfo 1))
-([4]osc/out '127.0.0.1' 9000 '/param/offset/set' ([3]time/lfo 1.0 'saw'))
+ 
+([6]osc/out '127.0.0.1' 9000 '/param/radius/set' ([1]time/lfo 0.5))
+([7]osc/out '127.0.0.1' 9000 '/param/offset/set' ([5]time/lfo 1.2 'saw'))
+

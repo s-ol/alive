@@ -2,15 +2,15 @@ import Atom, Xpr from require 'ast'
 
 describe 'AST', ->
   describe 'can be walked', ->
-    a1 = Atom '1', '', 1
-    a2 = Atom '2', '', 2
-    a3 = Atom '3', '', 3
-    x1 = Xpr { '', a1, '' }
-    x21 = Xpr { '', a2, '' }
-    x22 = Xpr { '', a3, '' }
-    x2 = Xpr { '', x21, ' ', x22, '' }
+    a1 = Atom.make_num '1'
+    a2 = Atom.make_num '2'
+    a3 = Atom.make_num '3'
+    x1 = Xpr '(', { '', a1, '' }
+    x21 = Xpr '(', { '', a2, '' }
+    x22 = Xpr '(', { '', a3, '' }
+    x2 = Xpr '(', { '', x21, ' ', x22, '' }
 
-    root = Xpr { '', x1, ' ', x2, '' }, 'naked'
+    root = Xpr 'naked', { '', x1, ' ', x2, '' }
 
     assert_yields = (expected_order, iter) ->
       for val in *expected_order

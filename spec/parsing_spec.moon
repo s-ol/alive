@@ -1,127 +1,121 @@
 import space, atom, expr, explist, sexpr, nexpr, program, comment from require 'parsing'
 
+verify_parse = (parser, str) ->
+  with assert parser\match str
+    assert.is.equal str, \stringify!
+
+verify_parse_nope = (parser, str) ->
+  with assert parser\match str
+    without_nope = str\match '^(.*) nope$'
+    assert.is.equal without_nope, \stringify!
+
 describe 'atom parsing', ->
   test 'symbols', ->
-    sym = atom\match 'some-toast help'
+    sym = verify_parse_nope atom, 'some-toast nope'
+    assert.is.equal 'sym', sym.atom_type
     assert.is.equal 'some-toast', sym.raw
-    assert.is.equal 'some-toast', sym.value\getc!
     assert.is.equal 'some-toast', sym\stringify!
 
   describe 'numbers', ->
     it 'parses ints', ->
-      num = atom\match '1234 nope'
+      num = verify_parse_nope atom, '1234 nope'
+      assert.is.equal 'num', num.atom_type
       assert.is.equal '1234', num.raw
-      assert.is.equal 1234, num.value\getc!
       assert.is.equal '1234', num\stringify!
 
     it 'parses floats', ->
-      num = atom\match '0.123 nope'
-      assert.is.equal 0.123, num.value\getc!
+      num = verify_parse_nope atom, '0.123 nope'
+      assert.is.equal 'num', num.atom_type
       assert.is.equal '0.123', num\stringify!
 
-      num = atom\match '.123 nope'
-      assert.is.equal .123, num.value\getc!
+      num = verify_parse_nope atom, '.123 nope'
+      assert.is.equal 'num', num.atom_type
       assert.is.equal '.123', num\stringify!
 
-      num = atom\match '0. nope'
-      assert.is.equal 0, num.value\getc!
+      num = verify_parse_nope atom, '0. nope'
+      assert.is.equal 'num', num.atom_type
       assert.is.equal '0.', num\stringify!
 
   describe 'strings', ->
     it 'parses double-quote strings', ->
-      str = atom\match '"help some stuff!" nope'
+      str = verify_parse_nope atom, '"help some stuff!" nope'
+      assert.is.equal 'strd', str.atom_type
       assert.is.equal 'help some stuff!', str.raw
-      assert.is.equal 'help some stuff!', str.value\getc!
       assert.is.equal '"help some stuff!"', str\stringify!
 
     it 'parses single-quote strings', ->
-      str = atom\match "'help some stuff!' nope"
+      str = verify_parse_nope atom, "'help some stuff!' nope"
+      assert.is.equal 'strq', str.atom_type
       assert.is.equal "help some stuff!", str.raw
-      assert.is.equal "help some stuff!", str.value\getc!
       assert.is.equal "'help some stuff!'", str\stringify!
 
     it 'handles escapes', ->
-      str = atom\match '"string with \\"quote\\"s"'
+      str = verify_parse_nope atom, '"string with \\"quote\\"s" nope'
+      assert.is.equal 'strd', str.atom_type
       assert.is.equal 'string with \\"quote\\"s', str.raw
-      assert.is.equal 'string with "quote"s', str.value\getc!
       assert.is.equal '"string with \\"quote\\"s"', str\stringify!
 
-test 'whitespace parsing', ->
-  assert.is.equal '  ', space\match '  '
-  assert.is.equal '\n\t ', space\match '\n\t '
-
 describe 'nexpr parsing', ->
-  it 'handles leading whitespace', ->
-    node = nexpr\match ' 3\tok-yes'
+  describe 'handles whitespace', ->
+    verify = (str) ->
+      node = verify_parse nexpr, str
 
-    assert.is.equal 2, #node
-    assert.is.equal 3, node[1].value\getc!
-    assert.is.equal 'ok-yes', node[2].value\getc!
+      assert.is.equal 'naked', node.style
+      assert.is.equal 2, #node
+      assert.is.equal '3', node[1].raw
+      assert.is.equal 'ok-yes', node[2].raw
 
-    assert.is.equal ' 3\tok-yes', node\stringify!
+    it 'at the front of the string', ->
+      verify ' 3\tok-yes'
 
-  it 'handles trailing whitespace', ->
-    node = nexpr\match '3\tok-yes\n'
+    it 'at the end of the string', ->
+      verify ' 3\tok-yes\n'
 
-    assert.is.equal 2, #node
-    assert.is.equal 3, node[1].value\getc!
-    assert.is.equal 'ok-yes', node[2].value\getc!
-
-    assert.is.equal '3\tok-yes\n', node\stringify!
-
-  it 'handles whitespace everywhere', ->
-    node = nexpr\match ' 3\tok-yes\n'
-
-    assert.is.equal 2, #node
-    assert.is.equal 3, node[1].value\getc!
-    assert.is.equal 'ok-yes', node[2].value\getc!
-
-    assert.is.equal ' 3\tok-yes\n', node\stringify!
+    it 'everywhere', ->
+      verify ' 3\tok-yes\n'
 
 describe 'sexpr', ->
   test 'basic parsing', ->
-    str = '( 3   ok-yes
-    "friend" )'
-    node = sexpr\match str
+    node = verify_parse sexpr, '( 3   ok-yes
+                                "friend" )'
 
     assert.is.equal '(', node.style
     assert.is.equal 3, #node
-    assert.is.equal 3, node[1].value\getc!
-    assert.is.equal 'ok-yes', node[2].value\getc!
-    assert.is.equal 'friend', node[3].value\getc!
-
-    assert.is.equal str, node\stringify!
+    assert.is.equal '3', node[1].raw
+    assert.is.equal 'ok-yes', node[2].raw
+    assert.is.equal 'friend', node[3].raw
 
   test 'tag parsing', ->
-    str = '([42]tagged 2)'
-    node = sexpr\match str
+    node = verify_parse sexpr, '([42]tagged 2)'
 
     assert.is.equal '(', node.style
     assert.is.equal 2, #node
-    assert.is.equal 'tagged', node[1].value\getc!
-    assert.is.equal 2, node[2].value\getc!
 
     assert.is.equal 42, node.tag
-    assert.is.equal str, node\stringify!
+
+test 'whitespace', ->
+  assert.is.equal '  ', space\match '  '
+  assert.is.equal '\n\t ', space\match '\n\t '
 
 describe 'comments', ->
   comment = comment / 1
-  test 'simple parsing', ->
+  it 'are parsed', ->
     str = '#(this is a comment)'
     assert.is.equal str, comment\match str
 
-  test 'nested parsing', ->
-    str = '#(this is a comment (with nested parenthesis))'
+  it 'extend to matching braces', ->
+    str = '#(this is a comment #(with nested comments))'
     assert.is.equal str, comment\match str
 
-    str = '#(this is a comment #(with nested comments))'
+  it 'can nest', ->
+    str = '#(this is a comment (with nested parenthesis))'
     assert.is.equal str, comment\match str
 
 describe 'resynthesis', ->
   test 'mixed parsing', ->
     str = '( 3   ok-yes
     "friend" )'
-    node = program\match str
+    node = verify_parse program, str
     assert.is.equal str, node\stringify!
 
   test 'complex', ->
@@ -141,5 +135,5 @@ describe 'resynthesis', ->
       (random-rot)
     )
   ) '
-    matched = assert.is.truthy program\match str
+    matched = assert.is.truthy verify_parse program, str
     assert.is.equal str, matched\stringify!

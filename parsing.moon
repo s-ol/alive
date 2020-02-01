@@ -28,7 +28,7 @@ atom = num + sym + str
 expr = (V 'sexpr') + atom
 explist = Ct mspace * (V 'expr') * (space * (V 'expr'))^0 * mspace
 
-tag = (P '[') * num * (P ']')
+tag = (P '[') * (int / tonumber) * (P ']')
 sexpr = (P '(') * tag^-1 * (V 'explist') * (P ')') / Xpr.make_sexpr
 
 nexpr = P {
