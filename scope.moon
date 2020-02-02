@@ -44,23 +44,21 @@ class Scope
   new: (@node, @parent) =>
     @values = {}
 
-  log: (msg) => -- print msg .. " in #{@}"
-
   set_raw: (key, val) => @values[key] = constify val, key
   set: (key, val) =>
-    @log "setting #{key} = #{val}"
+    L\trace "setting #{key} = #{val}"
     @values[key] = val
 
   get: (key, prefix='') =>
-    @log "checking for #{key}"
+    L\debug "checking for #{key} in #{@}"
     if val = @values[key]
-      @log "found #{val}"
+      L\trace "found #{val} in #{@}"
       return val
 
     start, rest = key\match '^(.-)/(.*)'
 
     if not start
-      return @parent and @parent\get key
+      return @parent and L\push -> @parent\get key
 
     scope = @get start
     assert scope and scope.type == 'scope', "cant find '#{prefix}#{start}' for '#{prefix}#{key}'"

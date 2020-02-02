@@ -1,7 +1,10 @@
 -- run from CLI
 import clock_gettime, nanosleep, CLOCK_MONOTONIC from require 'posix.time'
+import Logger from require 'logger'
 import Registry from require 'registry'
 import Copilot from require 'copilot'
+
+Logger.init!
 
 delta = do
   gettime = ->

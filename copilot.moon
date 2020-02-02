@@ -20,9 +20,18 @@ class Copilot
       error "not a file: #{@file}"
 
   patch: =>
-    root = assert (program\match slurp @file), "parse error"
-    @registry\patch_root root
+    root = program\match slurp @file
+
+    if not root
+      L\error "parse error"
+      return
+
+    @registry\retag root
     spit @file, root\stringify!
+
+    ok, err = pcall @registry\link
+    if not ok
+      L\error "error linking: #{err}"
 
   tb = (msg) -> debug.traceback msg, 2
   poll: =>
@@ -31,11 +40,8 @@ class Copilot
       return
 
     if @last_modification < modification
-      print "---"
-      ok, err = xpcall @patch, tb, @
-      if not ok
-        print "ERROR: #{err}"
-
+      L\log "#{@file} changed at #{modification}"
+      L\push @\patch
       @last_modification = os.time!
 
 :Copilot
