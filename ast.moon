@@ -12,16 +12,15 @@ hash = (tbl) ->
 
 class ASTNode
   -- first pass (outin):
-  -- * expand macros
-  -- * define scoped values
-  -- * evaluate references
+  -- * expand macros (mutate scopes)
+  -- * resolve symbols
   expand: (scope) =>
 
   -- second pass (inout):
-  -- * setup OPs (spawn/patch)
-  link: =>
+  -- * setup expressions (spawn/patch)
+  patch: (prev) =>
 
-class Atom
+class Atom extends ASTNode
   type: 'Atom'
 
   new: (@raw, @atom_type) =>
@@ -42,7 +41,7 @@ class Atom
       else
         error "unknown atom type: '#{@atom_type}'"
 
-  link: =>
+    @value
 
   _walk: => coroutine.yield @type, @
 
@@ -65,7 +64,7 @@ class Atom
   __tostring: =>
     "<Atom#{hash @} #{@stringify!}>"
 
-class Xpr
+class Xpr extends ASTNode
   type: 'Xpr'
 
   -- either:
@@ -86,20 +85,44 @@ class Xpr
       @white[i/2] = parts[i+1]
 
   expand: (scope) =>
-    head = @[1]
-    head\expand scope
+    @[1]\expand scope
+    head = @head!
 
     @scope = Scope @, scope
 
-    if head.value.type == 'macro'
-      macro = head.value\getc!
-      macro scope, @
-    else
-      for child in *@[2,]
-        child\expand scope
+    switch head.type
+      when 'macrodef'
+        Macrodef = head\getc!
+        @macro = Macrodef @
+        @value = @macro\expand scope
+      else
+        for child in *@[2,]
+          child\expand @scope
 
-  link: =>
+    @value
+
+  patch: (prev) =>
     head = @head!
+
+    compatible = prev and
+                 prev.value and
+                 prev\head! == head
+
+    if @macro
+      -- forward for macros
+      prev.value\destroy! if prev and prev.value
+      @macro\patch!
+    elseif compatible
+      -- continued existance
+      @value = prev.value
+      @value\setup @tail!
+    else
+      -- destroy + recreate
+      prev.value\destroy! if prev and prev.value
+      @value = head\getc!\spawn @tail!
+
+  update: (dt) =>
+    @value\update dt
 
   head: => @[1].value
   tail: => unpack [p.value for p in *@[2,]]

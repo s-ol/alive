@@ -1,4 +1,4 @@
-import Const, Op from require 'base'
+import Const, Op, Macro from require 'base'
 
 ancestor = (klass) ->
   assert klass, "cant find the ancestor of nil"
@@ -10,25 +10,21 @@ local Scope
 
 constify = (val, key) ->
   typ = switch type val
-    when 'number'
-      'num'
-    when 'string'
-      'str'
+    when 'number' then 'num'
+    when 'string' then 'str'
     when 'table'
       if base = rawget val, '__base'
         -- a class
         switch ancestor val
-          when Op
-            'opdef'
+          when Op then 'opdef'
+          when Macro then 'macrodef'
           else
             error "#{key}: cannot constify klass '#{val.__name}'"
       elseif klass = val.__class
         -- an instance
         switch ancestor klass
-          when Op
-            'op'
-          when Scope
-            'scope'
+          when Op then 'op'
+          when Scope then 'scope'
           when Const
             return val
           else

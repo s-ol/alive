@@ -1,29 +1,51 @@
-import Const from require 'base'
+import Macro, Const from require 'base'
 import Scope from require 'scope'
 
-module = {
-  def: (scope, xpr) ->
-    assert #xpr > 2, "'def' requires at least 3 arguments"
-    assert #xpr % 2 == 1, "'def' requires an even number of arguments"
-    for i=2,#xpr,2
-      assert xpr[i].atom_type == 'sym', "'def's argument ##{i} has to be a symbol"
-      xpr[i+1]\expand xpr.scope
-      scope\set xpr[i].raw, xpr[i+1].value
+class def extends Macro
+  expand: (scope) =>
+    assert #@node > 2, "'def' requires at least 3 arguments"
+    assert #@node % 2 == 1, "'def' requires an even number of arguments"
 
-  use: (scope, xpr) ->
-    for value in *xpr[2,]
-      value\expand xpr.scope
-      assert value.value.type == 'scope', "'use' only works on scopes"
-      scope\use value.value\getc!
+    L\trace @
+    L\push ->
+      for i=2,#@node,2
+        name, val = @node[i], @node[i+1]
+        assert name.atom_type == 'sym', "'def's argument ##{i} has to be a symbol"
+        val\expand @node.scope
+        scope\set name.raw, val.value
 
-  require: (scope, xpr) ->
-    assert #xpr == 2, "'require' takes only one parameter"
+    nil
 
-    xpr[2]\expand xpr.scope
-    name = xpr[2].value
+class _require extends Macro
+  expand: (scope) =>
+    assert #@node == 2, "'require' takes only one parameter"
+
+    L\trace @
+    L\push ->
+      for child in *@node[2,]
+        child\expand @node.scope
+
+    name = @node\tail!
     assert name.type == 'str', "'require' only works on strings"
 
-    xpr.value = Const 'scope', Scope.from_table require "lib.#{name\getc!}"
-}
+    L\trace @, "loading module #{name}"
+    scope = Scope.from_table require "lib.#{name\getc!}"
+    Const 'scope', scope
 
-{ k, Const 'macro', v for k, v in pairs module }
+class use extends Macro
+  expand: (scope) =>
+    L\trace @
+    L\push ->
+      for child in *@node[2,]
+        value = child\expand @node.scope
+        L\trace @, "merging #{value} into #{scope}"
+        assert value.type == 'scope', "'use' only works on scopes"
+        scope\use value\getc!
+
+    nil
+
+{
+  :def
+  require: _require
+  :use
+}

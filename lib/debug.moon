@@ -5,7 +5,7 @@ class out extends Op
     @name = name\getc!
 
   update: =>
-    print "#{@name} << ", @chld\get!
+    L\print "@name", @chld\get!
 
 {
   :out
