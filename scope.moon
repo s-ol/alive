@@ -60,7 +60,7 @@ class Scope
     start, rest = key\match '^(.-)/(.*)'
 
     if not start
-      return @parent\get key
+      return @parent and @parent\get key
 
     scope = @get start
     assert scope and scope.type == 'scope', "cant find '#{prefix}#{start}' for '#{prefix}#{key}'"

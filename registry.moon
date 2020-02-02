@@ -96,8 +96,10 @@ class Registry
   update: (dt) =>
     for typ, sexpr in @root\walk 'inout', false
       continue unless typ == 'Xpr'
-      -- continue unless sexpr.value and sexpr.value.update
-      continue unless sexpr\head!.type == 'opdef'
+
+      head = sexpr\head!
+      continue unless head and head.type == 'opdef'
+      continue unless sexpr.value
 
       ok, err = xpcall sexpr.value.update, tb, sexpr.value, dt
       if not ok
