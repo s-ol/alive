@@ -1,46 +1,12 @@
-import Const, Op, Macro from require 'base'
-
-ancestor = (klass) ->
-  assert klass, "cant find the ancestor of nil"
-  while klass.__parent
-    klass = klass.__parent
-  klass
-
-local Scope
-
-constify = (val, key) ->
-  typ = switch type val
-    when 'number' then 'num'
-    when 'string' then 'str'
-    when 'table'
-      if base = rawget val, '__base'
-        -- a class
-        switch ancestor val
-          when Op then 'opdef'
-          when Macro then 'macrodef'
-          else
-            error "#{key}: cannot constify klass '#{val.__name}'"
-      elseif klass = val.__class
-        -- an instance
-        switch ancestor klass
-          when Op then 'op'
-          when Scope then 'scope'
-          when Const
-            return val
-          else
-            error "#{key}: cannot constify '#{klass.__name}' instance"
-      else
-        return Const 'scope', Scope.from_table val
-    else
-      error "#{key}: cannot constify Lua type '#{type val}'"
-
-  Const typ, val
+local Const
 
 class Scope
   new: (@node, @parent) =>
+    import Const from require 'base'
+
     @values = {}
 
-  set_raw: (key, val) => @values[key] = constify val, key
+  set_raw: (key, val) => @values[key] = Const.wrap val, key
   set: (key, val) =>
     L\trace "setting #{key} = #{val}"
     @values[key] = val
@@ -66,7 +32,7 @@ class Scope
 
   from_table: (tbl) ->
     with Scope!
-      .values = { k, constify v, k for k,v in pairs tbl }
+      .values = { k, Const.wrap v, k for k,v in pairs tbl }
 
   __tostring: =>
     buf = "<Scope"
@@ -83,7 +49,6 @@ class Scope
 
     buf ..= ">"
     buf
-
 
 {
   :Scope
