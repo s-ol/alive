@@ -25,7 +25,7 @@ or in [LÖVE][love2d] (make sure to install the required modules for lua5.1):
 
     $ love . <session.alv>
 
-running in LÖVE adds the additional `gui` module. See [`lib/gui.moon`](lib/gui).
+running in LÖVE adds the additional `gui` module. See [`lib/gui.moon`](lib/gui.moon).
 
 [moonscript]: https://moonscript.org/
 [lfs]:        https://keplerproject.github.io/luafilesystem/

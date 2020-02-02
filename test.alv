@@ -1,14 +1,7 @@
-#(this is equivalent to:
-  (def osc (require 'osc'))
-  (def out osc/out))
-([2]use ([1]require 'osc'))
-
-#(there should probably be a shorthand for this,
-  but i'm not sure what to call it.
-  maybe it could be just
-  (require time) - note its a symbol not a string here)
-([4]def time ([3]require 'time'))
+([2]use ([1]require 'math'))
+([4]use ([3]require 'osc'))
+([6]use ([5]require 'time'))
  
-([6]out '127.0.0.1' 9000 '/param/radius/set' ([5]time/lfo 0.5))
-([8]out '127.0.0.1' 9000 '/param/offset/set' ([7]time/lfo 1.2 'saw'))
-
+([8]out '127.0.0.1' 9000 '/param/radius/set' ([11]mix 0.3 0.5 ([7]lfo 1.8))) 
+([10]out '127.0.0.1' 9000 '/param/offset/set' ([13]+ ([9]lfo 0.2 'sin')
+                                                 ([12]lfo 0.5 'sin')))
