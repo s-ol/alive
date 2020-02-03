@@ -48,23 +48,16 @@ class Registry
   patch: =>
     -- third pass (inout):
     -- * patch expressions (spawn/patch)
-    for typ, node in @root\walk 'inout', false
-      L\trace "patching #{node}"
-      node\patch @map[node.tag]
+    for child in *@root
+      child\patch @map
 
   --
 
-  tb = (msg) -> debug.traceback msg, 2
   update: (dt) =>
-    for typ, sexpr in @root\walk 'inout', false
-      continue unless typ == 'Xpr'
+    return unless @root
 
-      head = sexpr\head!
-      continue unless head and head.type == 'opdef'
-      continue unless sexpr.value
-
-      ok, err = xpcall sexpr.value.update, tb, sexpr.value, dt
-      if not ok
-        L\error "while updating #{sexpr}: #{err}"
+    -- runtime pass (inout)
+    for child in *@root
+      child\update dt
 
 :Registry

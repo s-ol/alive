@@ -25,11 +25,38 @@ class Macro
     -- print "creating Macro #{@@__name}", debug.traceback!
 
   -- forwarded from ASTNode
+  -- `scope` is the parent scope.
+  -- should :expand or :expand_quoted all subexprs
+  -- should return `Const` of `forward` if it has a value
   expand: (scope) =>
+    L\trace "expanding #{@}"
+    for child in *@node[2,]
+      L\push child\expand, @node.scope
+
+    nil
 
   -- forwarded from ASTNode
-  -- note: if prev_value is passed, it has to be :destroy'ed or returned
-  patch: (prev_value) => prev_value
+  -- should dispatch :patch on all :expanded subexprs
+  -- should setup @value if it is an Op
+  patch: (map) =>
+    L\trace "patching #{@}"
+    for child in *@node[2,]
+      L\push child\patch, map
+
+  -- forwarded from ASTNode
+  -- should dispatch :update on all :expanded subexprs and @node.value
+  update: (dt) =>
+    L\trace "updating #{@}"
+    for child in *@node[2,]
+      L\push child\update, dt
+
+    @node.value\update dt if @node.value
+
+  -- forwarded from ASTNode
+  -- should dispatch :destroy to all allocated Ops
+  destroy: =>
+    L\trace "destroying #{@}"
+    @node.value\destroy! if @node.value
 
   __tostring: => "<macro: #{@@__name}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
@@ -37,8 +64,13 @@ class Macro
 class Forward
   new: (@node) =>
 
-  get: => (assert @node.value, "node never patched!")\get!
-  getc: => (assert @node.value, "node never patched!")\getc!
+  get: => (assert @node.value, "node never patched! #{@}")\get!
+  getc: => (assert @node.value, "node never patched! #{@}")\getc!
+
+  update: =>
+  destroy: =>
+
+  __tostring: => "<fwd: #{@node}>"
 
 class Const
   types = {
@@ -56,6 +88,7 @@ class Const
   get: => @value
   getc: => @value
 
+  update: =>
   destroy: =>
 
   __tostring: =>

@@ -19,9 +19,17 @@ class Logger
     for name, level in pairs levels
       @[name] = (first, ...) =>
         return unless @level <= level
+
         where = debug.traceback nil, 2
-        where = where\match '^.*\n%s+([%w:/%.]+): '
-        print "[#{where}]#{@prefix}#{first}", ...
+        line = where\match '^.-\n%s+([%w:/%.]+): '
+        line = line\match '[%./]*(.*)'
+        line ..= string.rep ' ', 20-#line
+
+        if level == levels.error or @level == levels.debug
+          print "[#{line}]#{@prefix}#{first}", ...
+          print where
+        else
+          print "[#{line}]#{@prefix}#{first}", ...
 
     if level == levels.print
       @push = (fn, ...) => fn ...

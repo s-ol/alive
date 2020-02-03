@@ -1,4 +1,4 @@
-import Const from require 'base'
+import Const, Forward from require 'base'
 import Scope from require 'scope'
 unpack or= table.unpack
 
@@ -18,7 +18,13 @@ class ASTNode
 
   -- second pass (inout):
   -- * setup expressions (spawn/patch)
-  patch: (prev) =>
+  patch: (map) =>
+
+  -- runtime pass (inout)
+  update: (dt) =>
+
+  -- return a copy
+  clone: (tag_prefix) =>
 
 class Atom extends ASTNode
   type: 'Atom'
@@ -43,6 +49,17 @@ class Atom extends ASTNode
 
     @value
 
+  expand_quoted: =>
+    switch @atom_type
+      when 'num'
+        Const 'num', tonumber @raw
+      when 'strq', 'strd'
+        Const 'str', unescape @raw
+      when 'sym'
+        Const 'sym', @raw
+      else
+        error "unknown atom type: '#{@atom_type}'"
+
   _walk: => coroutine.yield @type, @
 
   stringify: =>
@@ -56,6 +73,9 @@ class Atom extends ASTNode
       else
         error "unknown atom type: '#{@atom_type}'"
 
+  -- atoms are immutable
+  clone: (tag_prefix) => Atom @raw, @atom_type
+
   @make_num:  (match) -> Atom match, 'num'
   @make_sym:  (match) -> Atom match, 'sym'
   @make_strd: (match) -> Atom match, 'strd'
@@ -68,21 +88,26 @@ class Xpr extends ASTNode
   type: 'Xpr'
 
   -- either:
+  -- * style, tag, parts, white
   -- * style, tag, parts
   -- * style, parts
-  new: (@style, tag, parts) =>
-    if not parts
-      parts = tag
-      tag = nil
+  new: (@style, tag, parts, white) =>
+    if white
+      for i, part in ipairs parts
+        @[i] = part
+    else
+      if not parts
+        parts = tag
+        tag = nil
+
+      @white = {}
+      @white[0] = parts[1]
+
+      for i = 2,#parts,2
+        @[i/2] = parts[i]
+        @white[i/2] = parts[i+1]
 
     @tag = tag
-
-    @white = {}
-    @white[0] = parts[1]
-
-    for i = 2,#parts,2
-      @[i/2] = parts[i]
-      @white[i/2] = parts[i+1]
 
   expand: (scope) =>
     @[1]\expand scope
@@ -99,29 +124,47 @@ class Xpr extends ASTNode
         for child in *@[2,]
           child\expand @scope
 
-    @value
+    @value or Forward @
 
-  patch: (prev) =>
-    head = @head!
+  patch: (map) =>
+    L\trace "patching #{@deep_tostring!}"
+    prev = map[@tag]
+
+    if @macro
+      -- forward for macros
+      if prev and prev.macro then prev.macro\destroy!
+      elseif prev and prev.value then prev.value\destroy!
+      @macro\patch map
+      return
 
     compatible = prev and
                  prev.value and
                  prev\head! == head
 
-    if @macro
-      -- forward for macros
-      prev.value\destroy! if prev and prev.value
-      @macro\patch!
-    elseif compatible
+    for child in *@
+      L\push child\patch, map
+    head = @head!
+
+    if compatible
       -- continued existance
       @value = prev.value
       @value\setup @tail!
+      L\trace "continued with", @tail!
     else
       -- destroy + recreate
       prev.value\destroy! if prev and prev.value
       @value = head\getc!\spawn @tail!
+      L\trace "recreated with", @tail!
 
   update: (dt) =>
+    if @macro
+      @macro\update dt
+      return
+
+    L\trace "updating #{@}"
+    for child in *@[2,]
+      L\push child\update, dt
+
     @value\update dt
 
   head: => @[1].value
@@ -155,8 +198,20 @@ class Xpr extends ASTNode
       else
         error "unknown sexpr style: '#{@style}'"
 
+  clone: (tag_prefix) =>
+    parts = [part\clone tag_prefix for part in *@]
+    Xpr @style, "#{tag_prefix}.#{@tag}", parts, @white
+
   make_sexpr: (...) -> Xpr '(', ...
   make_nexpr: (...) -> Xpr 'naked', ...
+
+  deep_tostring: =>
+    buf = "("
+    buf ..= "[#{@tag}]" if @tag
+    buf ..= "#{@[1].raw}"
+    buf ..= " #{table.concat [tostring child for child in *@], ' '}" if #@ > 1
+    buf ..= ")"
+    buf
 
   __tostring: =>
     if @style == 'naked'
