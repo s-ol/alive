@@ -34,6 +34,12 @@ class Macro
   __tostring: => "<macro: #{@@__name}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
 
+class Forward
+  new: (@node) =>
+
+  get: => (assert @node.value, "node never patched!")\get!
+  getc: => (assert @node.value, "node never patched!")\getc!
+
 class Const
   types = {
     sym: true
@@ -78,7 +84,7 @@ class Const
           switch ancestor klass
             when Op then 'op'
             when Scope then 'scope'
-            when Const
+            when Const, Forward
               return val
             else
               error "#{name}: cannot wrap '#{klass.__name}' instance"
@@ -93,5 +99,6 @@ class Const
 {
   :Op
   :Macro
+  :Forward
   :Const
 }

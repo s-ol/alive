@@ -4,7 +4,18 @@ import Logger from require 'logger'
 import Registry from require 'registry'
 import Copilot from require 'copilot'
 
-Logger.init!
+arguments, key = {}
+for a in *arg
+  if match = a\match '^%-%-(.*)'
+    key = match
+    arguments[key] = true
+  elseif key
+    arguments[key] = a
+    key = nil
+  else
+    table.insert arguments, a
+
+Logger.init arguments.log
 
 delta = do
   gettime = ->
@@ -18,7 +29,7 @@ delta = do
       last = time
 
 env = Registry!
-copilot = Copilot arg[1], env
+copilot = Copilot arguments[1], env
 
 while true
   copilot\poll!

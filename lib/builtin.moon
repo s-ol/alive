@@ -1,4 +1,4 @@
-import Macro, Const from require 'base'
+import Macro, Const, Forward from require 'base'
 import Scope from require 'scope'
 
 class def extends Macro
@@ -12,8 +12,13 @@ class def extends Macro
         name, val = @node[i], @node[i+1]
         assert name.atom_type == 'sym', "'def's argument ##{i} has to be a symbol"
         val\expand @node.scope
-        scope\set name.raw, val.value
 
+        if val.value
+          -- expand-time constant
+          scope\set name.raw, val.value
+        else
+          -- patch-time expression
+          scope\set name.raw, Forward val
     nil
 
 class _require extends Macro

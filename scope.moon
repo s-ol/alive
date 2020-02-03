@@ -8,7 +8,7 @@ class Scope
 
   set_raw: (key, val) => @values[key] = Const.wrap val, key
   set: (key, val) =>
-    L\trace "setting #{key} = #{val}"
+    L\trace "setting #{key} = #{val} in #{@}"
     @values[key] = val
 
   get: (key, prefix='') =>
@@ -45,7 +45,11 @@ class Scope
       parent = parent.parent
     buf ..= " ^#{depth}" if depth != 0
 
-    buf ..= " [#{table.concat [key for key in pairs @values], ', '}]"
+    keys = [key for key in pairs @values]
+    if #keys > 5
+      keys = [key for key in *keys[,5]]
+      keys[6] = '...'
+    buf ..= " [#{table.concat keys, ', '}]"
 
     buf ..= ">"
     buf

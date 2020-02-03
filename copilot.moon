@@ -33,7 +33,7 @@ class Copilot
 
     spit @file, root\stringify!
 
-    ok, err = pcall @registry\patch!
+    ok, err = pcall @registry\patch
     if not ok
       L\error "error patching: #{err}"
 

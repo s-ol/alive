@@ -29,6 +29,7 @@ class Registry
       continue unless typ == 'Xpr'
 
       if node.tag
+        @map[node.tag] = node
         seen[node.tag] = true
         continue
 

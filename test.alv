@@ -2,6 +2,8 @@
 ([4]use ([3]require 'osc'))
 ([6]use ([5]require 'time'))
 
-([8]out '127.0.0.1' 9000 '/param/radius/set' ([11]mix 0.3 0.5 ([7]lfo 1.8))) 
-([10]out '127.0.0.1' 9000 '/param/offset/set' ([13]+ ([9]lfo 0.2 'sin')
-                                                 ([12]lfo 0.5 'sin')))
+([8]def my-lfo ([7]lfo 0.2 'sin'))
+
+([8]out '127.0.0.1' 9000 '/param/radius/set' my-lfo)
+([10]out '127.0.0.1' 9000 '/param/offset/set' my-lfo)
+([10]out '127.0.0.1' 9000 '/param/offset/set' my-lfo)
