@@ -1,4 +1,6 @@
 import space, atom, expr, explist, sexpr, nexpr, program, comment from require 'parsing'
+import Logger from require 'logger'
+Logger.init 'silent'
 
 verify_parse = (parser, str) ->
   with assert parser\match str

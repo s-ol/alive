@@ -8,6 +8,7 @@ class Logger
     warn:  3
     error: 4
     print: 5
+    silent: 6
   }
 
   mklog = (max_level) -> 
@@ -38,9 +39,9 @@ class Logger
     else
       error unpack res
 
-  init: ->
+  init: (...) ->
     export L
-    L = Logger!
+    L = Logger ...
 
 {
   :Logger

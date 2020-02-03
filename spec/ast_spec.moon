@@ -1,5 +1,7 @@
 import Atom, Xpr from require 'ast'
 import Scope from require 'scope'
+import Logger from require 'logger'
+Logger.init 'silent'
 
 describe 'Atom', ->
   expand = (typ, str, ...) ->

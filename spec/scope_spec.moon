@@ -1,5 +1,7 @@
 import Op, Const from require 'base'
 import Scope from require 'scope'
+import Logger from require 'logger'
+Logger.init 'silent'
 
 class TestOp extends Op
   new: (...) => super ...
