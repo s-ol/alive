@@ -44,7 +44,7 @@ class Registry
       sexpr.tag = tag
       @map[tag] = sexpr
 
-  link: =>
+  patch: =>
     -- third pass (inout):
     -- * patch expressions (spawn/patch)
     for typ, node in @root\walk 'inout', false

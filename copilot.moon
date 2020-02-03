@@ -23,15 +23,19 @@ class Copilot
     root = program\match slurp @file
 
     if not root
-      L\error "parse error"
+      L\error "error parsing"
       return
 
-    @registry\retag root
+    ok, err = pcall @registry\retag, root
+    if not ok
+      L\error "error expanding: #{err}"
+      return
+
     spit @file, root\stringify!
 
-    ok, err = pcall @registry\link
+    ok, err = pcall @registry\patch!
     if not ok
-      L\error "error linking: #{err}"
+      L\error "error patching: #{err}"
 
   tb = (msg) -> debug.traceback msg, 2
   poll: =>

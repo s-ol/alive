@@ -12,7 +12,7 @@ class Logger
   }
 
   mklog = (max_level) -> 
-  new: (level='trace') =>
+  new: (level='log') =>
     @level = levels[level] or level
     @prefix = ' '
 
