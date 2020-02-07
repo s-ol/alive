@@ -11,6 +11,9 @@ class lfo extends Op
     L\trace "setup #{@}, freq=#{@freq}, wave=#{@wave}"
 
   update: (dt) =>
+    @freq\update dt
+    @wave\update dt
+
     @phase += dt * @freq\get!
     @value = switch @wave\get!
       when 'sin' then .5 + .5 * math.cos @phase * tau
@@ -26,6 +29,8 @@ class tick extends Op
   setup: (@freq) =>
 
   update: (dt) =>
+    @freq\update dt
+
     @phase += dt / @freq\get!
     @value = math.floor @phase
 

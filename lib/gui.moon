@@ -9,7 +9,8 @@ class out extends Op
     @name = name\getc!
     @@instances[@name] = @
 
-  update: =>
+  update: (dt) =>
+    @chld\update dt
     @value = @chld\get!
 
   destroy: =>

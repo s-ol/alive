@@ -20,22 +20,18 @@ class Copilot
       error "not a file: #{@file}"
 
   patch: =>
-    root = program\match slurp @file
+    ast = program\match slurp @file
 
-    if not root
+    if not ast
       L\error "error parsing"
       return
 
-    ok, err = pcall @registry\retag, root
+    ok, err = pcall @registry\eval, ast
     if not ok
       L\error "error expanding: #{err}"
       return
 
-    spit @file, root\stringify!
-
-    ok, err = pcall @registry\patch
-    if not ok
-      L\error "error patching: #{err}"
+    spit @file, ast\stringify!
 
   tb = (msg) -> debug.traceback msg, 2
   poll: =>

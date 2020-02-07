@@ -34,42 +34,17 @@ class Registry
 
     Const.num num
 
-  retag: (@root) =>
-    scope = Scope @root, @globals
+  eval: (ast) =>
+    scope = Scope ast, @globals
 
-    @prev, @next, @tmp = @next, {}, {}
-
-    -- first pass (outin):
-    -- * expand macros (mutate scopes)
-    -- * resolve symbols
-    -- * :register exprs
-    for child in *@root
-      child\expand scope, @
-
-    -- destroy removed expr values
-    for tag, expr in pairs @prev
-      if not @next[i]
-        expr.value\destroy! if expr.value
-
-    -- upgrade tmp tags
-    for _, expr in pairs @tmp
-      tag = @gentag!
-      expr.tag = tag
-      @next[tag] = expr
-
-  patch: =>
-    -- third pass (inout):
-    -- * patch expressions (spawn/patch)
-    for child in *@root
-      child\patch @
+    @root = ast\eval scope, @
+    @step!
 
   --
 
   update: (dt) =>
     return unless @root
 
-    -- runtime pass (inout)
-    for child in *@root
-      child\update dt
+    @root\update dt
 
 :Registry

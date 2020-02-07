@@ -10,16 +10,16 @@ ancestor = (klass) ->
 
 class Op
 -- common
-  new: (...) =>
-    @setup ...
+  new: =>
+  -- (...) => @setup ...
 
   get: => @value
   getc: =>
     L\warn "stream #{@} cast to constant"
     @value
 
--- interface
-  update: (dt) =>
+-- Value interface
+  update: =>
 
   destroy: =>
 
@@ -38,7 +38,7 @@ class Action
   register: =>
     @tag = @registry\register @, @tag
 
--- interface
+-- AST interface
   -- * eval args
   -- * perform scope effects
   -- * patch nested exprs
@@ -60,10 +60,11 @@ class Action
 
 -- static
   @get_or_create: (ActionType, head, tag, registry) ->
-    last = tag and registry\find tag
+    last = tag and registry\prev tag
     compatible = last and
-                 last.__class == ActionType and
-                 last\patch head
+                 (last.__class == ActionType) and
+                 (last\patch head) and
+                 last
 
     if not compatible
       last\destroy! if last
@@ -78,18 +79,19 @@ class Action
 class Const
   types = {
     sym: true
-    scope: true
     str: true
     num: true
+    scope: true
     op: true
     opdef: true
+    fndef: true
     builtin: true
   }
 
--- Value interface
   new: (@type, @value, @raw) =>
     assert types[@type], "invalid Const type: #{@type}"
 
+-- Value interface
   get: (type) =>
     assert not type or type == @type, "#{@} is not a #{type}"
     @value
@@ -98,13 +100,18 @@ class Const
     assert not type or type == @type, "#{@} is not a #{type}"
     @value
 
+  update: (dt) =>
+    switch @type
+      when 'op'
+        @value\update dt
+
 -- AST interface
   eval: (scope) =>
     switch @type
       when 'num', 'str'
         @
       when 'sym'
-        assert (scope\get @value), "undefined reference to symbol '#{@raw}'"
+        assert (scope\get @value), "undefined reference to symbol '#{@value}'"
       else
         error "cannot evaluate #{@}"
 
@@ -114,17 +121,13 @@ class Const
 
 -- static
   __tostring: =>
-    value = if @type\match 'def$' then @value.__name else @value
+    value = if @type == 'opdef' or @type == 'builtin' then @value.__name else @value
     "<#{@type}: #{value}>"
 
   __eq: (other) =>
     other.type == @type and other.value == @value
 
-  unescape = (str) ->
-    str = str\gsub '\\"', '"'
-    str = str\gsub "\\'", "'"
-    str = str\gsub "\\\\", "\\"
-    str
+  unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
 
   @parse: (type, sep) =>
     switch type
@@ -132,9 +135,10 @@ class Const
       when 'sym' then (match) -> @ 'sym', match, match
       when 'str' then (match) -> @ 'str', (unescape match), sep .. match .. sep
 
-  @num: (num) -> Const 'num', num
-  @str: (str) -> Const 'str', str
-  @sym: (sym) -> Const 'sym', sym
+  @num: (num) -> Const 'num', num, tostring num
+  @str: (str) -> Const 'str', str, "'#{str}'"
+  @sym: (sym) -> Const 'sym', sym, sym
+  @empty: -> Const 'str', '', "''"
 
   @wrap: (val, name='(unknown)') ->
     typ = switch type val
@@ -169,6 +173,9 @@ local builtin
 class Cell
 -- common
   new: (@tag, @children, @white) =>
+    if not @white
+      @white = ['' for i=1,#@children+1]
+
     builtin or= require 'lib.builtin'
 
   head: => @children[1]
@@ -189,27 +196,31 @@ class Cell
       else
         error "cannot evaluate expr with head #{head}"
 
-    action = Action\get_or_create head, tag, registry
+    action = Action\get_or_create head, @tag, registry
+    @tag or= action.tag
     action\eval scope, @tail!
 
   quote: (scope, registry) =>
-    tag = registry\register @, @tag
+    @tag = registry\register @, @tag
     children = [child\quote scope, registry for child in *@children]
-    Cell tag, children, @white, @style
+    @
 
-  stringify: (inner=false) =>
+  stringify: (depth=-1) =>
     buf = ''
-    buf ..= @white[0]
-    for i, child in ipairs @children
-      buf ..= child\stringify!
-      buf ..= @white[i]
-
-    return buf if inner
+    buf ..= if depth > 0 then ' ' else @white[0]
+    if depth == 0
+      buf ..= '...'
+    else
+      for i, child in ipairs @children
+        buf ..= child\stringify depth - 1
+        buf ..= if depth > 0 then ' ' else @white[i]
 
     tag = if @tag then "[#{@tag\stringify!}]" else ''
     '(' .. tag .. buf .. ')'
 
 -- static
+  __tostring: => @stringify 2
+
   parse_args = (tag, parts) ->
     if not parts
       parts, tag = tag, nil
@@ -230,7 +241,14 @@ class RootCell extends Cell
   tail: => @children
 
   stringify: =>
-    super\stringify true
+    buf = ''
+    buf ..= @white[0]
+
+    for i, child in ipairs @children
+      buf ..= child\stringify!
+      buf ..= @white[i]
+
+    buf
 
 {
   :Op

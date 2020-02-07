@@ -4,7 +4,8 @@ class out extends Op
   setup: (name, @chld) =>
     @name = name\getc!
 
-  update: =>
+  update: (dt) =>
+    @chld\update dt
     L\print "@name", @chld\get!
 
 {

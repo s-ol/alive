@@ -2,9 +2,7 @@ import Registry from require 'registry'
 import Const from require 'base'
 
 mk = ->
-  mock {
-    destroy: =>
-  }
+  mock destroy: =>
 
 describe 'registry', ->
   registry = Registry!

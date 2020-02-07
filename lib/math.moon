@@ -6,26 +6,38 @@ class BinOp extends Op
     @children = { ... }
     assert #@children >= 2, "#{@} needs at least two parameters"
 
+  update: (dt) =>
+    for child in *@children
+      child\update dt
+
 class add extends BinOp
-  update: =>
+  update: (dt) =>
+    super\update dt
+
     @value = 0
     for child in *@children
       @value += child\get!
 
 class sub extends BinOp
-  update: =>
+  update: (dt) =>
+    super\update dt
+
     @value = @children[1]\get!
     for child in *@children[2,]
       @value -= child\get!
 
 class mul extends BinOp
-  update: =>
+  update: (dt) =>
+    super\update dt
+
     @value = 1
     for child in *@children
       @value *= child\get!
 
 class div extends BinOp
-  update: =>
+  update: (dt) =>
+    super\update dt
+
     @value = @children[1]\get!
     for child in *@children[2,]
       @value /= child\get!
@@ -37,8 +49,12 @@ func_op = (name, arity, func) ->
       if arity != '*'
         assert #@params == arity, "#{@} needs exactly #{arity} parameters"
 
-    update: =>
-      @value = func unpack [param\get! for param in *@params]
+    update: (dt) =>
+      params = for param in *@params
+        param\update dt
+        param\get!
+
+      @value = func unpack params
 
   k.__name = name
   k
