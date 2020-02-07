@@ -1,55 +1,67 @@
 import Scope from require 'scope'
+import Const from require 'base'
 
 class Registry
-  new: (@env) =>
+  new: () =>
     @globals = Scope!
-    for k, v in pairs require 'lib.builtin'
-      @globals\set_raw k, v
+    @globals\use Scope.from_table require 'lib.builtin'
 
+    @prev_map = {}
     @map = {}
 
   --
 
-  gentag: => #@map + 1
+  step: =>
+    for tag, val in pairs @prev_map
+      if not @map[tag]
+        val\destroy!
+
+    @prev_map, @map = @map, {}
+
+  register: (expr, tag) =>
+    tag or= @gentag!
+    @map[tag\getc 'num'] = expr
+    tag
+
+  prev: (tag) =>
+    @prev_map[tag\getc 'num']
+
+  gentag: =>
+    num = (math.max #@map, #@prev_map) + 1
+
+    while @map[num] or @prev_map[num]
+      num += 1
+
+    Const.num num
 
   retag: (@root) =>
     scope = Scope @root, @globals
 
+    @prev, @next, @tmp = @next, {}, {}
+
     -- first pass (outin):
     -- * expand macros (mutate scopes)
     -- * resolve symbols
+    -- * :register exprs
     for child in *@root
-      child\expand scope
+      child\expand scope, @
 
-    -- second pass (inout):
-    -- * tag untagged exprs
-    -- * destroy orphaned exprs
-    seen = {}
-    to_tag = for typ, node in @root\walk 'inout', false
-      continue unless typ == 'Xpr'
-
-      if node.tag
-        @map[node.tag] = node
-        seen[node.tag] = true
-        continue
-
-      node
-
-    for tag, expr in pairs @map
-      if not seen[tag]
+    -- destroy removed expr values
+    for tag, expr in pairs @prev
+      if not @next[i]
         expr.value\destroy! if expr.value
-        @map[tag] = nil
 
-    for sexpr in *to_tag
+    -- upgrade tmp tags
+    for _, expr in pairs @tmp
       tag = @gentag!
-      sexpr.tag = tag
-      @map[tag] = sexpr
+      expr.tag = tag
+      @next[tag] = expr
 
   patch: =>
     -- third pass (inout):
     -- * patch expressions (spawn/patch)
     for child in *@root
-      child\patch @map
+      child\patch @
 
   --
 

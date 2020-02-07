@@ -1,4 +1,4 @@
-import Atom, Xpr from require 'ast'
+import Const, Cell, RootCell from require 'base'
 import R, S, P, V, C, Ct from require 'lpeg'
 
 -- whitespace
@@ -12,36 +12,36 @@ space  = (wc^1 * (comment * wc^1)^0) / 1 -- required whitespace
 mspace = (comment + wc)^0 / 1            -- optional whitespace
 
 -- atoms
-sym = ((R 'az', 'AZ') + (S '-_+*/.!?')) ^ 1 / Atom.make_sym
+sym = ((R 'az', 'AZ') + (S '-_+*/.!?')) ^ 1 / Const\parse 'sym'
 
-strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Atom.make_strd
-strq = "'" * (C ((P "\\'") + (P '\\\\') + (1 - P "'"))^0) * "'" / Atom.make_strq
+strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Const\parse 'str', '\"'
+strq = "'" * (C ((P "\\'") + (P '\\\\') + (1 - P "'"))^0) * "'" / Const\parse 'str', '\''
 str = strd + strq
 
 digit = R '09'
 int = digit^1
 float = (digit^1 * '.' * digit^0) + (digit^0 * '.' * digit^1)
-num = (float + int) / Atom.make_num
+num = (float + int) / Const\parse 'num'
 
 atom = num + sym + str
 
-expr = (V 'sexpr') + atom
+expr = (V 'cell') + atom
 explist = Ct mspace * (V 'expr') * (space * (V 'expr'))^0 * mspace
 
-tag = (P '[') * (int / tonumber) * (P ']')
-sexpr = (P '(') * tag^-1 * (V 'explist') * (P ')') / Xpr.make_sexpr
+tag = (P '[') * atom * (P ']')
+cell = (P '(') * tag^-1 * (V 'explist') * (P ')') / Cell\parse
 
-nexpr = P {
-  (V 'explist') / Xpr.make_nexpr
-  :expr, :explist, :sexpr
+root = P {
+  (V 'explist') / RootCell\parse
+  :expr, :explist, :cell
 }
 
-sexpr = P {
-  'sexpr'
-  :expr, :explist, :sexpr
+cell = P {
+  'cell'
+  :expr, :explist, :cell
 }
 
-program = nexpr * -1
+program = root * -1
 
 {
   :comment
@@ -49,7 +49,7 @@ program = nexpr * -1
   :atom
   :expr
   :explist
-  :sexpr
-  :nexpr
+  :cell
+  :root
   :program
 }

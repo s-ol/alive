@@ -1,4 +1,5 @@
-import space, atom, expr, explist, sexpr, nexpr, program, comment from require 'parsing'
+import space, atom, expr, explist, cell, program, comment from require 'parsing'
+import Const from require 'base'
 import Logger from require 'logger'
 Logger.init 'silent'
 
@@ -14,58 +15,81 @@ verify_parse_nope = (parser, str) ->
 describe 'atom parsing', ->
   test 'symbols', ->
     sym = verify_parse_nope atom, 'some-toast nope'
-    assert.is.equal 'sym', sym.atom_type
-    assert.is.equal 'some-toast', sym.raw
+    assert.is.equal 'sym', sym.type
+    assert.is.equal 'some-toast', sym\getc!
     assert.is.equal 'some-toast', sym\stringify!
 
   describe 'numbers', ->
     it 'parses ints', ->
       num = verify_parse_nope atom, '1234 nope'
-      assert.is.equal 'num', num.atom_type
-      assert.is.equal '1234', num.raw
+      assert.is.equal 'num', num.type
+      assert.is.equal 1234, num\getc!
       assert.is.equal '1234', num\stringify!
 
     it 'parses floats', ->
       num = verify_parse_nope atom, '0.123 nope'
-      assert.is.equal 'num', num.atom_type
-      assert.is.equal '0.123', num\stringify!
+      assert.is.equal 'num', num.type
+      assert.is.equal 0.123, num\getc!
 
       num = verify_parse_nope atom, '.123 nope'
-      assert.is.equal 'num', num.atom_type
-      assert.is.equal '.123', num\stringify!
+      assert.is.equal 'num', num.type
+      assert.is.equal 0.123, num\getc!
 
       num = verify_parse_nope atom, '0. nope'
-      assert.is.equal 'num', num.atom_type
-      assert.is.equal '0.', num\stringify!
+      assert.is.equal 'num', num.type
+      assert.is.equal 0, num\getc!
 
   describe 'strings', ->
     it 'parses double-quote strings', ->
       str = verify_parse_nope atom, '"help some stuff!" nope'
-      assert.is.equal 'strd', str.atom_type
-      assert.is.equal 'help some stuff!', str.raw
-      assert.is.equal '"help some stuff!"', str\stringify!
+      assert.is.equal 'str', str.type
+      assert.is.equal 'help some stuff!', str\getc!
 
     it 'parses single-quote strings', ->
       str = verify_parse_nope atom, "'help some stuff!' nope"
-      assert.is.equal 'strq', str.atom_type
-      assert.is.equal "help some stuff!", str.raw
-      assert.is.equal "'help some stuff!'", str\stringify!
+      assert.is.equal 'str', str.type
+      assert.is.equal "help some stuff!", str\getc!
 
     it 'handles escapes', ->
-      str = verify_parse_nope atom, '"string with \\"quote\\"s" nope'
-      assert.is.equal 'strd', str.atom_type
-      assert.is.equal 'string with \\"quote\\"s', str.raw
-      assert.is.equal '"string with \\"quote\\"s"', str\stringify!
+      str = verify_parse_nope atom, '"string with \\"quote\\"s and \\\\" nope'
+      assert.is.equal 'str', str.type
+      assert.is.equal 'string with \"quote\"s and \\', str\getc!
 
-describe 'nexpr parsing', ->
+      str = verify_parse_nope atom, "'string with \\'quote\\'s and \\\\' nope"
+      assert.is.equal 'str', str.type
+      assert.is.equal "string with \'quote\'s and \\", str\getc!
+
+describe 'Cell', ->
+  test 'basic parsing', ->
+    node = verify_parse cell, '( 3   ok-yes
+                                "friend" )'
+
+    assert.is.equal 3, #node.children
+    assert.is.equal (Const.num 3), node.children[1]
+    assert.is.equal (Const.sym 'ok-yes'), node.children[2]
+    assert.is.equal (Const.str 'friend'), node.children[3]
+
+  test 'tag parsing', ->
+    node = verify_parse cell, '([42]tagged 2)'
+
+    assert.is.equal 2, #node.children
+    assert.is.equal (Const.num 42), node.tag
+
+  test 'tag parsing with whitespace', ->
+    node = verify_parse cell, '([42]
+        tagged 2)'
+
+    assert.is.equal 2, #node.children
+    assert.is.equal (Const.num 42), node.tag
+
+describe 'RootCell parsing', ->
   describe 'handles whitespace', ->
     verify = (str) ->
-      node = verify_parse nexpr, str
+      node = verify_parse program, str
 
-      assert.is.equal 'naked', node.style
-      assert.is.equal 2, #node
-      assert.is.equal '3', node[1].raw
-      assert.is.equal 'ok-yes', node[2].raw
+      assert.is.equal 2, #node.children
+      assert.is.equal (Const.num 3), node.children[1]
+      assert.is.equal (Const.sym 'ok-yes'), node.children[2]
 
     it 'at the front of the string', ->
       verify ' 3\tok-yes'
@@ -75,25 +99,6 @@ describe 'nexpr parsing', ->
 
     it 'everywhere', ->
       verify ' 3\tok-yes\n'
-
-describe 'sexpr', ->
-  test 'basic parsing', ->
-    node = verify_parse sexpr, '( 3   ok-yes
-                                "friend" )'
-
-    assert.is.equal '(', node.style
-    assert.is.equal 3, #node
-    assert.is.equal '3', node[1].raw
-    assert.is.equal 'ok-yes', node[2].raw
-    assert.is.equal 'friend', node[3].raw
-
-  test 'tag parsing', ->
-    node = verify_parse sexpr, '([42]tagged 2)'
-
-    assert.is.equal '(', node.style
-    assert.is.equal 2, #node
-
-    assert.is.equal 42, node.tag
 
 test 'whitespace', ->
   assert.is.equal '  ', space\match '  '

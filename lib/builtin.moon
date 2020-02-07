@@ -1,4 +1,4 @@
-import Macro, Const, Forward from require 'base'
+import Action, Const, Cell from require 'base'
 import Scope from require 'scope'
 
 -- (def sym1 val-expr1
@@ -8,33 +8,26 @@ import Scope from require 'scope'
 --
 -- if val-expr is a expand-time constant, defines a `Const`,
 -- otherwise places a `Forward` for the expr
-class def extends Macro
-  expand: (scope) =>
+class def extends Action
+  expand: (scope, tail) =>
     L\trace "expanding #{@}"
-    assert #@node > 2, "'def' requires at least 3 arguments"
-    assert #@node % 2 == 1, "'def' requires an even number of arguments"
+    assert #tail > 1, "'def' requires at least 2 arguments"
+    assert #tail % 2 == 0, "'def' requires an even number of arguments"
 
     L\push ->
-      for i=2,#@node,2
-        name, val_expr = @node[i], @node[i+1]
-        assert name.atom_type == 'sym', "'def's argument ##{i} has to be a symbol"
-        name = name\expand_quoted!\getc!
+      for i=1,#tail,2
+        name, val_expr = tail[i], tail[i+1]
+        name = (name\quote scope, @registry)!\getc!
+        assert name.type == 'sym', "'def's argument ##{i} has to be a symbol"
 
-        scope\set name, val_expr\expand @node.scope
+        scope\set name, val_expr\eval scope, @registry
 
-        -- @TODO: expand to Forward in Xpr:expand
-        -- if val = val_expr\expand @node.scope
-        --   -- expand-time constant
-        --   scope\set name, val
-        -- else
-        --   -- patch-time expression
-        --   scope\set name, Forward val_expr
     nil
 
-  patch: (map) =>
+  patch: (registry) =>
     L\trace "patching #{@}"
     for child in *@node[3,,2]
-      L\push child\patch, map
+      L\push child\patch, registry
 
   update: (dt) =>
     L\trace "updating #{@}"
@@ -45,14 +38,12 @@ class def extends Macro
 --
 -- require a lua module and return its `Scope`
 -- name-str has to be an expand-time constant
-class _require extends Macro
-  expand: (scope) =>
+class require_mod extends Action
+  expand: (scope,  tail) =>
     L\trace "expanding #{@}"
-    assert #@node == 2, "'require' takes only one parameter"
-    for child in *@node[2,]
-      L\push child\expand, @node.scope
+    assert #tail == 1, "'require' takes only one parameter"
 
-    name = @node\tail!
+    name = L\push tail[1]\eval, scope, @registry
     assert name.type == 'str', "'require' only works on strings"
 
     L\trace @, "loading module #{name}"
@@ -63,87 +54,104 @@ class _require extends Macro
 --
 -- merge scopes into parent scope
 -- scopes have to be expand-time constants
-class use extends Macro
-  expand: (scope) =>
+class use extends Action
+  eval: (scope, tail) =>
     L\trace "expanding #{@}"
-    for child in *@node[2,]
-      value = L\push child\expand, @node.scope
+    for child in *tail
+      value = L\push child\eval, scope, @registry
       L\trace @, "merging #{value} into #{scope}"
       assert value.type == 'scope', "'use' only works on scopes"
       scope\use value\getc!
 
     nil
 
--- ((fn ...) arg-expr1 [arg-expr2]...)
---
--- invoke a function
-class FunctionInvocation extends Macro
-  new: (@node, @params, @body_tpl) =>
-    super @node
-
-  expand: (scope) =>
-    L\trace "expanding #{@}"
-    assert (#@params + 1) == #@node, "argument count mismatch in #{@node[1]}"
-
-    for i=1,#@params
-      param = @params[i]\getc!
-      argument = @node[i+1]
-      L\trace "EXPANDING ARG", argument
-      @node.scope\set param, L\push argument\expand, scope
-
-    @body = @body_tpl\clone @node.tag
-    val = @body\expand @node.scope
-    val
-
-  patch: (map) =>
-    L\trace "patching #{@}:"
-    for child in *@node[2,]
-      L\push child\patch, map
-
-    @body\patch map
-
-  update: (dt) =>
-    L\trace "updating #{@}:"
-    @body\update dt
-
-    for child in *@node[2,]
-      L\push child\update, dt
-
-  destroy: (dt) =>
-    L\trace "destroying #{@}"
-    @body.value\destroy! if @body.value
-
-  mt = { __call: (...) => @call ... }
-  with_def: (params, body) ->
-    call = (node) => FunctionInvocation node, params, body
-    setmetatable { :call, __name: 'Invocation' }, mt
-
 -- (fn (p1 [p2]...) body-expr)
 --
 -- declare a function
 --
 -- pX are symbols that will resolve to a 'Forward' in the body
-class fn extends Macro
-  expand: (scope) =>
+class fn extends Action
+  class FnDef
+    new: (@params, @body) =>
+
+  eval: (scope, tail) =>
     L\trace "expanding #{@}"
-    assert #@node == 3, "'fn' takes exactly three arguments"
-    params, body = @node[2], @node[3]
+    assert #tail == 2, "'fn' takes exactly two arguments"
+    { params, body } = tail
 
-    assert params.type == 'Xpr', "'fn's first argument has to be an expression"
+    assert params.__class == Cell, "'fn's first argument has to be an expression"
     param_symbols = for param in *params
-      assert param.atom_type == 'sym', "function parameter declaration has to be a symbol"
-      param\expand_quoted!
+      assert param.type == 'sym', "function parameter declaration has to be a symbol"
+      param\quote scope, @registry
 
-    Const 'macrodef', FunctionInvocation.with_def param_symbols, body
+    body = body\quote scope, @registry
+    Const 'fndef', FnDef param_symbols, body
 
-  patch: (map) =>
-    L\trace "patching #{@}"
+class op_invoke extends Action
+  patch: (head) =>
+    return true if head == @head
 
-  update: (dt) =>
+    @op\destroy! if @op
+
+    @head = head
+    assert @head.type == 'fndef', "cant op-invoke #{@head}"
+    @op = @head\getc!!
+  
+    true
+    
+  eval: (scope, tail) =>
+    args = [expr\eval scope, @registry for expr in *tail]
+    with @op
+      \patch unpack args
+
+class fn_invoke extends Action
+  -- @TODO:
+  -- need to :patch() the case where the new head is a new fndef
+  -- but corresponds to the last head over time
+
+  patch: (head) =>
+    return true if head == @head
+
+    @head = head
+
+    true
+
+  eval: (scope, tail) =>
+    assert @head.type == 'fndef', "cant fn-invoke #{@head}"
+    { :params, :body } = @head\getc!
+
+    assert #params == #tail, "argument count mismatch in #{@head}"
+
+    fn_scope = Scope @, scope
+
+    for i=1,#params
+      name = params[i]\getc!
+      argm = tail[i]
+      L\trace "EXPANDING ARG", argument
+      fn_scope\set name, L\push argm\eval, scope, @registry
+
+    body\expand fn_scope, @registry
+
+class do_expr extends Action
+  class DoWrapper
+    new: (@children) =>
+
+    update: (dt) =>
+      for child in *@children
+        child\update dt
+
+    get: => @children[#@children]\get!
+    getc: => @children[#@children]\getc!
+
+  eval: (scope, tail) =>
+    DoWrapper [expr\eval scope, @registry for expr in *tail]
 
 {
-  :def
-  require: _require
-  :use
+  'op-invoke': op_invoke
+  'fn-invoke': fn_invoke
+  'do': do_expr
+
+  require: require_mod
+  :def, :use
   :fn
 }
