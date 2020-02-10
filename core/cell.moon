@@ -36,7 +36,7 @@ class Cell
       @tag = cell.tag -- for writing back to file
 
   clone: (prefix) =>
-    tag = Const.sym prefix\getc! .. @tag\getc!
+    tag = Const.sym prefix\getc! .. '.' .. @tag\getc!
     children = [child\clone prefix for child in *@children]
     Cell tag, children, @white
 

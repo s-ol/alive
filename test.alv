@@ -1,10 +1,12 @@
-([2]use ([1]require 'math'))
-([4]use ([3]require 'osc'))
-([6]use ([5]require 'time'))
+([1]use ([2]require 'math'))
+([3]use ([4]require 'osc'))
+([5]use ([6]require 'time'))
 
-([17]def sin-lfo ([13]fn ([11]f)
-                 ([12]lfo f 'sin')))
+([7]def make-lfo ([8]fn (type)
+  ([11]fn ([9]f) ([10]lfo ([31]* f 0.5) type))))
 
-#([19]out '127.0.0.1' 9000 '/param/radius/set' ([18]lfo 0.2 'sin'))
-([8]out '127.0.0.1' 9000 '/param/radius/set' ([18]sin-lfo 0.1))
-([10]out '127.0.0.1' 9000 '/param/offset/set' ([15]sin-lfo 1))
+([12]def sin-lfo ([13]make-lfo 'sin'))
+
+
+([14]out '127.0.0.1' 9000 '/param/radius/set' ([15]sin-lfo 0.05))
+([16]out '127.0.0.1' 9000 '/param/offset/set' ([17]sin-lfo 0.2))

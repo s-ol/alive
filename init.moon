@@ -25,7 +25,6 @@ delta = do
     if last
       target, current = (last + period), monotime!
       if current > target
-        print current, target
         L\warn 'Frame Skipped!'
       else
         sleep target - current

@@ -45,9 +45,9 @@ class fn_invoke extends Action
 
     true
 
-  eval: (scope, tail) =>
+  eval: (outer_scope, tail) =>
     assert @head.type == 'fndef', "cant fn-invoke #{@head}"
-    { :params, :body } = @head\getc!
+    { :params, :body, :scope } = @head\getc!
 
     assert #params == #tail, "argument count mismatch in #{@head}"
 
@@ -56,7 +56,7 @@ class fn_invoke extends Action
     for i=1,#params
       name = params[i]\getc!
       argm = tail[i]
-      fn_scope\set name, L\push argm\eval, scope, @registry
+      fn_scope\set name, L\push argm\eval, outer_scope, @registry
 
     body = body\clone @tag
 

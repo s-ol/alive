@@ -38,6 +38,7 @@ class Registry
     Const.num num
 
   eval: (ast) =>
+    @map = {} -- in case we errored last time
     scope = Scope ast, @globals
 
     @root = ast\eval scope, @
