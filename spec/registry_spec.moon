@@ -1,5 +1,7 @@
 import Registry from require 'registry'
 import Const from require 'core'
+import Logger from require 'logger'
+Logger.init 'silent'
 
 mk = ->
   mock destroy: =>

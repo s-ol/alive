@@ -19,11 +19,15 @@ class Registry
 
   register: (expr, tag) =>
     tag or= @gentag!
-    @map[tag\getc 'num'] = expr
+    L\trace "registering #{expr} for tag #{tag}"
+    num = tag\getc!
+    if old = @map[num]
+      error "double registration: #{num}\n(old: #{old}, new: #{expr})"
+    @map[num] = expr
     tag
 
   prev: (tag) =>
-    @prev_map[tag\getc 'num']
+    @prev_map[tag\getc!]
 
   gentag: =>
     num = (math.max #@map, #@prev_map) + 1

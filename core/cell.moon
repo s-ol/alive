@@ -30,8 +30,14 @@ class Cell
     action\eval scope, @tail!
 
   quote: (scope, registry) =>
-    tag = registry\register @, @tag
     children = [child\quote scope, registry for child in *@children]
+    with cell = Cell nil, children, @white
+      cell.tag = registry\register cell, @tag
+      @tag = cell.tag -- for writing back to file
+
+  clone: (prefix) =>
+    tag = Const.sym prefix\getc! .. @tag\getc!
+    children = [child\clone prefix for child in *@children]
     Cell tag, children, @white
 
   stringify: (depth=-1) =>
@@ -81,5 +87,8 @@ class RootCell extends Cell
       buf ..= @white[i]
 
     buf
+
+  @parse: (...) =>
+    @__parent.parse @, (Const.num 0), ...
 
 :Cell, :RootCell

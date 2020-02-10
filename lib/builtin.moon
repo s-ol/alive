@@ -82,7 +82,6 @@ class fn extends Action
     assert #tail == 2, "'fn' takes exactly two arguments"
     { params, body } = tail
 
-
     assert params.__class == Cell, "'fn's first argument has to be an expression"
     param_symbols = for param in *params.children
       assert param.type == 'sym', "function parameter declaration has to be a symbol"

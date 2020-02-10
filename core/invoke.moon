@@ -58,6 +58,8 @@ class fn_invoke extends Action
       argm = tail[i]
       fn_scope\set name, L\push argm\eval, scope, @registry
 
+    body = body\clone @tag
+
     body\eval fn_scope, @registry
 
 class do_expr extends Action

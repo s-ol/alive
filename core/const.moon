@@ -53,6 +53,8 @@ class Const
 
   stringify: => @raw
 
+  clone: (prefix) => Const @type, @value, @raw
+
 -- static
   __tostring: =>
     value = if @type == 'opdef' or @type == 'builtin' then @value.__name else @value

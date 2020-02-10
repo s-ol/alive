@@ -1,3 +1,5 @@
+L or= setmetatable {}, __index: => ->
+
 import Op, Action from require 'core.base'
 
 import Const, load_ from require 'core.const'
