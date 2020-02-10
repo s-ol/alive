@@ -66,6 +66,6 @@ always reproduces the last non-nil value the input produced"
 
 {
   'switch': switch_
-  'switch-', switch_pause
+  'switch-': switch_pause
   :keep
 }

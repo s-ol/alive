@@ -20,7 +20,7 @@ class Logger
       @[name] = (first, ...) =>
         return unless @level <= level
 
-        where = debug.traceback nil, 2
+        where = debug.traceback '', 2
         line = where\match '^.-\n%s+([%w:/%.]+): '
         line = line\match '[%./]*(.*)'
         line ..= string.rep ' ', 20-#line

@@ -15,7 +15,7 @@ class Scope
       L\trace "found #{val} in #{@}"
       return val
 
-    start, rest = key\match '^(.-)/(.*)'
+    start, rest = key\match '^(.-)/(.+)'
 
     if not start
       return @parent and L\push -> @parent\get key
@@ -25,6 +25,7 @@ class Scope
     scope\getc!\get rest, "#{prefix}#{start}/"
 
   use: (other) =>
+    L\trace "using defs from #{other} in #{@}"
     for k, v in pairs other.values
       @values[k] = v
 

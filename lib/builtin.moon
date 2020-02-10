@@ -77,8 +77,7 @@ name-str has to be an eval-time constant."
     name = L\push tail[1]\eval, scope, @registry
 
     L\trace @, "loading module #{name}"
-    module = Scope.from_table require "lib.#{name\getc 'str'}"
-    Const 'scope', module
+    Const.wrap require "lib.#{name\getc 'str'}"
 
 class import_ extends Action
   @doc: "(import sym1 [sym2]...) - require and define modules
@@ -92,8 +91,7 @@ requires modules sym1, sym2, ... and defines them as sym1, sym2, ... in the curr
 
     for child in *tail
       name = (child\quote scope, @registry)\getc 'sym'
-      module = Scope.from_table require "lib.#{name}"
-      scope\set name, Const 'scope', module
+      scope\set name, Const.wrap require "lib.#{name}"
 
     nil
 
@@ -109,7 +107,7 @@ requires modules sym1, sym2, ... and merges them into the current scope"
 
     for child in *tail
       name = (child\quote scope, @registry)\getc 'sym'
-      scope\use Scope.from_table require "lib.#{name}"
+      scope\use (Const.wrap require "lib.#{name}")\getc 'scope'
 
     nil
 
@@ -159,29 +157,53 @@ class do_expr extends Action
 
 evaluates and continously updates expr1, expr2, ...
 the last expression's value is returned."
-  class DoWrapper
-    new: (@children) =>
-
-    update: (dt) =>
-      for child in *@children
-        L\push child\update, dt
-
-    get: => @children[#@children]\get!
-    getc: => @children[#@children]\getc!
-
-    __tostring: => '<dowrapper>'
 
   eval: (scope, tail) =>
     UpdateChildren [(expr\eval scope, @registry) or Const.empty! for expr in *tail]
 
+class if_ extends Action
+  @doc: "(if bool then-expr [else-xpr]) - make an eval-time const choice
+
+bool has to be an eval-time constant. If it is truthy, this expression is equivalent
+to then-expr, otherwise it is equivalent to else-xpr if given, or nil otherwise."
+
+  eval: (scope, tail) =>
+    L\trace "expanding #{@}"
+    assert #tail >= 2, "'if' needs at least two parameters"
+    assert #tail <= 3, "'if' needs at most three parameters"
+
+    { xif, xthen, xelse } = tail
+
+    xif = L\push xif\eval, scope, @registry
+    xif = xif\getc!
+
+    if xif
+      xthen\eval scope, @registry
+    elseif xelse
+      xelse\eval scope, @registry
+
+class trace extends Action
+  @doc: "(trace expr) - print an eval-time constant to the console"
+
+  eval: (scope, tail) =>
+    L\trace "expanding #{@}"
+    assert #tail == 1, "'trace' takes exactly one parameter"
+
+    with val = L\push tail[1]\eval, scope, @registry
+      L\print "trace:", val
+
 {
-  :doc
+  :doc, :trace
 
   :def, :use
   require: require_
   import: import_
   'import*': import_star
 
+  true: Const.bool true
+  false: Const.bool false
+
   :fn, :defn
   'do': do_expr
+  if: if_
 }

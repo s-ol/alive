@@ -1,5 +1,5 @@
 lfs = require 'lfs'
-import program from require 'parsing'
+import parse from require 'core'
 
 slurp = (file) ->
   file = io.open file, 'r'
@@ -20,7 +20,7 @@ class Copilot
       error "not a file: #{@file}"
 
   patch: =>
-    ast = program\match slurp @file
+    ast = parse slurp @file
 
     if not ast
       L\error "error parsing"

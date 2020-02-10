@@ -1,7 +1,10 @@
-{ graphics: lg } = love
+assert love, "this module only works from within love2d!"
+{ graphics: lg, keyboard: lk } = love
+
 import Op from require 'core'
 import Registry from require 'registry'
 import Copilot from require 'copilot'
+import Logger from require 'logger'
 
 class out extends Op
   @doc: "(out name-str value) - show the output
@@ -37,8 +40,30 @@ display value as a bar"
       lg.print name, x, MARGIN + HEIGHT + MARGIN
       x += WIDTH + MARGIN
 
+class key extends Op
+  @doc: "(key name-str) - gate from keypress"
+
+  setup: (@key) =>
+    assert @key
+
+  update: (dt) =>
+    @value = lk.isDown @key\get!
+
+arguments, k = {}
+for a in *arg
+  if match = a\match '^%-%-(.*)'
+    k = match
+    arguments[k] = true
+  elseif k
+    arguments[k] = a
+    k = nil
+  else
+    table.insert arguments, a
+
+Logger.init arguments.log
+
 env = Registry!
-copilot = Copilot arg[#arg], env
+copilot = Copilot arguments[#arguments], env
 
 love.update = (dt) ->
   copilot\poll!
@@ -49,4 +74,5 @@ love.draw = ->
 
 {
   :out
+  :key
 }

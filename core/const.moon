@@ -15,6 +15,7 @@ class Const
     sym: true
     str: true
     num: true
+    bool: true
     scope: true
     op: true
     opdef: true
@@ -53,7 +54,9 @@ class Const
 
   stringify: => @raw
 
-  clone: (prefix) => Const @type, @value, @raw
+  clone: (prefix) => @
+  -- in case of doubt:
+  -- clone: (prefix) => Const @type, @value, @raw
 
 -- static
   __tostring: =>
@@ -74,6 +77,7 @@ class Const
   @num: (num) -> Const 'num', num, tostring num
   @str: (str) -> Const 'str', str, "'#{str}'"
   @sym: (sym) -> Const 'sym', sym, sym
+  @bool: (bool) -> Const 'bool', bool, tostring bool
   @empty: -> Const 'str', '', "''"
 
   @wrap: (val, name='(unknown)') ->

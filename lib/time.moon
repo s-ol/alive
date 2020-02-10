@@ -16,6 +16,7 @@ wave selects the wave shape from the following (default sin):
 
   default_wave = Const 'str', 'sin'
   setup: (@freq, @wave=default_wave) =>
+    assert @freq, "lfo requires a frequency value"
     L\trace "setup #{@}, freq=#{@freq}, wave=#{@wave}"
 
   update: (dt) =>
@@ -29,23 +30,52 @@ wave selects the wave shape from the following (default sin):
       when 'tri' then math.abs (2*@phase % 2) - 1
       else error "unknown wave type"
 
-class tick extends Op
-  @doc: "(tick freq) - count ticks
+class ramp extends Op
+  @doc: "(ramp period [max]) - sawtooth lfo
 
-counts upwards at freq and returns the number of completed ticks."
+ramps from 0 to max (default same as ramp) once every period seconds"
+
   new: (...) =>
     super ...
     @phase = 0
 
-  setup: (@freq) =>
+  setup: (@period, @max) =>
+    assert @period, "tick requires a period value"
 
   update: (dt) =>
-    @freq\update dt
+    @period\update dt
+    max = if @max
+      @max\update dt
+      @max\get!
+    else
+      @period\get!
 
-    @phase += dt / @freq\get!
+    @phase += dt / @period\get!
+
+    if @phase >= 1
+      @phase -= 1
+
+    @value = @phase * max
+
+class tick extends Op
+  @doc: "(tick period) - count ticks
+
+counts upwards every period seconds and returns the number of completed ticks."
+  new: (...) =>
+    super ...
+    @phase = 0
+
+  setup: (@period) =>
+    assert @period, "tick requires a period value"
+
+  update: (dt) =>
+    @period\update dt
+
+    @phase += dt / @period\get!
     @value = math.floor @phase
 
 {
   :lfo
+  :ramp
   :tick
 }
