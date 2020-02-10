@@ -66,4 +66,10 @@ class Action
   __tostring: => "<action: #{@@__name}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
 
-:Op, :Action
+class FnDef
+  new: (@params, @body, @scope) =>
+
+  __tostring: =>
+    table.concat [p\stringify! for p in *@params], ' '
+
+:Op, :Action, :FnDef

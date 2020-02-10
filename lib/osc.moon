@@ -1,8 +1,10 @@
-import Op from require 'core'
+import Const, Op, FnDef from require 'core'
 import pack, unpack from require 'osc'
 import dns, udp from require 'socket'
 
 class out extends Op
+  @doc: "(out host port path val) - send a value via OSC"
+
   new: (...) =>
     super ...
 

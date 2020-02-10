@@ -4,6 +4,10 @@ import Registry from require 'registry'
 import Copilot from require 'copilot'
 
 class out extends Op
+  @doc: "(out name-str value) - show the output
+
+display value as a bar"
+
   setup: (name, @chld) =>
     @@instances[@name] = nil if @name
     @name = name\getc!

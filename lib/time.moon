@@ -1,6 +1,14 @@
 import Const, Op from require 'core'
 
 class lfo extends Op
+  @doc: "(lfo freq [wave]) - low-frequency oscillator
+
+oscillates between 0 and 1 at the frequency freq.
+wave selects the wave shape from the following (default sin):
+- sin
+- saw
+- tri"
+
   tau = math.pi * 2
   new: (...) =>
     super ...
@@ -22,6 +30,9 @@ class lfo extends Op
       else error "unknown wave type"
 
 class tick extends Op
+  @doc: "(tick freq) - count ticks
+
+counts upwards at freq and returns the number of completed ticks."
   new: (...) =>
     super ...
     @phase = 0

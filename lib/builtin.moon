@@ -1,4 +1,4 @@
-import Const, Cell, Action, Scope from require 'core'
+import Const, Cell, Action, FnDef, Scope from require 'core'
 
 class UpdateChildren
   new: (@children) =>
@@ -13,14 +13,25 @@ class UpdateChildren
 
   __tostring: => '<forwarder>'
 
--- (def sym1 val-expr1
---     [sym2 val-expr2]...)
---
--- declare symbols in parent scope
---
--- if val-expr is a expand-time constant, defines a `Const`,
--- otherwise places a `Forward` for the expr
+class doc extends Action
+  @doc: "(doc sym) - print documentation in console
+
+prints the docstring for sym in the console"
+
+  eval: (scope, tail) =>
+    assert #tail == 1, "'doc' takes exactly one parameter"
+
+    def = L\push tail[1]\eval, scope, @registry
+    L\print "(doc #{tail[1]\stringify!}):\n#{def\getc!.doc}\n"
+    nil
+
 class def extends Action
+  @doc: "(def sym1 val-expr1
+    [sym2 val-expr2]...) - declare symbols in parent scope
+
+defines the symbols sym1, sym2, ... to resolve to the values of val-expr1, val-expr2, ...
+updates all val-exprs."
+
   eval: (scope, tail) =>
     L\trace "expanding #{@}"
     assert #tail > 1, "'def' requires at least 2 arguments"
@@ -37,26 +48,12 @@ class def extends Action
 
     UpdateChildren values
 
--- (require name-str)
---
--- require a lua module and return its `Scope`
--- name-str has to be an expand-time constant
-class require_mod extends Action
-  eval: (scope,  tail) =>
-    L\trace "expanding #{@}"
-    assert #tail == 1, "'require' takes only one parameter"
-
-    name = L\push tail[1]\eval, scope, @registry
-
-    L\trace @, "loading module #{name}"
-    scope = Scope.from_table require "lib.#{name\getc 'str'}"
-    Const 'scope', scope
-
--- (use scope1 [scope2]...)
---
--- merge scopes into parent scope
--- scopes have to be expand-time constants
 class use extends Action
+  @doc: "(use scope1 [scope2]...) - merge scopes into parent scope
+
+adds all symbols from scope1, scope2, ... to the parent scope.
+all scopes have to be eval-time constants."
+
   eval: (scope, tail) =>
     L\trace "expanding #{@}"
     for child in *tail
@@ -67,15 +64,59 @@ class use extends Action
 
     nil
 
--- (fn (p1 [p2]...) body-expr)
---
--- declare a function
-class fn extends Action
-  class FnDef
-    new: (@params, @body) =>
+class require_ extends Action
+  @doc: "(require name-str) - require a module
 
-    __tostring: =>
-      table.concat [p\stringify! for p in *@params], ' '
+returns the module's scope
+name-str has to be an eval-time constant."
+
+  eval: (scope,  tail) =>
+    L\trace "expanding #{@}"
+    assert #tail == 1, "'require' takes exactly one parameter"
+
+    name = L\push tail[1]\eval, scope, @registry
+
+    L\trace @, "loading module #{name}"
+    module = Scope.from_table require "lib.#{name\getc 'str'}"
+    Const 'scope', module
+
+class import_ extends Action
+  @doc: "(import sym1 [sym2]...) - require and define modules
+
+requires modules sym1, sym2, ... and defines them as sym1, sym2, ... in the current scope"
+
+  eval: (scope, tail) =>
+    L\trace "expanding #{@}"
+    assert #tail > 0, "'import' requires at least one arguments"
+
+
+    for child in *tail
+      name = (child\quote scope, @registry)\getc 'sym'
+      module = Scope.from_table require "lib.#{name}"
+      scope\set name, Const 'scope', module
+
+    nil
+
+class import_star extends Action
+  @doc: "(import* sym1 [sym2]...) - require and use modules
+
+requires modules sym1, sym2, ... and merges them into the current scope"
+
+  eval: (scope, tail) =>
+    L\trace "expanding #{@}"
+    assert #tail > 0, "'import' requires at least one arguments"
+
+
+    for child in *tail
+      name = (child\quote scope, @registry)\getc 'sym'
+      scope\use Scope.from_table require "lib.#{name}"
+
+    nil
+
+class fn extends Action
+  @doc: "(fn (p1 [p2]...) body-expr) - declare a (lambda) function
+
+the symbols p1, p2, ... will resolve to the arguments passed to the function."
 
   eval: (scope, tail) =>
     L\trace "expanding #{@}"
@@ -88,54 +129,36 @@ class fn extends Action
       param\quote scope, @registry
 
     body = body\quote scope, @registry
-    Const 'fndef', FnDef param_symbols, body
+    Const.wrap FnDef param_symbols, body, scope
 
-class op_invoke extends Action
-  patch: (head) =>
-    return true if head == @head
+class defn extends Action
+  @doc: "(defn name-sym (p1 [p2]...) body-expr) - define a function
 
-    @op\destroy! if @op
-
-    @head = head
-    assert @head.type == 'opdef', "cant op-invoke #{@head}"
-    @op = @head\getc!!
-  
-    true
-    
-  eval: (scope, tail) =>
-    args = [expr\eval scope, @registry for expr in *tail]
-    -- Const 'op', with @op
-    with @op
-      \setup unpack args
-
-class fn_invoke extends Action
-  -- @TODO:
-  -- need to :patch() the case where the new head is a new fndef
-  -- but corresponds to the last head over time
-
-  patch: (head) =>
-    return true if head == @head
-
-    @head = head
-
-    true
+declares a lambda (see (doc fn)) and defines it in the current scope"
 
   eval: (scope, tail) =>
-    assert @head.type == 'fndef', "cant fn-invoke #{@head}"
-    { :params, :body } = @head\getc!
+    L\trace "expanding #{@}"
+    assert #tail == 3, "'defn' takes exactly three arguments"
+    { name, params, body } = tail
 
-    assert #params == #tail, "argument count mismatch in #{@head}"
+    name = (name\quote scope, @registry)\getc 'sym'
+    assert params.__class == Cell, "'defn's second argument has to be an expression"
+    param_symbols = for param in *params.children
+      assert param.type == 'sym', "function parameter declaration has to be a symbol"
+      param\quote scope, @registry
 
-    fn_scope = Scope @, scope
+    body = body\quote scope, @registry
+    fn = FnDef param_symbols, body, scope
 
-    for i=1,#params
-      name = params[i]\getc!
-      argm = tail[i]
-      fn_scope\set name, L\push argm\eval, scope, @registry
+    scope\set name, Const.wrap fn
 
-    body\eval fn_scope, @registry
+    nil
 
 class do_expr extends Action
+  @doc: "(do expr1 [expr2]...) - update multiple expressions
+
+evaluates and continously updates expr1, expr2, ...
+the last expression's value is returned."
   class DoWrapper
     new: (@children) =>
 
@@ -152,11 +175,13 @@ class do_expr extends Action
     UpdateChildren [(expr\eval scope, @registry) or Const.empty! for expr in *tail]
 
 {
-  'op-invoke': op_invoke
-  'fn-invoke': fn_invoke
-  'do': do_expr
+  :doc
 
-  require: require_mod
   :def, :use
-  :fn
+  require: require_
+  import: import_
+  'import*': import_star
+
+  :fn, :defn
+  'do': do_expr
 }

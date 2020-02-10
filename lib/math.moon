@@ -11,6 +11,9 @@ class BinOp extends Op
       child\update dt
 
 class add extends BinOp
+  @doc: "(+ a b [c]...)
+(add a b [c]...) - add values"
+
   update: (dt) =>
     super\update dt
 
@@ -19,6 +22,11 @@ class add extends BinOp
       @value += child\get!
 
 class sub extends BinOp
+  @doc: "(- a b [c]...)
+(sub a b [c]...) - subtract values
+
+subtracts all other arguments from a"
+
   update: (dt) =>
     super\update dt
 
@@ -27,6 +35,9 @@ class sub extends BinOp
       @value -= child\get!
 
 class mul extends BinOp
+  @doc: "(* a b [c]...)
+(mul a b [c]...) - multiply values"
+
   update: (dt) =>
     super\update dt
 
@@ -35,6 +46,11 @@ class mul extends BinOp
       @value *= child\get!
 
 class div extends BinOp
+  @doc: "(/ a b [c]...)
+(div a b [c]...) - divide values
+
+divides a by all other arguments"
+
   update: (dt) =>
     super\update dt
 

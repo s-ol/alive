@@ -1,4 +1,4 @@
-import Op, Action from require 'core.base'
+import Op, Action, FnDef from require 'core.base'
 
 local Scope
 load_ = ->
@@ -93,6 +93,7 @@ class Const
           switch ancestor val.__class
             when Op then 'op'
             when Scope then 'scope'
+            when FnDef then 'fndef'
             when Const
               return val
             else
