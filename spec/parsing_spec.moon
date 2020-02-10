@@ -1,5 +1,5 @@
 import space, atom, expr, explist, cell, program, comment from require 'parsing'
-import Const from require 'base'
+import Const from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 

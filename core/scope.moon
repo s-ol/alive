@@ -1,9 +1,7 @@
-local Const
+import Const from require 'core.const'
 
 class Scope
   new: (@node, @parent) =>
-    import Const from require 'base'
-
     @values = {}
 
   set_raw: (key, val) => @values[key] = Const.wrap val, key
@@ -54,6 +52,4 @@ class Scope
     buf ..= ">"
     buf
 
-{
-  :Scope
-}
+:Scope

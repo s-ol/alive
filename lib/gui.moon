@@ -1,5 +1,5 @@
 { graphics: lg } = love
-import Op from require 'base'
+import Op from require 'core'
 import Registry from require 'registry'
 import Copilot from require 'copilot'
 

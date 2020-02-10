@@ -1,5 +1,4 @@
-import Scope from require 'scope'
-import Const from require 'base'
+import Const, Scope from require 'core'
 
 class Registry
   new: () =>

@@ -1,5 +1,4 @@
-import Action, Const, Cell from require 'base'
-import Scope from require 'scope'
+import Const, Cell, Action, Scope from require 'core'
 
 class UpdateChildren
   new: (@children) =>

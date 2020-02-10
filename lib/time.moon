@@ -1,4 +1,4 @@
-import Op, Const from require 'base'
+import Const, Op from require 'core'
 
 class lfo extends Op
   tau = math.pi * 2

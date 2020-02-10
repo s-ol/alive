@@ -1,5 +1,5 @@
 import Registry from require 'registry'
-import Const from require 'base'
+import Const from require 'core'
 
 mk = ->
   mock destroy: =>

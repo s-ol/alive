@@ -1,4 +1,4 @@
-import Op from require 'base'
+import Op from require 'core'
 
 class pick extends Op
   setup: (@i, ...) =>

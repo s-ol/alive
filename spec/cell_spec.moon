@@ -1,12 +1,10 @@
-import Cell, RootCell, Const  from require 'base'
-import Scope from require 'scope'
+import Cell, RootCell, Const, Scope from require 'core'
 import Registry from require 'registry'
 import Logger from require 'logger'
 Logger.init 'silent'
 
 hello_world = Cell nil, { (Const.sym 'hello'), (Const.str 'world') }
 two_plus_two = Cell nil, { (Const.sym '+'), (Const.num 2), (Const.num 2) }
-
 
 describe 'Cell', ->
   describe 'quoting', ->
@@ -38,7 +36,8 @@ describe 'Cell', ->
       reg = mock register: =>
       root\quote nil, reg
 
-      (assert.spy reg.register).was.called_with reg, root, (Const.num 2)
+      (assert.spy reg.register).was.called!
+      (assert.spy reg.register).was.called_with reg, match._, Const.num 2
 
   describe 'evaluation', ->
     registry = Registry!

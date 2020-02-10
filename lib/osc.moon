@@ -1,4 +1,4 @@
-import Op from require 'base'
+import Op from require 'core'
 import pack, unpack from require 'osc'
 import dns, udp from require 'socket'
 

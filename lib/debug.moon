@@ -1,4 +1,4 @@
-import Op from require 'base'
+import Op from require 'core'
 
 class out extends Op
   setup: (name, @chld) =>

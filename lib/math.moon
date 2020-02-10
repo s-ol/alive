@@ -1,4 +1,4 @@
-import Op from require 'base'
+import Op from require 'core'
 unpack or= table.unpack
 
 class BinOp extends Op

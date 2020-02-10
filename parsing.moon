@@ -1,4 +1,4 @@
-import Const, Cell, RootCell from require 'base'
+import Const, Cell, RootCell from require 'core'
 import R, S, P, V, C, Ct from require 'lpeg'
 
 -- whitespace

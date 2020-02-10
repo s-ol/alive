@@ -1,5 +1,4 @@
-import Op, Const from require 'base'
-import Scope from require 'scope'
+import Scope, Const, Op from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 
