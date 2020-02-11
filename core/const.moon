@@ -10,6 +10,15 @@ ancestor = (klass) ->
     klass = klass.__parent
   klass
 
+class Ref
+  new: (@original) =>
+
+  get: (...) => @original\get ...
+  getc: (...) => @original\get ...
+
+  destroy: =>
+  update: =>
+
 class Const
   types = {
     sym: true
@@ -109,5 +118,19 @@ class Const
         error "#{name}: cannot wrap Lua type '#{type val}'"
 
     Const typ, val
+
+  @wrap_ref: (val) ->
+    if base = rawget val, '__base'
+      -- a class
+      error "#{name}: cannot wrap_ref class '#{val.__name}'"
+    elseif val.__class
+      -- an instance
+      switch ancestor val.__class
+        when Op then Ref val
+        when Const then val
+        else
+          error "#{name}: cannot wrap_ref '#{val.__class.__name}' instance"
+    else
+      error "#{name}: cannot wrap_ref Lua type '#{type val}'"
 
 :Const, :load_

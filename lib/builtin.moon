@@ -43,7 +43,7 @@ updates all val-exprs."
         name = (name\quote scope, @registry)\getc 'sym'
 
         val = val_expr\eval scope, @registry
-        scope\set name, val
+        scope\set name, Const.wrap_ref val
         val
 
     UpdateChildren values
