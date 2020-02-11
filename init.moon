@@ -1,7 +1,6 @@
 -- run from CLI
 import monotime, sleep from require 'system'
 import Logger from require 'logger'
-import Registry from require 'registry'
 import Copilot from require 'copilot'
 
 arguments, key = {}
@@ -33,11 +32,9 @@ delta = do
     with time - (last or time)
       last = time
 
-env = Registry!
-copilot = Copilot arguments[1], env
+copilot = Copilot arguments[1]
 
 while true
   dt = delta!
 
-  copilot\poll!
-  env\update dt
+  copilot\update dt

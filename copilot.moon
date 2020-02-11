@@ -1,5 +1,5 @@
 lfs = require 'lfs'
-import parse from require 'core'
+import parse, globals, Scope, Registry from require 'core'
 
 slurp = (file) ->
   file = io.open file, 'r'
@@ -12,7 +12,9 @@ spit = (file, str) ->
   file\close!
 
 class Copilot
-  new: (@file, @registry) =>
+  new: (@file) =>
+    @registry = Registry!
+
     @last_modification = 0
 
     mode = lfs.attributes @file, 'mode'
@@ -20,18 +22,37 @@ class Copilot
       error "not a file: #{@file}"
 
   patch: =>
-    ast = parse slurp @file
+    ast, err = parse slurp @file
 
     if not ast
-      L\error "error parsing"
+      L\error "error parsing: #{err}"
       return
 
-    ok, err = pcall @registry\eval, ast
+    ok, err = pcall @registry\prepare
     if not ok
-      L\error "error expanding: #{err}"
+      L\error "error preparing: #{err}"
+      return
+
+    scope = Scope ast, globals
+    ok, err = pcall ast\eval, scope, @registry
+    if not ok
+      L\error "error evaluating: #{err}"
+      return
+
+    @root = err
+
+    ok, err = pcall @registry\finalize
+    if not ok
+      L\error "error finalizing: #{err}"
       return
 
     spit @file, ast\stringify!
+
+  update: (dt) =>
+    @poll!
+
+    if @root
+      @root\update dt
 
   tb = (msg) -> debug.traceback msg, 2
   poll: =>

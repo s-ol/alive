@@ -22,11 +22,9 @@ class Op
 
 class Action
 -- common
-  new: (head, @tag, @registry) =>
+  new: (head, @tag) =>
+    @registry = @tag.registry -- @TODO: remove
     @patch head
-
-  register: =>
-    @tag = @registry\register @, @tag
 
 -- AST interface
   -- * eval args
@@ -49,21 +47,29 @@ class Action
     @head = head
 
 -- static
-  @get_or_create: (ActionType, head, tag, registry) ->
-    last = tag and registry\prev tag
+  @get_or_create: (ActionType, head, tag) ->
+    last = tag\last!
     compatible = last and
                  (last.__class == ActionType) and
                  (last\patch head) and
                  last
 
-    if not compatible
+    L\trace if compatible
+      "reusing #{last} for #{tag} <#{ActionType.__name} #{head}>"
+    else if last
+      "replacing #{last} with new #{tag} <#{ActionType.__name} #{head}>"
+    else
+      "initializing #{tag} <#{ActionType.__name} #{head}>"
+
+    if compatible
+      tag\keep compatible
+      compatible
+    else
       last\destroy! if last
-      compatible = ActionType head, tag, registry
+      with next = ActionType head, tag
+        tag\replace next
 
-    with compatible
-      \register!
-
-  __tostring: => "<action: #{@@__name}>"
+  __tostring: => "<#{@@__name} #{@head}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
 
 class FnDef

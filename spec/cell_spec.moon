@@ -1,4 +1,4 @@
-import Cell, RootCell, Const, Scope from require 'core'
+import Cell, RootCell, Const, Scope, globals from require 'core'
 import Registry from require 'registry'
 import Logger from require 'logger'
 Logger.init 'silent'
@@ -40,13 +40,13 @@ describe 'Cell', ->
       (assert.spy reg.register).was.called_with reg, match._, Const.num 2
 
   describe 'evaluation', ->
+    globals\use Scope.from_table require 'lib.math'
     registry = Registry!
-    registry.globals\use Scope.from_table require 'lib.math'
 
     local op, action
 
     it 'instantiates the op + action', ->
-      op = two_plus_two\eval registry.globals, registry
+      op = two_plus_two\eval globals, registry
       action = registry.map[two_plus_two.tag.value]
 
       assert.is.equal 'add', op.__class.__name
@@ -57,7 +57,7 @@ describe 'Cell', ->
       two_plus_two.children[3] = Const.num 3
 
       s = spy.on op, 'setup'
-      assert.is.equal op, two_plus_two\eval registry.globals, registry
+      assert.is.equal op, two_plus_two\eval globals, registry
       assert.is.equal action, registry.map[two_plus_two.tag.value]
       (assert.spy s).was.called_with (match.is_ref op), (Const.num 2), (Const.num 3)
       registry\step!
@@ -67,7 +67,7 @@ describe 'Cell', ->
       two_plus_two.children[2] = Const.num 6
 
       s = spy.on op, 'destroy'
-      assert.not.equal op, two_plus_two\eval registry.globals, registry
+      assert.not.equal op, two_plus_two\eval globals, registry
       assert.is.equal action, registry.map[two_plus_two.tag.value]
       assert.is.equal 'sub', action.op.__class.__name
       (assert.spy s).was.called_with match.is_ref op

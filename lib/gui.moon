@@ -2,7 +2,6 @@ assert love, "this module only works from within love2d!"
 { graphics: lg, keyboard: lk } = love
 
 import Op from require 'core'
-import Registry from require 'registry'
 import Copilot from require 'copilot'
 import Logger from require 'logger'
 
@@ -62,12 +61,10 @@ for a in *arg
 
 Logger.init arguments.log
 
-env = Registry!
-copilot = Copilot arguments[#arguments], env
+copilot = Copilot arguments[#arguments]
 
 love.update = (dt) ->
-  copilot\poll!
-  env\update dt
+  copilot\update dt
  
 love.draw = ->
   out.draw_all!

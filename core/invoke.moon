@@ -7,7 +7,7 @@ class UpdateChildren
 
   update: (dt) =>
     for child in *@children
-      L\trace "updating #{child}"
+      -- L\trace "updating #{child}"
       L\push child\update, dt
 
   get: => @children[#@children]\get!
@@ -28,7 +28,9 @@ class op_invoke extends Action
     true
     
   eval: (scope, tail) =>
-    args = [expr\eval scope, @registry for expr in *tail]
+    L\trace "evaling #{@}"
+    args = L\push -> [L\push expr\eval, scope, @registry for expr in *tail]
+
     -- Const 'op', with @op
     with @op
       \setup unpack args
@@ -63,19 +65,10 @@ class fn_invoke extends Action
     body\eval fn_scope, @registry
 
 class do_expr extends Action
-  class DoWrapper
-    new: (@children) =>
-
-    update: (dt) =>
-      for child in *@children
-        L\push child\update, dt
-
-    get: => @children[#@children]\get!
-    getc: => @children[#@children]\getc!
-
-    __tostring: => '<dowrapper>'
-
   eval: (scope, tail) =>
     UpdateChildren [(expr\eval scope, @registry) or Const.empty! for expr in *tail]
 
-:op_invoke, :fn_invoke
+{
+  :op_invoke, :fn_invoke
+  :UpdateChildren
+}

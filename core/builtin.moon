@@ -1,17 +1,8 @@
-import Const, Cell, Action, FnDef, Scope from require 'core'
-
-class UpdateChildren
-  new: (@children) =>
-
-  update: (dt) =>
-    for child in *@children
-      L\trace "updating #{child}"
-      L\push child\update, dt
-
-  get: => @children[#@children]\get!
-  getc: => @children[#@children]\getc!
-
-  __tostring: => '<forwarder>'
+import Action, FnDef from require 'core.base'
+import Const from require 'core.const'
+import Cell from require 'core.cell'
+import Scope from require 'core.scope'
+import UpdateChildren from require 'core.invoke'
 
 class doc extends Action
   @doc: "(doc sym) - print documentation in console
@@ -33,7 +24,7 @@ defines the symbols sym1, sym2, ... to resolve to the values of val-expr1, val-e
 updates all val-exprs."
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail > 1, "'def' requires at least 2 arguments"
     assert #tail % 2 == 0, "'def' requires an even number of arguments"
 
@@ -55,7 +46,7 @@ adds all symbols from scope1, scope2, ... to the parent scope.
 all scopes have to be eval-time constants."
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     for child in *tail
       value = L\push child\eval, scope, @registry
       L\trace @, "merging #{value} into #{scope}"
@@ -71,7 +62,7 @@ returns the module's scope
 name-str has to be an eval-time constant."
 
   eval: (scope,  tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail == 1, "'require' takes exactly one parameter"
 
     name = L\push tail[1]\eval, scope, @registry
@@ -85,7 +76,7 @@ class import_ extends Action
 requires modules sym1, sym2, ... and defines them as sym1, sym2, ... in the current scope"
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail > 0, "'import' requires at least one arguments"
 
 
@@ -101,7 +92,7 @@ class import_star extends Action
 requires modules sym1, sym2, ... and merges them into the current scope"
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail > 0, "'import' requires at least one arguments"
 
 
@@ -117,7 +108,7 @@ class fn extends Action
 the symbols p1, p2, ... will resolve to the arguments passed to the function."
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail == 2, "'fn' takes exactly two arguments"
     { params, body } = tail
 
@@ -135,7 +126,7 @@ class defn extends Action
 declares a lambda (see (doc fn)) and defines it in the current scope"
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail == 3, "'defn' takes exactly three arguments"
     { name, params, body } = tail
 
@@ -168,7 +159,7 @@ bool has to be an eval-time constant. If it is truthy, this expression is equiva
 to then-expr, otherwise it is equivalent to else-xpr if given, or nil otherwise."
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail >= 2, "'if' needs at least two parameters"
     assert #tail <= 3, "'if' needs at most three parameters"
 
@@ -186,7 +177,7 @@ class trace extends Action
   @doc: "(trace expr) - print an eval-time constant to the console"
 
   eval: (scope, tail) =>
-    L\trace "expanding #{@}"
+    L\trace "evaling #{@}"
     assert #tail == 1, "'trace' takes exactly one parameter"
 
     with val = L\push tail[1]\eval, scope, @registry

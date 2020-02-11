@@ -1,5 +1,6 @@
 import Const from require 'core.const'
 import Cell, RootCell from require 'core.cell'
+import Tag from require 'core.registry'
 import R, S, P, V, C, Ct from require 'lpeg'
 
 -- whitespace
@@ -29,7 +30,7 @@ atom = num + sym + str
 expr = (V 'cell') + atom
 explist = Ct mspace * (V 'expr') * (space * (V 'expr'))^0 * mspace
 
-tag = (P '[') * atom * (P ']')
+tag = (P '[') * (digit^1 / Tag\parse) * (P ']')
 cell = (P '(') * tag^-1 * (V 'explist') * (P ')') / Cell\parse
 
 root = P {
