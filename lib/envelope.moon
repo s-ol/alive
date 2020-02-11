@@ -20,7 +20,7 @@ goes from 0 to 1 in attack seconds, holds while gate is on, then goes back to 0 
     @r\update dt
     @gate\update dt
 
-    slope = if @gate\get! then @a\getc! else -@r\getc!
+    slope = if @gate\get! then (@a\get! or 0.1) else -(@r\get! or 0.5)
 
     @value = math.min 1, math.max 0, @value + dt / slope
 

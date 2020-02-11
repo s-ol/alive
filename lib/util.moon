@@ -1,4 +1,4 @@
-import Op from require 'core'
+import Const, Op from require 'core'
 
 class switch_ extends Op
   @doc: "(switch i v0 [v1 v2...]) - switch between multiple inputs
@@ -52,17 +52,18 @@ like (switch ...) except that the unused inputs are paused."
       active\get!
 
 class keep extends Op
-  @doc: "(keep value) - keep the last non-nil value
+  @doc: "(keep value [default]) - keep the last non-nil value
 
-always reproduces the last non-nil value the input produced"
+always reproduces the last non-nil value the input produced or default.
+default defaults to zero."
 
-  setup: (@i) =>
+  setup: (@i, @default=Const.num 0) =>
 
   update: (dt) =>
     @i\update dt
 
     next = @i\get!
-    @value = next or @value
+    @value = next or @value or @default\get!
 
 {
   'switch': switch_

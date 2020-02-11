@@ -1,13 +1,16 @@
-([1]import* math time string)
-([18]import osc)
+([1]import* math time string util)
+([2]import osc envelope midi)
 
-([7]def make-lfo ([8]fn (type)
-  ([11]fn ([9]f) ([10]lfo ([31]* f 0.5) type))))
+([3]defn make-lfo (type)
+  ([8]fn ([5]f) ([7]lfo ([6]* f 0.5) type)))
 
-([12]def sin-lfo ([13]make-lfo 'sin'))
+([9]def sin-lfo ([10]make-lfo 'sin'))
 
-([20]defn send (name value)
-  ([22]osc/out '127.0.0.1' 9000 ([19].. '/param/' name '/set') value))
+([11]defn send (name value)
+  ([13]osc/out '127.0.0.1' 9000
+    ([12].. '/param/' name '/set')
+    value))
 
-([14]send 'radius' ([15]sin-lfo 1.05))
-([16]send 'offset' ([17]sin-lfo 0.2))
+([23]send 'radius' ([25]([24]envelope/ar ([14]midi/cc 0) ([15]midi/cc 1)) ([27]midi/gate 36)))
+
+([19]send 'offset' ([20]sin-lfo ([16]keep ([26]midi/cc 24 0 4))))

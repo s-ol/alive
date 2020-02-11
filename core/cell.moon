@@ -10,6 +10,8 @@ class Cell
   head: => @children[1]
   tail: => [c for c in *@children[2,]]
 
+  destroy: =>
+
 -- AST interface
   eval: (scope, registry) =>
     head = @head!\eval scope, registry
