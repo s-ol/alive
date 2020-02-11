@@ -51,6 +51,19 @@ like (switch ...) except that the unused inputs are paused."
       active\update dt
       active\get!
 
+class edge extends Op
+  setup: (@i) =>
+    @value = false
+    @last = false
+
+  update: (dt) =>
+    @i\update dt
+
+    now = @i\get!
+
+    @value = not @last and now
+    @last = now
+
 class keep extends Op
   @doc: "(keep value [default]) - keep the last non-nil value
 
@@ -68,5 +81,6 @@ default defaults to zero."
 {
   'switch': switch_
   'switch-': switch_pause
+  :edge
   :keep
 }
