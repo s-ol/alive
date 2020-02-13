@@ -7,6 +7,7 @@ import Scope from require 'core.scope'
 load_!
 
 import Registry from require 'core.registry'
+import Tag from require 'core.tag'
 
 import Cell, RootCell from require 'core.cell'
 import cell, program from require 'core.parsing'
@@ -18,9 +19,9 @@ globals = Scope.from_table require 'core.builtin'
   :Op, :Action, :FnDef
   :Scope
 
-  :Registry
-  :globals
+  :Registry, :Tag
 
+  :globals
   parse: program\match
   eval: (str, inject) ->
       scope = Scope nil, globals

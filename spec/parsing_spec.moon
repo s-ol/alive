@@ -73,14 +73,14 @@ describe 'Cell', ->
     node = verify_parse cell, '([42]tagged 2)'
 
     assert.is.equal 2, #node.children
-    assert.is.equal (Const.num 42), node.tag
+    assert.is.equal 42, node.tag.value
 
   test 'tag parsing with whitespace', ->
     node = verify_parse cell, '([42]
         tagged 2)'
 
     assert.is.equal 2, #node.children
-    assert.is.equal (Const.num 42), node.tag
+    assert.is.equal 42, node.tag.value
 
 describe 'RootCell parsing', ->
   describe 'handles whitespace', ->
