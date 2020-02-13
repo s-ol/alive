@@ -75,11 +75,14 @@ func_op = (name, arity, func) ->
   k.__name = name
   k
 
+mod = func_op 'mod', 2, (a, b) -> a % b
+
 module = {
   :add, '+': add
   :sub, '-': sub
   :mul, '*': mul
   :div, '/': div
+  :mod, '%': mod
 
   mix: func_op 'mix', 3, (a, b, i) -> i*b + (1-i)*a
 

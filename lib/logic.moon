@@ -10,6 +10,19 @@ class BinOp extends Op
     for child in *@children
       child\update dt
 
+class eq extends BinOp
+  @doc: "(eq a b [c]...)
+(== a b [c]...) - check for equality"
+
+  update: (dt) =>
+    super\update dt
+
+    @value = true
+    val = @children[1]\get!
+    for child in *@children[2,]
+      @value and= val == child\get!
+
+
 class and_ extends BinOp
   @doc: "(and a b [c]...) - AND values"
 
@@ -57,6 +70,8 @@ class bool extends Op
         true
 
 {
+  '==': eq
+  :eq
   and: and_
   or: or_
   not: not_
