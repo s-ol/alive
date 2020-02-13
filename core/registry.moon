@@ -6,9 +6,9 @@ class Registry
 
   last: (index) => @last_map[index]
 
-  replace: (index, expr) =>
+  replace: (index, expr, ignore_dup=false) =>
     L\trace "reg: setting #{index} to #{expr}"
-    assert not @map[index], "duplicate tags with index #{index}!"
+    assert not @map[index] or ignore_dup, "duplicate tags with index #{index}!"
     @map[index] = expr
 
   init: (tag, expr) =>

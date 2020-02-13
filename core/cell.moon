@@ -43,6 +43,7 @@ class Cell
     Cell @tag, children, @white
 
   clone: (parent) =>
+    @tag\ensure!
     tag = @tag\clone parent
     children = [child\clone parent for child in *@children]
     Cell tag, children, @white

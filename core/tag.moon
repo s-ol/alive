@@ -2,6 +2,13 @@ import Registry from require 'core.registry'
 
 local ClonedTag
 
+class DummyReg
+  destroy: =>
+
+  __tostring: => "<dummy>"
+
+dummy = DummyReg!
+
 class Tag
   new: (@value) =>
 
@@ -22,6 +29,12 @@ class Tag
     else
       Registry.active!\init @, expr
 
+  ensure: =>
+    if index = @index!
+      Registry.active!\replace index, dummy, true
+    else
+      Registry.active!\init @, dummy
+
   index: => @value
 
   set: (value) =>
@@ -36,19 +49,7 @@ class Tag
   __tostring: => if @value then "#{@value}" else '[blank]'
 
 class ClonedTag extends Tag
-  class DummyReg
-    destroy: =>
-
   new: (@original, @parent) =>
-    @dummy = DummyReg!
-
-  keep: (expr) =>
-    super\keep expr
-    @original\replace @dummy
-
-  replace: (expr) =>
-    super\replace expr
-    @original\replace @dummy
 
   index: =>
     orig = @original\index!
