@@ -12,7 +12,7 @@ prints the docstring for sym in the console"
   eval: (scope, tail) =>
     assert #tail == 1, "'doc' takes exactly one parameter"
 
-    def = L\push tail[1]\eval, scope, @registry
+    def = L\push tail[1]\eval, scope
     L\print "(doc #{tail[1]\stringify!}):\n#{def\getc!.doc}\n"
     nil
 
@@ -31,9 +31,9 @@ updates all val-exprs."
     values = L\push ->
       return for i=1,#tail,2
         name, val_expr = tail[i], tail[i+1]
-        name = (name\quote scope, @registry)\getc 'sym'
+        name = (name\quote scope)\getc 'sym'
 
-        val = val_expr\eval scope, @registry
+        val = val_expr\eval scope
         scope\set name, Const.wrap_ref val
         val
 
@@ -48,7 +48,7 @@ all scopes have to be eval-time constants."
   eval: (scope, tail) =>
     L\trace "evaling #{@}"
     for child in *tail
-      value = L\push child\eval, scope, @registry
+      value = L\push child\eval, scope
       L\trace @, "merging #{value} into #{scope}"
       assert value.type == 'scope', "'use' only works on scopes"
       scope\use value\getc 'scope'
@@ -65,7 +65,7 @@ name-str has to be an eval-time constant."
     L\trace "evaling #{@}"
     assert #tail == 1, "'require' takes exactly one parameter"
 
-    name = L\push tail[1]\eval, scope, @registry
+    name = L\push tail[1]\eval, scope
 
     L\trace @, "loading module #{name}"
     Const.wrap require "lib.#{name\getc 'str'}"
@@ -81,7 +81,7 @@ requires modules sym1, sym2, ... and defines them as sym1, sym2, ... in the curr
 
 
     for child in *tail
-      name = (child\quote scope, @registry)\getc 'sym'
+      name = (child\quote scope)\getc 'sym'
       scope\set name, Const.wrap require "lib.#{name}"
 
     nil
@@ -97,7 +97,7 @@ requires modules sym1, sym2, ... and merges them into the current scope"
 
 
     for child in *tail
-      name = (child\quote scope, @registry)\getc 'sym'
+      name = (child\quote scope)\getc 'sym'
       scope\use (Const.wrap require "lib.#{name}")\getc 'scope'
 
     nil
@@ -115,9 +115,9 @@ the symbols p1, p2, ... will resolve to the arguments passed to the function."
     assert params.__class == Cell, "'fn's first argument has to be an expression"
     param_symbols = for param in *params.children
       assert param.type == 'sym', "function parameter declaration has to be a symbol"
-      param\quote scope, @registry
+      param\quote scope
 
-    body = body\quote scope, @registry
+    body = body\quote scope
     Const.wrap FnDef param_symbols, body, scope
 
 class defn extends Action
@@ -130,13 +130,13 @@ declares a lambda (see (doc fn)) and defines it in the current scope"
     assert #tail == 3, "'defn' takes exactly three arguments"
     { name, params, body } = tail
 
-    name = (name\quote scope, @registry)\getc 'sym'
+    name = (name\quote scope)\getc 'sym'
     assert params.__class == Cell, "'defn's second argument has to be an expression"
     param_symbols = for param in *params.children
       assert param.type == 'sym', "function parameter declaration has to be a symbol"
-      param\quote scope, @registry
+      param\quote scope
 
-    body = body\quote scope, @registry
+    body = body\quote scope
     fn = FnDef param_symbols, body, scope
 
     scope\set name, Const.wrap fn
@@ -150,7 +150,7 @@ evaluates and continously updates expr1, expr2, ...
 the last expression's value is returned."
 
   eval: (scope, tail) =>
-    UpdateChildren [(expr\eval scope, @registry) or Const.empty! for expr in *tail]
+    UpdateChildren [(expr\eval scope) or Const.empty! for expr in *tail]
 
 class if_ extends Action
   @doc: "(if bool then-expr [else-xpr]) - make an eval-time const choice
@@ -165,13 +165,13 @@ to then-expr, otherwise it is equivalent to else-xpr if given, or nil otherwise.
 
     { xif, xthen, xelse } = tail
 
-    xif = L\push xif\eval, scope, @registry
+    xif = L\push xif\eval, scope
     xif = xif\getc!
 
     if xif
-      xthen\eval scope, @registry
+      xthen\eval scope
     elseif xelse
-      xelse\eval scope, @registry
+      xelse\eval scope
 
 class trace extends Action
   @doc: "(trace expr) - print an eval-time constant to the console"
@@ -180,7 +180,7 @@ class trace extends Action
     L\trace "evaling #{@}"
     assert #tail == 1, "'trace' takes exactly one parameter"
 
-    with val = L\push tail[1]\eval, scope, @registry
+    with val = L\push tail[1]\eval, scope
       L\print "trace:", val
 
 {

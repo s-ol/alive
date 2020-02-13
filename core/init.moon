@@ -22,24 +22,10 @@ globals = Scope.from_table require 'core.builtin'
   :globals
 
   parse: program\match
-  eval: do
-    class BuiltinRegistry
-      new: =>
-        @cnt = 1
-
-      init: (tag, expr) =>
-        tag\set @cnt
-        @cnt += 1
-
-      last: (index) =>
-      replace: (index, expr) =>
-
-    registry = BuiltinRegistry!
-
-    (str, inject) ->
+  eval: (str, inject) ->
       scope = Scope nil, globals
       scope\use inject if inject
 
       ast = assert (cell\match str), "failed to parse: #{str}"
-      Const.wrap ast\eval scope, registry
+      Const.wrap ast\eval scope
 }

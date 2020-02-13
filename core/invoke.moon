@@ -29,7 +29,7 @@ class op_invoke extends Action
     
   eval: (scope, tail) =>
     L\trace "evaling #{@}"
-    args = L\push -> [L\push expr\eval, scope, @registry for expr in *tail]
+    args = L\push -> [L\push expr\eval, scope for expr in *tail]
 
     -- Const 'op', with @op
     with @op
@@ -58,15 +58,15 @@ class fn_invoke extends Action
     for i=1,#params
       name = params[i]\getc!
       argm = tail[i]
-      fn_scope\set name, L\push argm\eval, outer_scope, @registry
+      fn_scope\set name, L\push argm\eval, outer_scope
 
     body = body\clone @tag
 
-    body\eval fn_scope, @registry
+    body\eval fn_scope
 
 class do_expr extends Action
   eval: (scope, tail) =>
-    UpdateChildren [(expr\eval scope, @registry) or Const.empty! for expr in *tail]
+    UpdateChildren [(expr\eval scope) or Const.empty! for expr in *tail]
 
 {
   :op_invoke, :fn_invoke

@@ -1,75 +1,3 @@
-import Const from require 'core.const'
-import Scope from require 'core.scope'
-
-local ClonedTag
-
-class Tag
-  new: (@value) =>
-
-  clone: (parent) => ClonedTag @, parent
-
-  last: =>
-    if index = @index!
-      @registry\last index
-
-  keep: (expr) =>
-    index = assert @index!
-    assert expr == @registry\last index
-    @registry\replace index, expr
-
-  replace: (expr) =>
-    if index = @index!
-      @registry\replace index, expr
-    else
-      @registry\init @, expr
-
-index: => @value
-
-  set: (value) =>
-    assert not @value, "setting #{@} again"
-    @value = value
-
-  @blank: -> Tag!
-  @parse: (num) => @ tonumber num
-
-  stringify: => if @value then "[#{@value}]" else ''
-
-  __tostring: => if @value then "#{@value}" else '[blank]'
-
-class ClonedTag extends Tag
-  class DummyReg
-    destroy: =>
-
-  new: (@original, @parent) =>
-    @registry = @original.registry
-    @dummy = DummyReg!
-
-  keep: (expr) =>
-    super\keep expr
-    @original.registry or= @registry
-    @original\replace @dummy
-
-  replace: (expr) =>
-    super\replace expr
-    @original.registry or= @registry
-    @original\replace @dummy
-
-  index: =>
-    orig = @original\index!
-    parent = @parent\index!
-    if orig and parent
-      "#{parent}.#{orig}"
-
-  set: (value) => @original\set value
-
-  stringify: => error "cant stringify ClonedTag"
-
-  __tostring: =>
-    if @parent
-      "#{@parent}.#{@original}"
-    else
-      tostring @original
-
 class Registry
   new: () =>
     @map = {}
@@ -87,9 +15,20 @@ class Registry
     L\trace "reg: init pending to #{expr}"
     table.insert @pending, { :tag, :expr }
 
+  active: ->
+    assert Registry.active_registry, "no active Registry!"
+
 -- public methods
 
+  wrap: (fn) =>
+    (...) ->
+      @prepare!
+      with fn ...
+        @finalize!
+
   prepare: =>
+    assert not @prev, "already have a previous registry? #{@prev}"
+    @prev, @@active_registry = @@active_registry, @
     @last_map, @map, @pending = @map, {}, {}
 
   finalize: =>
@@ -106,9 +45,26 @@ class Registry
       tag\set @next_tag!
       @map[tag\index!] = expr
 
+    assert @ == @@active_registry, "not the active registry!"
+    @@active_registry, @prev = @prev, nil
+
   next_tag: => #@map + 1
 
+class SimpleRegistry extends Registry
+  new: =>
+    @cnt = 1
+
+  init: (tag, expr) =>
+    tag\set @cnt
+    @cnt += 1
+
+  last: (index) =>
+  replace: (index, expr) =>
+  finalize: =>
+    assert @ == @@active_registry, "not the active registry!"
+    @@active_registry, @prev = @prev, nil
+
 {
-  :Tag
   :Registry
+  :SimpleRegistry
 }

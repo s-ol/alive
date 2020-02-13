@@ -1,6 +1,6 @@
 import Const from require 'core.const'
 import Cell, RootCell from require 'core.cell'
-import Tag from require 'core.registry'
+import Tag from require 'core.tag'
 import R, S, P, V, C, Ct from require 'lpeg'
 
 -- whitespace

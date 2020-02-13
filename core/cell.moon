@@ -1,6 +1,6 @@
 import Const from require 'core.const'
 import op_invoke, fn_invoke from require 'core.invoke'
-import Tag from require 'core.registry'
+import Tag from require 'core.tag'
 
 class Cell
 -- common
@@ -17,8 +17,8 @@ class Cell
   destroy: =>
 
 -- AST interface
-  eval: (scope, registry) =>
-    head = @head!\eval scope, registry
+  eval: (scope) =>
+    head = @head!\eval scope
     Action = switch head.type
       when 'opdef'
         -- scope\get 'op-invoke'
@@ -35,12 +35,11 @@ class Cell
           print head.__class.__name
         error "cannot evaluate expr with head #{head}"
 
-    @tag.registry = registry
     action = Action\get_or_create head, @tag
     action\eval scope, @tail!
 
-  quote: (scope, registry) =>
-    children = [child\quote scope, registry for child in *@children]
+  quote: (scope) =>
+    children = [child\quote scope for child in *@children]
     Cell @tag, children, @white
 
   clone: (parent) =>

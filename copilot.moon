@@ -28,23 +28,13 @@ class Copilot
       L\error "error parsing: #{err}"
       return
 
-    ok, err = pcall @registry\prepare
-    if not ok
-      L\error "error preparing: #{err}"
-      return
-
     scope = Scope ast, globals
-    ok, err = pcall ast\eval, scope, @registry
+    ok, err = pcall (@registry\wrap ast\eval), scope, @registry
     if not ok
       L\error "error evaluating: #{err}"
       return
 
     @root = err
-
-    ok, err = pcall @registry\finalize
-    if not ok
-      L\error "error finalizing: #{err}"
-      return
 
     spit @file, ast\stringify!
 

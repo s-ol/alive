@@ -23,7 +23,6 @@ class Op
 class Action
 -- common
   new: (head, @tag) =>
-    @registry = @tag.registry -- @TODO: remove
     @patch head
 
 -- AST interface
