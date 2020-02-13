@@ -22,7 +22,8 @@ class Logger
 
         where = debug.traceback '', 2
         line = where\match '^.-\n%s+([%w:/%.]+): '
-        line = line\match '[%./]*(.*)'
+        line = (line\match '[%./]*(.*)') or line
+        line = (line\match '^core/(.*)') or line
         line ..= string.rep ' ', 20-#line
 
         if level == levels.error or @level == levels.debug
@@ -38,7 +39,7 @@ class Logger
     last = @prefix
     @prefix ..= '  '
 
-    res = { pcall fn, ... }
+    res = { xpcall fn, debug.traceback, ... }
 
     @prefix = last
 

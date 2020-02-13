@@ -13,7 +13,6 @@ class out extends Op
   setup: (@host, @port, @path, @value) =>
 
   update: (dt) =>
-    L\trace "updating #{@}"
     for p in *{@host, @port, @path, @value}
       L\push p\update, dt
 
