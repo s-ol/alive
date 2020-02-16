@@ -41,8 +41,9 @@ class Registry
       -- (e.g. first [A] is solved, then [5.A] is solved)
       continue if tag\index!
 
-      L\trace "assigning new tag #{value} to #{tag} #{expr}"
-      tag\set @next_tag!
+      next_tag = @next_tag!
+      L\trace "assigned new tag #{next_tag} to #{tag} #{expr}"
+      tag\set next_tag
       @map[tag\index!] = expr
 
     assert @ == @@active_registry, "not the active registry!"

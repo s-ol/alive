@@ -3,12 +3,10 @@ import Op from require 'core'
 class out extends Op
   @doc: "(out name-str value) - log value to the console"
 
-  setup: (name, @chld) =>
-    @name = name\getc!
+  setup: (@name, @value) =>
 
   update: (dt) =>
-    @chld\update dt
-    L\print "@name", @chld\get!
+    L\print "#{@name\unwrap 'str'}", @value\unwrap!
 
 {
   :out

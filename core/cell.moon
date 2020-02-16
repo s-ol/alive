@@ -1,15 +1,19 @@
-import Const from require 'core.const'
+-- ALV Cell type
+import Const from require 'core.value'
 import op_invoke, fn_invoke from require 'core.invoke'
 import Tag from require 'core.tag'
 
+-- ALV Cell type
 class Cell
 -- common
-  new: (@tag, @children, @white) =>
+  -- tag:      the parsed Tag
+  -- children: sequence of child AST Nodes
+  -- white:    optional sequence of whitespace segments ([0 .. #@children])
+  new: (@tag=Tag.blank!, @children, @white) =>
     if not @white
       @white = ['' for i=1,#@children+1]
 
-    if not @tag
-      @tag = Tag.blank!
+    assert #@white == #@children, "mismatched whitespace length"
 
   head: => @children[1]
   tail: => [c for c in *@children[2,]]
@@ -18,7 +22,8 @@ class Cell
 
 -- AST interface
   eval: (scope) =>
-    head = @head!\eval scope
+    head_result = @head!\eval scope
+    head = head_result.value\const!
     Action = switch head.type
       when 'opdef'
         -- scope\get 'op-invoke'
@@ -27,7 +32,7 @@ class Cell
         -- scope\get 'fn-invoke'
         fn_invoke
       when 'builtin'
-        head\getc!
+        head\unwrap!
       else
         print head
         for k,v in pairs head
@@ -35,8 +40,7 @@ class Cell
           print head.__class.__name
         error "cannot evaluate expr with head #{head}"
 
-    action = Action\get_or_create head, @tag
-    action\eval scope, @tail!
+    Action\eval_cell scope, @tag, head, @tail!
 
   quote: (scope) =>
     children = [child\quote scope for child in *@children]
@@ -81,6 +85,9 @@ class Cell
     tag, children, white = parse_args ...
     @ tag, children, white
 
+-- A parenthesis-less Cell (root of an ALV document)
+--
+-- evaluates with an implicit 'do' in the head
 class RootCell extends Cell
   head: => Const.sym 'do'
   tail: => @children
@@ -98,4 +105,7 @@ class RootCell extends Cell
   @parse: (...) =>
     @__parent.parse @, (Tag\parse '0'), ...
 
-:Cell, :RootCell
+{
+  :Cell
+  :RootCell
+}

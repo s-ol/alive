@@ -1,15 +1,13 @@
+-- base definitions for extensions
+
+-- a persistent expression Operator
+--
+-- accepts Const or Stream inputs and produces a Stream output
 class Op
--- common
-  new: =>
-  -- (...) => @setup ...
+  update: (dt) =>
 
-  get: => @value
-  getc: =>
-    L\warn "stream #{@} cast to constant"
-    @value
-
--- Value interface
-  update: =>
+  -- set @out to a Value (Const or Stream)
+  setup: (...) =>
 
   destroy: =>
 
@@ -17,11 +15,16 @@ class Op
   __tostring: => "<op: #{@@__name}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
 
-  spawn: (Opdef, ...) ->
-    Opdef ...
 
+-- a builtin / special form / cell-evaluation strategy
+--
+-- responsible for quoting/evaluating subexpressions,
+-- instantiating and patching Ops,
+-- updating the current Scope,
+-- etc.
 class Action
--- common
+  -- head: the (:eval'd) head of the Cell to evaluate (a Const)
+  -- tag:  the Tag of the expression to evaluate
   new: (head, @tag) =>
     @patch head
 
@@ -35,9 +38,9 @@ class Action
   -- free resources
   destroy: =>
 
-  -- update this instance for :eavl() with new head
-  -- if :patch() returns false, this instance is :destroy'ed and recreated instead
-  -- must *not* return false when called after :new()
+  -- update this instance for :eval() with new head
+  -- if :patch() returns false, this instance is :destroy'ed and recreated
+  -- instead must *not* return false when called after :new()
   -- only considered if Action types match
   patch: (head) =>
     if head == @head
@@ -46,35 +49,51 @@ class Action
     @head = head
 
 -- static
-  @get_or_create: (ActionType, head, tag) ->
+  -- find & patch the action for the expression with Tag 'tag' if it exists,
+  -- and is compatible with the new Cell contents, otherwise instantiate it.
+  -- register the action with the tag, evaluate it and return the ResultNode
+  @eval_cell: (scope, tag, head, tail) =>
     last = tag\last!
     compatible = last and
-                 (last.__class == ActionType) and
+                 (last.__class == @) and
                  (last\patch head) and
                  last
 
     L\trace if compatible
-      "reusing #{last} for #{tag} <#{ActionType.__name} #{head}>"
+      "reusing #{last} for #{tag} <#{@__name} #{head}>"
     else if last
-      "replacing #{last} with new #{tag} <#{ActionType.__name} #{head}>"
+      "replacing #{last} with new #{tag} <#{@__name} #{head}>"
     else
-      "initializing #{tag} <#{ActionType.__name} #{head}>"
+      "initializing #{tag} <#{@__name} #{head}>"
 
-    if compatible
+    action = if compatible
       tag\keep compatible
       compatible
     else
       last\destroy! if last
-      with next = ActionType head, tag
+      with next = @ head, tag
         tag\replace next
+
+    action\eval scope, tail
 
   __tostring: => "<#{@@__name} #{@head}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
 
+-- a ALV function definition
+--
+-- when called, expands its body with params bound to the fn arguments
+-- (see core.invoke.fn-invoke)
 class FnDef
+  -- params: sequence of (:quote'd) symbols, each naming a function parameter
+  -- body:   (:quote'd) expression the function evaluates to
+  -- scoe:   the lexical scope the function was defined in (closure)
   new: (@params, @body, @scope) =>
 
   __tostring: =>
-    table.concat [p\stringify! for p in *@params], ' '
+    "(fn (#{table.concat [p\stringify! for p in *@params], ' '}) ...)"
 
-:Op, :Action, :FnDef
+{
+  :Op
+  :Action
+  :FnDef
+}

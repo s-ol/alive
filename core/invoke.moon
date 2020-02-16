@@ -1,19 +1,6 @@
-import Const from require 'core.const'
+import ResultNode, Value from require 'core.value'
 import Action from require 'core.base'
 import Scope from require 'core.scope'
-
-class UpdateChildren
-  new: (@children) =>
-
-  update: (dt) =>
-    for child in *@children
-      -- L\trace "updating #{child}"
-      L\push child\update, dt
-
-  get: => @children[#@children]\get!
-  getc: => @children[#@children]\getc!
-
-  __tostring: => '<forwarder>'
 
 class op_invoke extends Action
   patch: (head) =>
@@ -21,19 +8,16 @@ class op_invoke extends Action
 
     @op\destroy! if @op
 
-    @head = head
-    assert @head.type == 'opdef', "cant op-invoke #{@head}"
-    @op = @head\getc!!
-  
+    def = head\const!\unwrap 'opdef', "cant op-invoke #{@head}"
+    @head, @op = head, def!
+
     true
     
   eval: (scope, tail) =>
-    L\trace "evaling #{@}"
-    args = L\push -> [L\push expr\eval, scope for expr in *tail]
+    children = L\push -> [L\push expr\eval, scope for expr in *tail]
+    value = @op\setup unpack [child.value for child in *children]
 
-    -- Const 'op', with @op
-    with @op
-      \setup unpack args
+    ResultNode :children, :value, op: @op
 
 class fn_invoke extends Action
   -- @TODO:
@@ -48,27 +32,23 @@ class fn_invoke extends Action
     true
 
   eval: (outer_scope, tail) =>
-    assert @head.type == 'fndef', "cant fn-invoke #{@head}"
-    { :params, :body, :scope } = @head\getc!
+    { :params, :body, :scope } = @head\const!\unwrap 'fndef', "cant fn-invoke #{@head}"
 
     assert #params == #tail, "argument count mismatch in #{@head}"
 
     fn_scope = Scope @, scope
 
-    for i=1,#params
-      name = params[i]\getc!
-      argm = tail[i]
-      fn_scope\set name, L\push argm\eval, outer_scope
+    children = for i=1,#params
+      name = params[i]\unwrap 'sym'
+      with L\push tail[i]\eval, outer_scope
+        fn_scope\set name, .value
 
     body = body\clone @tag
+    result = body\eval fn_scope
 
-    body\eval fn_scope
-
-class do_expr extends Action
-  eval: (scope, tail) =>
-    UpdateChildren [(expr\eval scope) or Const.empty! for expr in *tail]
+    table.insert children, result
+    ResultNode :children, value: result.value
 
 {
   :op_invoke, :fn_invoke
-  :UpdateChildren
 }

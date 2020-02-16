@@ -1,13 +1,10 @@
-import Const, Op from require 'core'
-import Input from require 'lib.midi.core'
+import Stream, Const, Op from require 'core'
+import Input, apply_range from require 'lib.midi.core'
 
-dispatch = Input 'system:midi_capture_6'
+dispatch = Input 'system:midi_capture_4'
 
 class gate extends Op
   @doc: "(midi/gate note [chan]) - gate from note-on and note-off messages"
-
-  new: (...) =>
-    super ...
 
   destroy: =>
     dispatch\detach @mask if @mask
@@ -15,15 +12,18 @@ class gate extends Op
   setup: (note, chan) =>
     dispatch\detach @mask if @mask
 
-    note = note\getc 'num'
-    chan = chan and chan\getc 'num'
+    note = note\const!\unwrap 'num'
+    chan = chan and chan\const!\unwrap 'num'
     @value = false
 
     @mask = dispatch\attach { :chan, a: note }, (status) ->
       if status == 'note-on'
-        @value = true
+        @out\set true
       else if status == 'note-off'
-        @value = false
+        @out\set false
+
+    @out = Stream 'bool', false
+    @out
 
   update: (dt) => dispatch\tick!
 
@@ -43,26 +43,16 @@ range can be one of:
   setup: (cc, chan, @range=Const.str'uni') =>
     dispatch\detach @mask if @mask
 
-    cc = cc\getc 'num'
-    chan = chan and chan\getc 'num'
+    cc = cc\const!\unwrap 'num'
+    chan = chan and chan\const!\unwrap 'num'
 
-    @mask = dispatch\attach { status: 'control-change', :chan, a: cc }, (_, _, _, val) -> @apply val
+    @mask = dispatch\attach { status: 'control-change', :chan, a: cc }, (_, _, _, val) ->
+      @out\set apply_range @range, val
+
+    @out = Stream 'num', 0
+    @out
 
   update: (dt) => dispatch\tick!
-
-  apply: (val) =>
-    @value = if @range.type == 'str'
-      switch @range\get!
-        when 'raw' then val
-        when 'uni' then val / 128
-        when 'bip' then val / 64 - 1
-        when 'rad' then val / 64 * math.pi
-        else
-          error "unknown range #{@range}"
-    elseif @range.type == 'num'
-      val / 128 * @range\get!
-    else
-      error "range has to be a string or number"
 
 {
   :gate

@@ -1,10 +1,10 @@
-import Const from require 'core.const'
+import Value from require 'core.value'
 
 class Scope
   new: (@node, @parent) =>
     @values = {}
 
-  set_raw: (key, val) => @values[key] = Const.wrap val, key
+  set_raw: (key, val) => @values[key] = Value.wrap val, key
   set: (key, val) =>
     L\trace "setting #{key} = #{val} in #{@}"
     @values[key] = val
@@ -22,7 +22,7 @@ class Scope
 
     scope = @get start
     assert scope and scope.type == 'scope', "cant find '#{prefix}#{start}' for '#{prefix}#{key}'"
-    scope\getc!\get rest, "#{prefix}#{start}/"
+    scope\unwrap!\get rest, "#{prefix}#{start}/"
 
   use: (other) =>
     L\trace "using defs from #{other} in #{@}"
@@ -31,7 +31,7 @@ class Scope
 
   from_table: (tbl) ->
     with Scope!
-      .values = { k, Const.wrap v, k for k,v in pairs tbl }
+      .values = { k, Value.wrap v, k for k,v in pairs tbl }
 
   __tostring: =>
     buf = "<Scope"

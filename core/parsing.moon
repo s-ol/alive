@@ -1,4 +1,4 @@
-import Const from require 'core.const'
+import Const from require 'core.value'
 import Cell, RootCell from require 'core.cell'
 import Tag from require 'core.tag'
 import R, S, P, V, C, Ct from require 'lpeg'
@@ -14,13 +14,14 @@ space  = (wc^1 * (comment * wc^1)^0) / 1 -- required whitespace
 mspace = (comment + wc)^0 / 1            -- optional whitespace
 
 -- atoms
-sym = ((R 'az', 'AZ') + (S '-_+*/.!?')) ^ 1 / Const\parse 'sym'
+digit = R '09'
+first = (R 'az', 'AZ') + S '-_+*/.!?='
+sym = first * (first + digit)^0 / Const\parse 'sym'
 
 strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Const\parse 'str', '\"'
 strq = "'" * (C ((P "\\'") + (P '\\\\') + (1 - P "'"))^0) * "'" / Const\parse 'str', '\''
 str = strd + strq
 
-digit = R '09'
 int = digit^1
 float = (digit^1 * '.' * digit^0) + (digit^0 * '.' * digit^1)
 num = (float + int) / Const\parse 'num'
@@ -43,7 +44,13 @@ cell = P {
   :expr, :explist, :cell
 }
 
-program = root * -1
+parse_error = (root, rest) ->
+  if #rest > 0
+    error "failed to parse, rest is:\n#{rest}"
+
+  root
+
+program = root * (C (P 1)^0) * -1 / parse_error
 
 {
   :comment

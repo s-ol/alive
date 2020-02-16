@@ -12,12 +12,11 @@ display value as a bar"
 
   setup: (name, @chld) =>
     @@instances[@name] = nil if @name
-    @name = name\getc!
+    @name = name\const!\unwrap!
     @@instances[@name] = @
 
   update: (dt) =>
-    @chld\update dt
-    @value = @chld\get!
+    @value = @chld\unwrap!
 
   destroy: =>
     @@instances[@name] = nil
@@ -44,9 +43,11 @@ class key extends Op
 
   setup: (@key) =>
     assert @key
+    @out = Stream 'bool', false
+    @out
 
   update: (dt) =>
-    @value = lk.isDown @key\get!
+    @out\set lk.isDown @key\unwrap!
 
 arguments, k = {}
 for a in *arg

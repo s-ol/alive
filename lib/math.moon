@@ -1,25 +1,25 @@
-import Op from require 'core'
+import Stream, Op, Const from require 'core'
 unpack or= table.unpack
 
 class BinOp extends Op
+  new: (...) =>
+    super ...
+    @out = Stream 'num', 0
+
   setup: (...) =>
     @children = { ... }
     assert #@children >= 2, "#{@} needs at least two parameters"
-
-  update: (dt) =>
-    for child in *@children
-      child\update dt
+    @out
 
 class add extends BinOp
   @doc: "(+ a b [c]...)
 (add a b [c]...) - add values"
 
   update: (dt) =>
-    super\update dt
-
-    @value = 0
+    value = 0
     for child in *@children
-      @value += child\get!
+      value += child\unwrap 'num'
+    @out\set value
 
 class sub extends BinOp
   @doc: "(- a b [c]...)
@@ -28,22 +28,20 @@ class sub extends BinOp
 subtracts all other arguments from a"
 
   update: (dt) =>
-    super\update dt
-
-    @value = @children[1]\get!
+    value = @children[1]\unwrap 'num'
     for child in *@children[2,]
-      @value -= child\get!
+      value -= child\unwrap 'num'
+    @out\set value
 
 class mul extends BinOp
   @doc: "(* a b [c]...)
 (mul a b [c]...) - multiply values"
 
   update: (dt) =>
-    super\update dt
-
-    @value = 1
+    value = 1
     for child in *@children
-      @value *= child\get!
+      value *= child\unwrap 'num'
+    @out\set value
 
 class div extends BinOp
   @doc: "(/ a b [c]...)
@@ -52,11 +50,26 @@ class div extends BinOp
 divides a by all other arguments"
 
   update: (dt) =>
-    super\update dt
-
-    @value = @children[1]\get!
+    value = @children[1]\unwrap 'num'
     for child in *@children[2,]
-      @value /= child\get!
+      value /= child\unwrap 'num'
+    @out\set value
+
+evenodd_op = (name, remainder) ->
+  class k extends Op
+    setup: (@a, @div=Const.num 2) =>
+      @out = Stream 'bool'
+      @out
+
+    update: (dt) =>
+      a, divi = (@a\unwrap 'num'), @div\unwrap 'num'
+      @out\set (a % divi) == remainder
+
+  k.__name = name
+  k.doc = "(#{name} a [div]) - check for #{name} divison
+
+div defaults to 2"
+  k
 
 func_op = (name, arity, func) ->
   k = class extends Op
@@ -65,12 +78,11 @@ func_op = (name, arity, func) ->
       if arity != '*'
         assert #@params == arity, "#{@} needs exactly #{arity} parameters"
 
-    update: (dt) =>
-      params = for param in *@params
-        param\update dt
-        param\get!
+      @out = Stream 'num'
+      @out
 
-      @value = func unpack params
+    update: (dt) =>
+      @out\set func unpack [p\unwrap 'num' for p in *@params]
 
   k.__name = name
   k
@@ -85,6 +97,8 @@ module = {
   :mod, '%': mod
 
   mix: func_op 'mix', 3, (a, b, i) -> i*b + (1-i)*a
+  even: evenodd_op 'even', 0
+  odd: evenodd_op 'odd', 1
 
   pi: math.pi, huge: math.huge
 }

@@ -51,8 +51,10 @@ class Input
 
   -- register a handler
   -- mask is { :status, :chan, :a } (all keys optional)
+  -- returns mask for op convenience
   attach: (mask, handler) =>
     @listeners[mask] = handler
+    mask
 
   detach: (mask) =>
     @listeners[mask] = nil
@@ -83,8 +85,23 @@ class InOut
   detach: (...) => @inp\detach ...
   send: (...) => @out\send ...
 
+apply_range = (range, val) ->
+  if range.type == 'str'
+    switch range\unwrap!
+      when 'raw' then val
+      when 'uni' then val / 128
+      when 'bip' then val / 64 - 1
+      when 'rad' then val / 64 * math.pi
+      else
+        error "unknown range #{@range}"
+  elseif range.type == 'num'
+    val / 128 * range\unwrap!
+  else
+    error "range has to be a string or number"
+
 {
   :Input
   :Output
   :InOut
+  :apply_range
 }

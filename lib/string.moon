@@ -1,4 +1,4 @@
-import Op from require 'core'
+import Stream, Op from require 'core'
 
 class str extends Op
   @doc: "(str v1 [v2]...)
@@ -6,12 +6,11 @@ class str extends Op
 
   setup: (...) =>
     @children = { ... }
+    @out = Stream 'str'
+    @out
 
   update: (dt) =>
-    for child in *@children
-      child\update dt
-
-    @value = table.concat [tostring child\get! for child in *@children]
+    @out\set table.concat [tostring child\unwrap! for child in *@children]
 
 {
   :str, '..': str

@@ -1,37 +1,36 @@
-import Op from require 'core'
+import Stream, Op from require 'core'
 unpack or= table.unpack
 
 class BinOp extends Op
+  new: (...) =>
+    super ...
+    @out = Stream 'bool'
+
   setup: (...) =>
     @children = { ... }
     assert #@children >= 2, "#{@} needs at least two parameters"
-
-  update: (dt) =>
-    for child in *@children
-      child\update dt
+    @out
 
 class eq extends BinOp
   @doc: "(eq a b [c]...)
 (== a b [c]...) - check for equality"
 
   update: (dt) =>
-    super\update dt
-
-    @value = true
-    val = @children[1]\get!
+    equal = true
+    val = @children[1]\unwrap!
     for child in *@children[2,]
-      @value and= val == child\get!
+      equal and= val == child\unwrap!
+    @out\set equal
 
 
 class and_ extends BinOp
   @doc: "(and a b [c]...) - AND values"
 
   update: (dt) =>
-    super\update dt
-
-    @value = true
+    value = true
     for child in *@children
-      @value and= child\get!
+      value and= child\unwrap!
+    @out\set value
 
 class or_ extends BinOp
   @doc: "(or a b [c]...) - OR values
@@ -39,31 +38,30 @@ class or_ extends BinOp
 subtracts all other arguments from a"
 
   update: (dt) =>
-    super\update dt
-
-    @value = false
+    value = false
     for child in *@children
-      @value or= child\get!
+      value or= child\unwrap!
+    @out\set value
 
 class not_ extends Op
   @doc: "(not a) - boolean opposite"
 
   setup: (@a) =>
+    @out = Stream 'bool'
+    @out
 
   update: (dt) =>
-    @a\update dt
-
-    @value = not @a\get!
+    @out\set not @a\unwrap!
 
 class bool extends Op
   @doc: "(bool a) - convert to bool"
 
   setup: (@a) =>
+    @out = Stream 'bool'
+    @out
 
   update: (dt) =>
-    @a\update dt
-
-    @value = switch @a\get!
+    @out\set switch @a\unwrap!
       when false, nil, 0
         false
       else

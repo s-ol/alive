@@ -1,4 +1,4 @@
-import Const, Op, FnDef from require 'core'
+import Stream, Op from require 'core'
 import pack, unpack from require 'osc'
 import dns, udp from require 'socket'
 
@@ -13,12 +13,9 @@ class out extends Op
   setup: (@host, @port, @path, @value) =>
 
   update: (dt) =>
-    for p in *{@host, @port, @path, @value}
-      L\push p\update, dt
-
-    ip = dns.toip @host\get!
-    port = @port\get!
-    msg = pack @path\get!, @value\get!
+    ip = dns.toip @host\unwrap 'str'
+    port = @port\unwrap 'num'
+    msg = pack (@path\unwrap 'str'), @value\unwrap!
     @@udp\sendto msg, ip, port
 
 {

@@ -1,4 +1,4 @@
-import Const, Op from require 'core'
+import Stream, Const, Op from require 'core'
 
 class switch_ extends Op
   @doc: "(switch i v0 [v1 v2...]) - switch between multiple inputs
@@ -10,14 +10,16 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
   setup: (@i, ...) =>
     @choices = { ... }
 
+    typ = @choices[1].type
+    for inp in *@choices[2,]
+      assert inp.type == typ, "not all values have the same type: #{typ} != #{inp.type}"
+
+    @out = Stream typ
+    @out
+
   update: (dt) =>
-    @i\update dt
-    i = @i\get!
-
-    for choice in *@choices
-      choice\update dt
-
-    active = switch @i\get!
+    i = @i\unwrap!
+    active = switch i
       when true
         @choices[1]
       when false
@@ -25,7 +27,7 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
       else
         i = 1 + (math.floor i) % #@choices
         @choices[i]
-    @value = active and active\get!
+    @out\set active and active\unwrap!
 
 class switch_pause extends Op
   @doc: "(switch- i v0 [v1 v2...]) - switch and pause multiple inputs
@@ -35,10 +37,16 @@ like (switch ...) except that the unused inputs are paused."
   setup: (@i, ...) =>
     @choices = { ... }
 
+    typ = @choices[1].type
+    for inp in *@choices[2,]
+      assert inp.type == typ, "not all values have the same type: #{typ} != #{inp.type}"
+
+    @out = Stream typ
+    @out
+
   update: (dt) =>
-    @i\update dt
-    i = @i\get!
-    active = switch @i\get!
+    i = @i\unwrap!
+    active = switch i
       when true
         @choices[1]
       when false
@@ -47,21 +55,18 @@ like (switch ...) except that the unused inputs are paused."
         i = 1 + (math.floor i) % #@choices
         @choices[i]
 
-    @value = if active
-      active\update dt
-      active\get!
+    @out\set if active
+      active\unwrap!
 
 class edge extends Op
   setup: (@i) =>
-    @value = false
     @last = false
+    @out = Stream @i.type
+    @out
 
   update: (dt) =>
-    @i\update dt
-
-    now = @i\get!
-
-    @value = not @last and now
+    now = @i\unwrap!
+    @out\set not @last and now
     @last = now
 
 class keep extends Op
@@ -71,12 +76,12 @@ always reproduces the last non-nil value the input produced or default.
 default defaults to zero."
 
   setup: (@i, @default=Const.num 0) =>
+    @out = Stream @i.type, @default.value
+    @out
 
   update: (dt) =>
-    @i\update dt
-
-    next = @i\get!
-    @value = next or @value or @default\get!
+    if next = @i\unwrap!
+      @out\set next
 
 {
   'switch': switch_
