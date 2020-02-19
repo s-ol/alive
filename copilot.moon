@@ -29,20 +29,21 @@ class Copilot
       return
 
     scope = Scope ast, globals
-    ok, err = pcall (@registry\wrap ast\eval), scope, @registry
+    ok, err = pcall ast\eval, scope, @registry
     if not ok
       L\error "error evaluating: #{err}"
       return
 
     @root = err
+    ast
 
-    spit @file, ast\stringify!
-
-  update: (dt) =>
+  tick: =>
     @poll!
 
     if @root
-      @root\update dt
+      ok, err = pcall @registry\wrap_tick @root\tick
+      if not ok
+        L\error err
 
   tb = (msg) -> debug.traceback msg, 2
   poll: =>
@@ -52,7 +53,8 @@ class Copilot
 
     if @last_modification < modification
       L\log "#{@file} changed at #{modification}"
-      L\push @\patch
+      ast = L\push @registry\wrap_eval @\patch
+      spit @file, ast\stringify!
       @last_modification = os.time!
 
 :Copilot

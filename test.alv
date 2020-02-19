@@ -1,16 +1,9 @@
-([1]import* math time string util)
-([2]import osc envelope midi)
+([1]import* debug time)
+([2]import midi)
 
-([3]defn make-lfo (type)
-  ([8]fn ([5]f) ([7]lfo ([6]* f 0.5) type)))
+([3]trace "help")
 
-([9]def sin-lfo ([10]make-lfo 'sin'))
+([4]def device ([5]midi/input "system:midi_capture_2"))
 
-([11]defn send (name value)
-  ([13]osc/out '127.0.0.1' 9000
-    ([12].. '/param/' name '/set')
-    value))
-
-([23]send 'radius' ([25]([24]envelope/ar ([14]midi/cc 0) ([15]midi/cc 1)) ([27]midi/gate 36)))
-
-([19]send 'offset' ([20]sin-lfo ([16]keep ([26]midi/cc 24 0 4))))
+([6]out 'name' ([7]midi/cc device 0))
+([8]out 'gate' ([9]midi/gate device 44))

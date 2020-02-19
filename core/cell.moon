@@ -1,5 +1,5 @@
 -- ALV Cell type
-import Const from require 'core.value'
+import Value from require 'core.value'
 import op_invoke, fn_invoke from require 'core.invoke'
 import Tag from require 'core.tag'
 
@@ -11,7 +11,8 @@ class Cell
   -- white:    optional sequence of whitespace segments ([0 .. #@children])
   new: (@tag=Tag.blank!, @children, @white) =>
     if not @white
-      @white = ['' for i=1,#@children+1]
+      @white = ['' for i=1,#@children]
+      @white[0] = ''
 
     assert #@white == #@children, "mismatched whitespace length"
 
@@ -22,8 +23,7 @@ class Cell
 
 -- AST interface
   eval: (scope) =>
-    head_result = @head!\eval scope
-    head = head_result.value\const!
+    head = (@head!\eval scope)\const!
     Action = switch head.type
       when 'opdef'
         -- scope\get 'op-invoke'
@@ -89,7 +89,7 @@ class Cell
 --
 -- evaluates with an implicit 'do' in the head
 class RootCell extends Cell
-  head: => Const.sym 'do'
+  head: => Value.sym 'do'
   tail: => @children
 
   stringify: =>

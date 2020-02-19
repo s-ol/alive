@@ -1,13 +1,12 @@
-import Stream, Const, Op from require 'core'
-import InOut, apply_range from require 'lib.midi.core'
+import Value, Op from require 'core'
+import apply_range from require 'lib.midi.core'
 import bor, lshift from require 'bit32'
 
-launch = InOut 'system:midi_capture_4', 'system:midi_playback_4'
-
+unpack or= table.unpack
 color = (r, g) -> bor 12, r, (lshift g, 4)
 
 class cc_seq extends Op
-  @doc: "(launctl/cc-seq i start chan [steps [range]]) - CC-Sequencer
+  @doc: "(launctl/cc-seq port i start chan [steps [range]]) - CC-Sequencer
 
 returns the value for the i-th step steps (buttons starting from start).
 steps defaults to 8.
@@ -19,43 +18,41 @@ range can be one of:
 - 'rad' [ 0 - tau[
 - (num) [ 0 - num["
 
-  destroy: =>
-    launch\detach @mask if @mask
-
   new: =>
+    super 'num'
     @steps = {}
-    @out = Stream 'num'
 
-  setup: (@i, start, chan, steps=(Const.num 8), @range=Const.str 'uni') =>
-    launch\detach @mask if @mask
+  setup: (params) =>
+    super params
 
-    @start = start\const!\unwrap 'num'
-    @chan = chan\const!\unwrap 'num'
-    steps = steps\const!\unwrap 'num'
+    @inputs[5] or= Value.num 8
+    @inputs[6] or= Value.str 'uni'
+    @assert_types 'midi/port', 'num', 'num', 'num', 'num', 'str'
+    @impulses = { @inputs[1]\unwrap! }
 
-    while steps > #@steps
-      table.insert @steps, 0
-    while steps < #@steps
-      table.remove @steps
+    if not @out\unwrap!
+      @out\set apply_range @inputs[6], 0
 
-    @mask = launch\attach { status: 'control-change', chan: @chan }, (_, _, cc, val) -> @change cc, val
-    @out
+  tick: =>
+    port, i, start, chan, steps = unpack [i\unwrap! for i in *@inputs]
+    port = @inputs[1]\unwrap!
+    _, i, start, chan, steps = unpack @inputs
 
-  change: (cc, val) =>
-    i = cc - @start
-    if i < #@steps
-      @steps[i+1] = val
+    curr_i = i\unwrap! % #@steps
+    changed = false
 
-  update: (dt) =>
-    launch\tick!
+    for msg in port\receive!
+      if msg.status == 'control-change' and msg.chan == chan
+        i = msg.a - start
+        if i < #@steps
+          @steps[i+1] = msg.b
+          changed = i == curr_i
 
-    curr_i = (@i\unwrap 'num') % #@steps
-
-    @out\set apply_range @range, @steps[curr_i+1]
-
+    if changed or i\dirty! or start\dirty! or chan\dirty! or steps\diry!
+      @out\set apply_range @inputs[6], @steps[curr_i+1]
 
 class gate_seq extends Op
-  @doc: "(launctl/gate-seq i start chan [steps]) - Gate-Sequencer
+  @doc: "(launctl/gate-seq port i start chan [steps]) - Gate-Sequencer
 
 returns true or false for the i-th step steps (buttons starting from start).
 steps defaults to 8."

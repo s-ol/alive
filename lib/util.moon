@@ -1,4 +1,4 @@
-import Stream, Const, Op from require 'core'
+import Op from require 'core'
 
 class switch_ extends Op
   @doc: "(switch i v0 [v1 v2...]) - switch between multiple inputs
@@ -7,85 +7,91 @@ when i is true, the first value is reproduced.
 when i is false, the second value is reproduced.
 when i is a num, it is (floor)ed and the matching argument (starting from 0) is reproduced."
 
-  setup: (@i, ...) =>
-    @choices = { ... }
+  setup: (params) =>
+    super params
 
-    typ = @choices[1].type
-    for inp in *@choices[2,]
-      assert inp.type == typ, "not all values have the same type: #{typ} != #{inp.type}"
+    { i, first } = @inputs
+    assert i.type == 'bool' or i.type == 'num', "#{@}: i has to be bool or num"
 
-    @out = Stream typ
-    @out
+    for inp in *@inputs[3,]
+      assert inp.type == first.type, "not all values have the same type: #{first.type} != #{inp.type}"
+    @out = Stream first.type
 
   update: (dt) =>
-    i = @i\unwrap!
+    i = @inputs[1]\unwrap!
     active = switch i
       when true
-        @choices[1]
+        @inputs[2]
       when false
-        @choices[2]
+        @inputs[3]
       else
-        i = 1 + (math.floor i) % #@choices
-        @choices[i]
+        i = 2 + (math.floor i) % (#@inputs - 1)
+        @inputs[i]
     @out\set active and active\unwrap!
 
-class switch_pause extends Op
-  @doc: "(switch- i v0 [v1 v2...]) - switch and pause multiple inputs
-
-like (switch ...) except that the unused inputs are paused."
-
-  setup: (@i, ...) =>
-    @choices = { ... }
-
-    typ = @choices[1].type
-    for inp in *@choices[2,]
-      assert inp.type == typ, "not all values have the same type: #{typ} != #{inp.type}"
-
-    @out = Stream typ
-    @out
-
-  update: (dt) =>
-    i = @i\unwrap!
-    active = switch i
-      when true
-        @choices[1]
-      when false
-        @choices[2]
-      else
-        i = 1 + (math.floor i) % #@choices
-        @choices[i]
-
-    @out\set if active
-      active\unwrap!
+--class switch_pause extends Op
+--  @doc: "(switch- i v0 [v1 v2...]) - switch and pause multiple inputs
+--
+--like (switch ...) except that the unused inputs are paused."
+--
+--  setup: (@i, ...) =>
+--    @choices = { ... }
+--
+--    typ = @choices[1].type
+--    for inp in *@choices[2,]
+--      assert inp.type == typ, "not all values have the same type: #{typ} != #{inp.type}"
+--
+--    @out = Stream typ
+--    @out
+--
+--  update: (dt) =>
+--    i = @i\unwrap!
+--    active = switch i
+--      when true
+--        @choices[1]
+--      when false
+--        @choices[2]
+--      else
+--        i = 1 + (math.floor i) % #@choices
+--        @choices[i]
+--
+--    @out\set if active
+--      active\unwrap!
 
 class edge extends Op
-  setup: (@i) =>
-    @last = false
-    @out = Stream @i.type
-    @out
+  @doc: "(edge bool) - convert rising edges to bangs"
+
+  new: =>
+    super 'bang'
+
+  setup: (params) =>
+    super params
+    @assert_types 'bool'
 
   update: (dt) =>
-    now = @i\unwrap!
-    @out\set not @last and now
-    @last = now
+    now = @params[1]\unwrap!
+    if now and not @last
+      @out\set true
+      @last = now
 
 class keep extends Op
-  @doc: "(keep value [default]) - keep the last non-nil value
+  @doc: "(keep value [init]) - keep the last non-nil value
 
 always reproduces the last non-nil value the input produced or default.
 default defaults to zero."
 
-  setup: (@i, @default=Const.num 0) =>
-    @out = Stream @i.type, @default.value
-    @out
+  setup: (params) =>
+    super params
+    { i, init } = @inputs
+    @out = Value i.type, default and init\unwrap!
 
-  update: (dt) =>
-    if next = @i\unwrap!
+  tick =>
+    if next = @params[1]\unwrap!
       @out\set next
 
 {
   'switch': switch_
-  'switch-': switch_pause
+--  'switch-': switch_pause
   :edge
   :keep
 }

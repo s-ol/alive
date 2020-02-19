@@ -1,4 +1,4 @@
-import ResultNode, Value from require 'core.value'
+import Result, Value from require 'core.value'
 import Action from require 'core.base'
 import Scope from require 'core.scope'
 
@@ -8,16 +8,17 @@ class op_invoke extends Action
 
     @op\destroy! if @op
 
-    def = head\const!\unwrap 'opdef', "cant op-invoke #{@head}"
+    def = head\unwrap 'opdef', "cant op-invoke #{@head}"
     @head, @op = head, def!
 
     true
     
   eval: (scope, tail) =>
     children = L\push -> [L\push expr\eval, scope for expr in *tail]
-    value = @op\setup unpack [child.value for child in *children]
+    @op\setup [child.value for child in *children]
+    @op\tick true
 
-    ResultNode :children, :value, op: @op
+    Result :children, value: @op.out, op: @op
 
 class fn_invoke extends Action
   -- @TODO:
@@ -32,7 +33,7 @@ class fn_invoke extends Action
     true
 
   eval: (outer_scope, tail) =>
-    { :params, :body, :scope } = @head\const!\unwrap 'fndef', "cant fn-invoke #{@head}"
+    { :params, :body, :scope } = @head\unwrap 'fndef', "cant fn-invoke #{@head}"
 
     assert #params == #tail, "argument count mismatch in #{@head}"
 
@@ -47,7 +48,7 @@ class fn_invoke extends Action
     result = body\eval fn_scope
 
     table.insert children, result
-    ResultNode :children, value: result.value
+    Result :children, value: result.value
 
 {
   :op_invoke, :fn_invoke

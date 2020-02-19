@@ -1,7 +1,7 @@
 -- run from CLI
-import monotime, sleep from require 'system'
 import Logger from require 'logger'
 import Copilot from require 'copilot'
+import sleep from require 'system'
 
 arguments, key = {}
 for a in *arg
@@ -16,25 +16,8 @@ for a in *arg
 
 Logger.init arguments.log
 
-delta = do
-  period = 1 / 60
-  
-  local last
-  ->
-    if last
-      target, current = (last + period), monotime!
-      if current > target
-        L\warn 'Frame Skipped!'
-      else
-        sleep target - current
-
-    time = monotime!
-    with time - (last or time)
-      last = time
-
 copilot = Copilot arguments[1]
 
 while true
-  dt = delta!
-
-  copilot\update dt
+  copilot\tick!
+  sleep 1 / 1000

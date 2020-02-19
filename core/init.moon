@@ -2,7 +2,7 @@ L or= setmetatable {}, __index: => ->
 
 import Op, Action, FnDef from require 'core.base'
 
-import Stream, Const, load_ from require 'core.value'
+import Value, Result, load_ from require 'core.value'
 import Scope from require 'core.scope'
 load_!
 
@@ -15,7 +15,7 @@ import cell, program from require 'core.parsing'
 globals = Scope.from_table require 'core.builtin'
 
 {
-  :Stream, :Const
+  :Value, :Result
   :Cell, :RootCell
   :Op, :Action, :FnDef
   :Scope
@@ -30,5 +30,5 @@ globals = Scope.from_table require 'core.builtin'
 
       ast = assert (cell\match str), "failed to parse: #{str}"
       result = ast\eval scope
-      result\value_only!
+      result\const!
 }

@@ -1,6 +1,11 @@
+import Value from require 'core.value'
+
 class Registry
   new: () =>
     @map = {}
+
+    @tick = 0
+    @kr = Value.bool true
 
 -- methods for Tag
 
@@ -15,37 +20,44 @@ class Registry
     L\trace "reg: init pending to #{expr}"
     table.insert @pending, { :tag, :expr }
 
-  active: ->
-    assert Registry.active_registry, "no active Registry!"
+  active: -> assert Registry.active_registry, "no active Registry!"
 
 -- public methods
 
-  wrap: (fn) =>
-    (...) ->
-      @prepare!
-      with fn ...
-        @finalize!
-
-  prepare: =>
-    assert not @prev, "already have a previous registry? #{@prev}"
-    @prev, @@active_registry = @@active_registry, @
+  wrap_eval: (fn) => (...) ->
+    @grab!
     @last_map, @map, @pending = @map, {}, {}
 
-  finalize: =>
-    for tag, val in pairs @last_map
-      if not @map[tag]
-        val\destroy!
+    with fn ...
+      for tag, val in pairs @last_map
+        if not @map[tag]
+          val\destroy!
 
-    for { :tag, :expr } in *@pending
-      -- tag was solved by another pending registration
-      -- (e.g. first [A] is solved, then [5.A] is solved)
-      continue if tag\index!
+      for { :tag, :expr } in *@pending
+        -- tag was solved by another pending registration
+        -- (e.g. first [A] is solved, then [5.A] is solved)
+        continue if tag\index!
 
-      next_tag = @next_tag!
-      L\trace "assigned new tag #{next_tag} to #{tag} #{expr}"
-      tag\set next_tag
-      @map[tag\index!] = expr
+        next_tag = @next_tag!
+        L\trace "assigned new tag #{next_tag} to #{tag} #{expr}"
+        tag\set next_tag
+        @map[tag\index!] = expr
 
+      @release!
+
+  wrap_tick: (fn) => (...) ->
+    @grab!
+    @tick += 1
+    @kr\set true
+
+    with fn ...
+      @release!
+
+  grab: =>
+    assert not @prev, "already have a previous registry? #{@prev}"
+    @prev, @@active_registry = @@active_registry, @
+
+  release: =>
     assert @ == @@active_registry, "not the active registry!"
     @@active_registry, @prev = @prev, nil
 

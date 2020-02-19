@@ -1,34 +1,31 @@
-import Stream, Const, Op from require 'core'
-import Input, apply_range from require 'lib.midi.core'
-
-dispatch = Input 'system:midi_capture_4'
+import Value, Op from require 'core'
+import input, output, inout, apply_range from require 'lib.midi.core'
 
 class gate extends Op
-  @doc: "(midi/gate note [chan]) - gate from note-on and note-off messages"
+  @doc: "(midi/gate port note [chan]) - gate from note-on and note-off messages"
 
-  destroy: =>
-    dispatch\detach @mask if @mask
+  new: =>
+    super 'bool', false
 
-  setup: (note, chan) =>
-    dispatch\detach @mask if @mask
+  setup: (params) =>
+    super params
+    @inputs[3] or= Value.num -1
+    @assert_types 'midi/port', 'num', 'num'
+    @impulses = { @inputs[1]\unwrap! }
 
-    note = note\const!\unwrap 'num'
-    chan = chan and chan\const!\unwrap 'num'
-    @value = false
+  tick: =>
+    local port, note, chan
+    { port, note, chan } = [i\unwrap! for i in *@inputs]
 
-    @mask = dispatch\attach { :chan, a: note }, (status) ->
-      if status == 'note-on'
-        @out\set true
-      else if status == 'note-off'
-        @out\set false
-
-    @out = Stream 'bool', false
-    @out
-
-  update: (dt) => dispatch\tick!
+    for msg in port\receive!
+      if msg.a == note and (chan == -1 or msg.chan == chan)
+        if msg.status == 'note-on'
+          @out\set true
+        elseif msg.status == 'note-off'
+          @out\set false
 
 class cc extends Op
-  @doc: "(midi/cc cc [chan [range]]) - MIDI CC to number
+  @doc: "(midi/cc port cc [chan [range]]) - MIDI CC to number
 
 range can be one of:
 - 'raw' [ 0 - 128[
@@ -37,24 +34,36 @@ range can be one of:
 - 'rad' [ 0 - tau[
 - (num) [ 0 - num["
 
+  new: =>
+    super 'num'
+
   destroy: =>
     dispatch\detach @mask if @mask
 
-  setup: (cc, chan, @range=Const.str'uni') =>
-    dispatch\detach @mask if @mask
+  setup: (params) =>
+    super params
+    @inputs[3] or= Value.num -1
+    @inputs[4] or= Value.str 'uni'
+    @assert_types 'midi/port', 'num', 'num', 'str'
+    @impulses = { @inputs[1]\unwrap! }
 
-    cc = cc\const!\unwrap 'num'
-    chan = chan and chan\const!\unwrap 'num'
+    if not @out\unwrap!
+      @out\set apply_range @inputs[4], 0
 
-    @mask = dispatch\attach { status: 'control-change', :chan, a: cc }, (_, _, _, val) ->
-      @out\set apply_range @range, val
+  tick: =>
+    local port, cc, chan
+    { port, cc, chan } = [i\unwrap! for i in *@inputs]
 
-    @out = Stream 'num', 0
-    @out
-
-  update: (dt) => dispatch\tick!
+    for msg in port\receive!
+      if msg.status == 'control-change' and
+         (chan == -1 or msg.chan == chan) and
+         msg.a == cc
+        @out\set apply_range @inputs[4], msg.b
 
 {
+  :input
+  :output
+  :inout
   :gate
   :cc
 }

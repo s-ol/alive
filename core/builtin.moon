@@ -1,6 +1,6 @@
 -- builtin special forms
 import Action, FnDef from require 'core.base'
-import ResultNode, Value, Const from require 'core.value'
+import Result, Value from require 'core.value'
 import Cell from require 'core.cell'
 import Scope from require 'core.scope'
 
@@ -13,7 +13,7 @@ prints the docstring for sym in the console"
     assert #tail == 1, "'doc' takes exactly one parameter"
 
     def = L\push tail[1]\eval, scope
-    with ResultNode children: { def }
+    with Result children: { def }
       def = def.value\const!\unwrap!
       L\print "(doc #{tail[1]\stringify!}):\n#{def.doc}\n"
 
@@ -35,9 +35,9 @@ updates all val-exprs."
         name = (name\quote scope)\unwrap 'sym'
 
         with val_expr\eval scope
-          scope\set name, .value
+          scope\set name, \make_ref!
 
-    ResultNode :children
+    Result :children
 
 class use extends Action
   @doc: "(use scope1 [scope2]...) - merge scopes into parent scope
@@ -49,10 +49,10 @@ all scopes have to be eval-time constants."
     L\trace "evaling #{@}"
     for child in *tail
       result = L\push child\eval, scope
-      value = result\value_only!\const!
+      value = result\const!
       scope\use value\unwrap 'scope', "'use' only works on scopes"
 
-    ResultNode!
+    Result!
 
 class require_ extends Action
   @doc: "(require name-str) - require a module
@@ -65,10 +65,10 @@ name-str has to be an eval-time constant."
     assert #tail == 1, "'require' takes exactly one parameter"
 
     result = L\push tail[1]\eval, scope
-    name = result\value_only!\const!
+    name = result\const!
 
     L\trace @, "loading module #{name}"
-    ResultNode value: Value.wrap require "lib.#{name\unwrap 'str'}"
+    Result value: Value.wrap require "lib.#{name\unwrap 'str'}"
 
 class import_ extends Action
   @doc: "(import sym1 [sym2]...) - require and define modules
@@ -81,9 +81,9 @@ requires modules sym1, sym2, ... and defines them as sym1, sym2, ... in the curr
 
     for child in *tail
       name = (child\quote scope)\unwrap 'sym'
-      scope\set name, Value.wrap require "lib.#{name}"
+      scope\set name, Result value: Value.wrap require "lib.#{name}"
 
-    ResultNode!
+    Result!
 
 class import_star extends Action
   @doc: "(import* sym1 [sym2]...) - require and use modules
@@ -99,7 +99,7 @@ requires modules sym1, sym2, ... and merges them into the current scope"
       name = (child\quote scope)\unwrap 'sym'
       scope\use (Value.wrap require "lib.#{name}")\unwrap 'scope'
 
-    ResultNode!
+    Result!
 
 class fn extends Action
   @doc: "(fn (p1 [p2]...) body-expr) - declare a (lambda) function
@@ -117,7 +117,7 @@ the symbols p1, p2, ... will resolve to the arguments passed to the function."
       param\quote scope
 
     body = body\quote scope
-    ResultNode value: Value.wrap FnDef param_symbols, body, scope
+    Result value: Value.wrap FnDef param_symbols, body, scope
 
 class defn extends Action
   @doc: "(defn name-sym (p1 [p2]...) body-expr) - define a function
@@ -138,8 +138,8 @@ declares a lambda (see (doc fn)) and defines it in the current scope"
     body = body\quote scope
     fn = FnDef param_symbols, body, scope
 
-    scope\set name, Value.wrap fn
-    ResultNode!
+    scope\set name, Result value: Value.wrap fn
+    Result!
 
 class do_expr extends Action
   @doc: "(do expr1 [expr2]...) - update multiple expressions
@@ -148,7 +148,7 @@ evaluates and continously updates expr1, expr2, ...
 the last expression's value is returned."
 
   eval: (scope, tail) =>
-    ResultNode children: [expr\eval scope for expr in *tail]
+    Result children: [expr\eval scope for expr in *tail]
 
 class if_ extends Action
   @doc: "(if bool then-expr [else-xpr]) - make an eval-time const choice
@@ -164,7 +164,7 @@ to then-expr, otherwise it is equivalent to else-xpr if given, or nil otherwise.
     { xif, xthen, xelse } = tail
 
     xif = L\push xif\eval, scope
-    xif = xif\value_only!\const!\unwrap!
+    xif = xif\const!\unwrap!
 
     if xif
       xthen\eval scope
@@ -189,8 +189,8 @@ class trace extends Action
   import: import_
   'import*': import_star
 
-  true: Const.bool true
-  false: Const.bool false
+  true: Value.bool true
+  false: Value.bool false
 
   :fn, :defn
   'do': do_expr

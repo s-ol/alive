@@ -1,7 +1,31 @@
-import Stream, Const, Op from require 'core'
+import Registry, Value, Op from require 'core'
+import monotime from require 'system'
+
+delta = do
+  period = 1 / 60
+  
+  local last
+  ->
+
+class clock extends Op
+  new: =>
+    super 'num'
+    @impulses = { Registry.active!.kr }
+    @out\set 0
+
+  setup: (params) =>
+    super params
+    @last = monotime!
+
+  tick: =>
+    time = monotime!
+    dt = time - @last
+    if dt >= 1/60
+      @out\set dt
+      @last = time
 
 class lfo extends Op
-  @doc: "(lfo freq [wave]) - low-frequency oscillator
+  @doc: "(lfo clock freq [wave]) - low-frequency oscillator
 
 oscillates between 0 and 1 at the frequency freq.
 wave selects the wave shape from the following (default sin):
@@ -10,89 +34,96 @@ wave selects the wave shape from the following (default sin):
 - tri"
 
   tau = math.pi * 2
-  new: (...) =>
-    super ...
-    print "creating LFO"
-    @out = Stream 'num'
+  new: =>
+    super 'num'
     @phase = 0
 
-  default_wave = Const 'str', 'sin'
-  setup: (@freq, @wave=default_wave) =>
-    assert @freq, "lfo requires a frequency value"
-    L\trace "setup #{@}, freq=#{@freq}, wave=#{@wave}"
-    @out
+  default_wave = Value.str 'sin'
+  setup: (params) =>
+    super params
 
-  update: (dt) =>
-    @phase += dt * @freq\unwrap 'num'
-    @out\set switch @wave\unwrap!
-      when 'sin' then .5 + .5 * math.cos @phase * tau
-      when 'saw' then @phase % 1
-      when 'tri' then math.abs (2*@phase % 2) - 1
-      else error "unknown wave type"
+    @inputs[3] or= default_wave
+    @assert_types 'num', 'num', 'str'
+
+  tick: =>
+    -- if clock is dirty
+    if @inputs[1].dirty
+      dt, freq, wave = @unwrap_inputs!
+      @phase += dt * freq
+      @out\set switch wave
+        when 'sin' then .5 + .5 * math.cos @phase * tau
+        when 'saw' then @phase % 1
+        when 'tri' then math.abs (2*@phase % 2) - 1
+        else error "unknown wave type"
 
 class ramp extends Op
-  @doc: "(ramp period [max]) - sawtooth lfo
+  @doc: "(ramp clock period [max]) - sawtooth lfo
 
-ramps from 0 to max (default same as ramp) once every period seconds"
+ramps from 0 to max (default same as ramp) once every period seconds."
 
-  new: (...) =>
-    super ...
-    @out = Stream 'num'
+  new: =>
+    super 'num'
     @phase = 0
-    @out
 
-  setup: (@period, @max) =>
-    assert @period, "tick requires a period value"
+  setup: (params) =>
+    super params
+    assert @inputs[1].type == 'num', "tick requires a clock value"
+    assert @inputs[2].type == 'num', "tick requires a period value"
 
-  update: (dt) =>
-    period = @period\unwrap 'num'
-    max = if @max then @max\unwrap! else period
-    @phase += dt / period
+  tick: =>
+    -- if clock is dirty
+    if @inputs[1].dirty
+      dt, period, max = @unwrap_inputs!
+      max or= period
+      @phase += dt / period
 
-    if @phase >= 1
-      @phase -= 1
+      if @phase >= 1
+        @phase -= 1
 
-    @out\set @phase * max
+      @out\set @phase * max
 
 class tick extends Op
-  @doc: "(tick period) - count ticks
+  @doc: "(tick clock period) - count ticks
 
 counts upwards by one every period seconds and returns the number of completed ticks."
-  new: (...) =>
-    super ...
-    @out = Stream 'num'
+  new: =>
+    super 'num'
     @phase = 0
 
-  setup: (@period) =>
-    assert @period, "tick requires a period value"
-    @out
+  setup: (params) =>
+    @assert_types 'num', 'num'
 
   update: (dt) =>
-    @phase += dt / @period\unwrap 'num'
-    @out\set math.floor @phase
+    -- if clock is dirty
+    if @inputs[1].dirty
+      dt, period = @unwrap_inputs!
+      @phase += dt / period
+
+      @out\set math.floor @phase
 
 class every extends Op
-  @doc: "(every period) - sometimes true
+  @doc: "(every clock period) - trigger every period seconds
 
 returns true once every period seconds."
-  new: (...) =>
-    super ...
-    @out = Stream 'bool'
+  new: =>
+    super 'bang'
     @phase = 0
 
   setup: (@period) =>
-    assert @period, "every requires a period value"
-    @out
+    @assert_types 'num', 'num'
 
   update: (dt) =>
-    @phase += dt / @period\unwrap 'num'
-    if @phase > 1
-      @phase -= 1
-      @out\set true
-    else
-      @out\set false
+    -- if clock is dirty
+    if @inputs[1].dirty
+      dt, period = @unwrap_inputs!
+      @phase += dt / period
+
+      if @phase >= 1
+        @phase -= 1
+        @out\set true
 
 {
+  :clock
   :lfo
   :ramp
   :tick

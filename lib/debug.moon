@@ -3,10 +3,13 @@ import Op from require 'core'
 class out extends Op
   @doc: "(out name-str value) - log value to the console"
 
-  setup: (@name, @value) =>
+  setup: (params) =>
+    super params
+    assert @inputs[2], "need a value"
+    @assert_types 'str', @inputs[2].type
 
-  update: (dt) =>
-    L\print "#{@name\unwrap 'str'}", @value\unwrap!
+  tick: =>
+    L\print @unwrap_inputs!
 
 {
   :out

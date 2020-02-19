@@ -1,5 +1,5 @@
 import space, atom, expr, explist, cell, program, comment from require 'core.parsing'
-import Const from require 'core'
+import Value from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 
@@ -16,48 +16,48 @@ describe 'atom parsing', ->
   test 'symbols', ->
     sym = verify_parse_nope atom, 'some-toast nope'
     assert.is.equal 'sym', sym.type
-    assert.is.equal 'some-toast', sym\getc!
+    assert.is.equal 'some-toast', sym\unwrap!
     assert.is.equal 'some-toast', sym\stringify!
 
   describe 'numbers', ->
     it 'parses ints', ->
       num = verify_parse_nope atom, '1234 nope'
       assert.is.equal 'num', num.type
-      assert.is.equal 1234, num\getc!
+      assert.is.equal 1234, num\unwrap!
       assert.is.equal '1234', num\stringify!
 
     it 'parses floats', ->
       num = verify_parse_nope atom, '0.123 nope'
       assert.is.equal 'num', num.type
-      assert.is.equal 0.123, num\getc!
+      assert.is.equal 0.123, num\unwrap!
 
       num = verify_parse_nope atom, '.123 nope'
       assert.is.equal 'num', num.type
-      assert.is.equal 0.123, num\getc!
+      assert.is.equal 0.123, num\unwrap!
 
       num = verify_parse_nope atom, '0. nope'
       assert.is.equal 'num', num.type
-      assert.is.equal 0, num\getc!
+      assert.is.equal 0, num\unwrap!
 
   describe 'strings', ->
     it 'parses double-quote strings', ->
       str = verify_parse_nope atom, '"help some stuff!" nope'
       assert.is.equal 'str', str.type
-      assert.is.equal 'help some stuff!', str\getc!
+      assert.is.equal 'help some stuff!', str\unwrap!
 
     it 'parses single-quote strings', ->
       str = verify_parse_nope atom, "'help some stuff!' nope"
       assert.is.equal 'str', str.type
-      assert.is.equal "help some stuff!", str\getc!
+      assert.is.equal "help some stuff!", str\unwrap!
 
     it 'handles escapes', ->
       str = verify_parse_nope atom, '"string with \\"quote\\"s and \\\\" nope'
       assert.is.equal 'str', str.type
-      assert.is.equal 'string with \"quote\"s and \\', str\getc!
+      assert.is.equal 'string with \"quote\"s and \\', str\unwrap!
 
       str = verify_parse_nope atom, "'string with \\'quote\\'s and \\\\' nope"
       assert.is.equal 'str', str.type
-      assert.is.equal "string with \'quote\'s and \\", str\getc!
+      assert.is.equal "string with \'quote\'s and \\", str\unwrap!
 
 describe 'Cell', ->
   test 'basic parsing', ->
@@ -65,9 +65,9 @@ describe 'Cell', ->
                                 "friend" )'
 
     assert.is.equal 3, #node.children
-    assert.is.equal (Const.num 3), node.children[1]
-    assert.is.equal (Const.sym 'ok-yes'), node.children[2]
-    assert.is.equal (Const.str 'friend'), node.children[3]
+    assert.is.equal (Value.num 3), node.children[1]
+    assert.is.equal (Value.sym 'ok-yes'), node.children[2]
+    assert.is.equal (Value.str 'friend'), node.children[3]
 
   test 'tag parsing', ->
     node = verify_parse cell, '([42]tagged 2)'
@@ -88,8 +88,8 @@ describe 'RootCell parsing', ->
       node = verify_parse program, str
 
       assert.is.equal 2, #node.children
-      assert.is.equal (Const.num 3), node.children[1]
-      assert.is.equal (Const.sym 'ok-yes'), node.children[2]
+      assert.is.equal (Value.num 3), node.children[1]
+      assert.is.equal (Value.sym 'ok-yes'), node.children[2]
 
     it 'at the front of the string', ->
       verify ' 3\tok-yes'

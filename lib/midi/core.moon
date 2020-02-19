@@ -1,5 +1,6 @@
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 import band, bor, lshift, rshift from require 'bit32'
+import Op, Registry from require 'core'
 
 MIDI = {
   [0x9]: 'note-on'
@@ -15,75 +16,101 @@ MIDI = {
 
 rMIDI = {v,k for k,v in pairs MIDI}
 
-class Input
-  new: (name) =>
-    @input = RtMidiIn RtMidi.Api.UNIX_JACK
-
+find_port = (Klass, name) ->
+  with Klass RtMidi.Api.UNIX_JACK
     id = nil
-    for port=1,@input\getportcount!
-      if name == @input\getportname port
+    for port=1, \getportcount!
+      if name == \getportname port
         id = port
         break
 
-    @input\openport id
+    \openport id
 
-    @listeners = {}
+class MidiPort
+  new: (@inp, @out) =>
+
+  dirty: =>
+    @updated == Registry.active!.tick
 
   tick: =>
-    while true
-      delta, bytes = @input\getmessage!
-      break unless delta
+    if @inp
+      @messages = while true
+        delta, bytes = @inp\getmessage!
+        break unless delta
 
-      { status, a, b } = bytes
-      chan = band status, 0xf
-      status = MIDI[rshift status, 4]
-      @dispatch status, chan, a, b
+        { status, a, b } = bytes
+        chan = band status, 0xf
+        status = MIDI[rshift status, 4]
+        { :status, :chan, :a, :b }
 
-  dispatch: (status, chan, a, b) =>
-    L\trace "dispatching MIDI event #{status} CH#{chan} #{a} #{b}"
-    for mask, handler in pairs @listeners
-      match = true
-      match and= status == mask.status if mask.status
-      match and= chan == mask.chan if mask.chan
-      match and= a == mask.a if mask.a
-      if match
-        handler status, chan, a, b
+      if @messages
+        @updated = Registry.active!.tick
 
-  -- register a handler
-  -- mask is { :status, :chan, :a } (all keys optional)
-  -- returns mask for op convenience
-  attach: (mask, handler) =>
-    @listeners[mask] = handler
-    mask
-
-  detach: (mask) =>
-    @listeners[mask] = nil
-
-class Output
-  new: (name) =>
-    @output = RtMidiOut RtMidi.Api.UNIX_JACK
-
-    id = nil
-    for port=1,@output\getportcount!
-      if name == @output\getportname port
-        id = port
-        break
-
-    @output\openport id
+  receive: =>
+    assert @inp, "#{@} is not an input port"
+    return unless @messages
+    coroutine.wrap ->
+      for msg in *@messages
+        coroutine.yield msg
 
   send: (status, chan, a, b) =>
-    status = bor (lshift rMIDI[status], 4), chan
-    @output\sendmessage status, a, b
+    assert @out, "#{@} is not an output port"
+    if 'string' == type 'status'
+      status = bor (lshift rMIDI[status], 4), chan
+    @out\sendmessage status, a, b
 
-class InOut
-  new: (inp, out) =>
-    @inp = Input inp
-    @out = Output out
+class input extends Op
+  @doc: "(midi/input name) - create a MIDI input port"
 
-  tick: (...) => @inp\tick ...
-  attach: (...) => @inp\attach ...
-  detach: (...) => @inp\detach ...
-  send: (...) => @out\send ...
+  new: =>
+    super 'midi/port'
+    @impulses = { Registry.active!.kr }
+
+  setup: (params) =>
+    super params
+    @assert_types 'str'
+
+  tick: (first) =>
+    { name } = @inputs
+    if first or name\dirty!
+      @out\set MidiPort find_port RtMidiIn, name\unwrap!
+
+    @out\unwrap!\tick!
+
+class output extends Op
+  @doc: "(midi/output name) - create a MIDI output port"
+
+  new: =>
+    super 'midi/port'
+
+  setup: (params) =>
+    super params
+    @assert_types 'str'
+
+  tick: (first) =>
+    { name } = @inputs
+    if first or name\dirty!
+      @out\set MidiPort nil, find_port RtMidiOut, name\unwrap!
+
+class inout extends Op
+  @doc: "(midi/inout inname outname) - create a bidirectional MIDI port"
+
+  new: =>
+    super 'midi/port'
+    @impulses = { Registry.active!.kr }
+
+  setup: (params) =>
+    super params
+    @assert_types 'str', 'str'
+
+  tick: (first) =>
+    { inp, out } = @inputs
+
+    if first or inp\dirty! or out\dirty!
+      inp, out = inp\unwrap!, out\unwrap!
+      @out\set MidiPort (find_port RtMidiIn, inp), (find_port RtMidiOut, out)
+
+    @out\unwrap!\tick!
 
 apply_range = (range, val) ->
   if range.type == 'str'
@@ -100,8 +127,8 @@ apply_range = (range, val) ->
     error "range has to be a string or number"
 
 {
-  :Input
-  :Output
-  :InOut
+  :input
+  :output
+  :inout
   :apply_range
 }

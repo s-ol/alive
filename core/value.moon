@@ -1,9 +1,9 @@
 -- ALV Value types
-import Op, Action, FnDef from require 'core.base'
-
-local Scope
+local Scope, Registry, Op, Action, FnDef
 load_ = ->
   import Scope from require 'core.scope'
+  import Registry from require 'core.registry'
+  import Op, Action, FnDef from require 'core.base'
 
 ancestor = (klass) ->
   assert klass, "cant find the ancestor of nil"
@@ -16,26 +16,73 @@ ancestor = (klass) ->
 -- - a Value
 -- - an Op (to update)
 -- - children (results of subexpressions that were evaluated)
+-- - cached list of all Dispatchers affecting all Ops in the subtree
 --
--- ResultNodes form a tree that controls execution order and message passing
+-- Results form a tree that controls execution order and message passing
 -- between Ops.
-class ResultNode
+class Result
   -- params: table with optional keys op, value, children
   new: (params={}) =>
-    @op = params.op
     @value = params.value
+    @op = params.op
     @children = params.children or {}
 
-  -- unwrap value and assert that neither @op nor @children were set
-  value_only: (msg) =>
-    assert not @op and #@children == 0, msg or "pure expression expected"
+    @all_impulses = {}
+    for child in *@children
+      for d in pairs child.all_impulses
+        @all_impulses[d] = true
+
+    if @op
+      assert @op.impulses, "#{@op} not set up correctly (impulses)"
+      for d in *@op.impulses
+        @all_impulses[d] = true
+
+  -- asserts value-constness and returns the value
+  const: (msg) =>
+    assert not (next @all_impulses), msg or "eval-time const expected"
     @value
 
-  update: (dt) =>
-    for child in *@children
-      child\update dt
-    @op\update dt if @op
+  -- create a value-copy of this result that has the same impulses but without
+  -- affecting the original's update logic
+  make_ref: =>
+    with Result value: @value
+      .all_impulses = @all_impulses
 
+  -- in depth-first order, tick all Ops who have dirty Stream inputs or impulses
+  --
+  -- short-circuits if there are no dirty Streams in the entire subtree
+  tick: =>
+    any_dirty = false
+    for stream in pairs @all_impulses
+      if stream\dirty!
+        any_dirty = true
+        break
+
+    -- early-out if no streams are dirty in this whole subtree
+    return unless any_dirty
+
+    for child in *@children
+      child\tick!
+
+    if @op
+      -- we have to check self_dirty here, because streams from child
+      -- expressions might have changed
+      self_dirty = false
+      for stream in *@op.impulses
+        if stream\dirty!
+          self_dirty = true
+          break
+      for stream in *@op.inputs
+        if stream\dirty!
+          self_dirty = true
+          break
+
+      L\trace "#{op} is #{if self_dirty then 'dirty' else 'clean'}"
+      return unless self_dirty
+
+      @op\tick!
+
+-- static
   __tostring: =>
     buf = "<result=#{@value}"
     buf ..= " #{@op}" if @op
@@ -43,19 +90,18 @@ class ResultNode
     buf ..= ">"
     buf
 
-local Const, Stream
-
 -- ALV Type wrapper
 class Value
   -- @type      - type name.
   --              builtin types: * literals: sym, num, bool
   --                             * scope, opdef, fndef, builtin
   -- @value     - Lua value - access through :unwrap()
-  new: (@type, @value) =>
+  new: (@type, @value, @raw) =>
+    @updated = 0
 
-  -- asserts value-constness
-  -- returns self (for chaining)
-  const: => error 'not a constant'
+  dirty: => @updated == Registry.active!.tick
+
+  set: (@value) => @updated = Registry.active!.tick
 
   -- unwrap to the Lua type
   -- asserts @type == type, msg if given
@@ -63,14 +109,30 @@ class Value
     assert type == @type, msg or "#{@} is not a #{type}" if type
     @value
 
+-- AST interface
+  eval: (scope) =>
+    switch @type
+      when 'num', 'str'
+        Result value: @
+      when 'sym'
+        assert (scope\get @value), "undefined reference to symbol '#{@value}'"
+      else
+        error "cannot evaluate #{@}"
+
+  quote: => @
+
+  stringify: => assert @raw, "stringifying Value that wasn't parsed"
+
+  clone: (prefix) => @
+  -- in case of doubt:
+  -- clone: (prefix) => Value @type, @value, @raw
+
 -- static
   __tostring: =>
     value = if 'table' == (type @value) and rawget @value, '__base' then @value.__name else @value
     "<#{@@__name} #{@type}: #{value}>"
+  __call: (...) => @unwrap ...
   __eq: (other) => other.type == @type and other.value == @value
-  __inherited: (cls) =>
-    cls.__base.__tostring = @__tostring
-    cls.__base.__eq = @__eq
 
   -- wrap a Lua type
   @wrap: (val, name='(unknown)') ->
@@ -96,62 +158,26 @@ class Value
               error "#{name}: cannot wrap '#{val.__class.__name}' instance"
         else
           -- plain table
-          return Const 'scope', Scope.from_table val
+          return Value 'scope', Scope.from_table val
       else
         error "#{name}: cannot wrap Lua type '#{type val}'"
 
-    Const typ, val
+    Value typ, val
 
-class Stream extends Value
-  new: (@type, @value=nil) =>
-
-  set: (@value) =>
-    -- set dirty flag (?)
-
-class Const extends Value
-  new: (type, value, @raw) =>
-    super type, value
-
--- Value interface
-  const: => @
-
--- AST interface
-  eval: (scope) =>
-    value = switch @type
-      when 'num', 'str'
-        @
-      when 'sym'
-        assert (scope\get @value), "undefined reference to symbol '#{@value}'"
-      else
-        error "cannot evaluate #{@}"
-
-    ResultNode :value
-
-  quote: => @
-
-  stringify: => @raw
-
-  clone: (prefix) => @
-  -- in case of doubt:
-  -- clone: (prefix) => Const @type, @value, @raw
-
--- static
   unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
-
   @parse: (type, sep) =>
     switch type
       when 'num' then (match) -> @ 'num', (tonumber match), match
       when 'sym' then (match) -> @ 'sym', match, match
       when 'str' then (match) -> @ 'str', (unescape match), sep .. match .. sep
 
-  @num: (num) -> Const 'num', num, tostring num
-  @str: (str) -> Const 'str', str, "'#{str}'"
-  @sym: (sym) -> Const 'sym', sym, sym
-  @bool: (bool) -> Const 'bool', bool, tostring bool
+  @num: (num) -> Value 'num', num, tostring num
+  @str: (str) -> Value 'str', str, "'#{str}'"
+  @sym: (sym) -> Value 'sym', sym, sym
+  @bool: (bool) -> Value 'bool', bool, tostring bool
 
 {
-  :ResultNode
+  :Result
   :Value
-  :Stream, :Const
   :load_
 }

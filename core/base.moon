@@ -1,20 +1,46 @@
 -- base definitions for extensions
+import Value from require 'core.value'
+
+unpack or= table.unpack
 
 -- a persistent expression Operator
 --
 -- accepts Const or Stream inputs and produces a Stream output
 class Op
-  update: (dt) =>
+  new: (type, init) =>
+    @impulses = {}
 
-  -- set @out to a Value (Const or Stream)
-  setup: (...) =>
+    if type
+      @out = Value type, init
 
+  -- (re)-initialize this Op with the given inputs
+  -- after this method finishes, :tick(true) is called once, after which
+  -- @impulses and @out have to be set and may not change until :setup()
+  -- is called again.
+  setup: (@inputs) =>
+
+  -- called once per frame if any inputs or impulses are dirty, and once
+  -- immediately after :setup(). 'first' will be true in the latter case.
+  -- Should update @out.
+  tick: (first) =>
+
+  -- called once when the Op is destroyed
   destroy: =>
+
+-- utilities
+  unwrap_inputs: =>
+    unpack [input! for input in *@inputs]
+
+  assert_types: (...) =>
+    num = select '#', ...
+    assert #@inputs >= num, "argument count mismatch"
+    for i = 1, num
+      expect = select i, ...
+      assert @inputs[i].type == expect, "expected argument #{i} of #{@} to be of type #{expect} but found #{@inputs[i]}"
 
 -- static
   __tostring: => "<op: #{@@__name}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
-
 
 -- a builtin / special form / cell-evaluation strategy
 --
@@ -51,7 +77,7 @@ class Action
 -- static
   -- find & patch the action for the expression with Tag 'tag' if it exists,
   -- and is compatible with the new Cell contents, otherwise instantiate it.
-  -- register the action with the tag, evaluate it and return the ResultNode
+  -- register the action with the tag, evaluate it and return the Result
   @eval_cell: (scope, tag, head, tail) =>
     last = tag\last!
     compatible = last and
@@ -93,6 +119,7 @@ class FnDef
     "(fn (#{table.concat [p\stringify! for p in *@params], ' '}) ...)"
 
 {
+  :Dispatcher
   :Op
   :Action
   :FnDef

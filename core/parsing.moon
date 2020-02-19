@@ -1,4 +1,4 @@
-import Const from require 'core.value'
+import Value from require 'core.value'
 import Cell, RootCell from require 'core.cell'
 import Tag from require 'core.tag'
 import R, S, P, V, C, Ct from require 'lpeg'
@@ -16,15 +16,15 @@ mspace = (comment + wc)^0 / 1            -- optional whitespace
 -- atoms
 digit = R '09'
 first = (R 'az', 'AZ') + S '-_+*/.!?='
-sym = first * (first + digit)^0 / Const\parse 'sym'
+sym = first * (first + digit)^0 / Value\parse 'sym'
 
-strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Const\parse 'str', '\"'
-strq = "'" * (C ((P "\\'") + (P '\\\\') + (1 - P "'"))^0) * "'" / Const\parse 'str', '\''
+strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Value\parse 'str', '\"'
+strq = "'" * (C ((P "\\'") + (P '\\\\') + (1 - P "'"))^0) * "'" / Value\parse 'str', '\''
 str = strd + strq
 
 int = digit^1
 float = (digit^1 * '.' * digit^0) + (digit^0 * '.' * digit^1)
-num = (float + int) / Const\parse 'num'
+num = (float + int) / Value\parse 'num'
 
 atom = num + sym + str
 

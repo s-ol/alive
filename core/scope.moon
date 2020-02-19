@@ -1,12 +1,16 @@
-import Value from require 'core.value'
+import Result, Value from require 'core.value'
 
 class Scope
   new: (@node, @parent) =>
     @values = {}
 
-  set_raw: (key, val) => @values[key] = Value.wrap val, key
+  set_raw: (key, val) =>
+    value = Value.wrap val, key
+    @values[key] = Result :value
+
   set: (key, val) =>
     L\trace "setting #{key} = #{val} in #{@}"
+    assert val.__class == Result, "expected #{key}=#{val} to be Result"
     @values[key] = val
 
   get: (key, prefix='') =>
@@ -20,9 +24,9 @@ class Scope
     if not start
       return @parent and L\push -> @parent\get key
 
-    scope = @get start
-    assert scope and scope.type == 'scope', "cant find '#{prefix}#{start}' for '#{prefix}#{key}'"
-    scope\unwrap!\get rest, "#{prefix}#{start}/"
+    child = @get start
+    assert child and child.value.type == 'scope', "#{start} is not a scope (looking for #{key})"
+    child.value\unwrap!\get rest, "#{prefix}#{start}/"
 
   use: (other) =>
     L\trace "using defs from #{other} in #{@}"
@@ -31,7 +35,8 @@ class Scope
 
   from_table: (tbl) ->
     with Scope!
-      .values = { k, Value.wrap v, k for k,v in pairs tbl }
+      for k, v in pairs tbl
+        \set_raw k, v
 
   __tostring: =>
     buf = "<Scope"
