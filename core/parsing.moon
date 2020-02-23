@@ -24,7 +24,7 @@ str = strd + strq
 
 int = digit^1
 float = (digit^1 * '.' * digit^0) + (digit^0 * '.' * digit^1)
-num = (float + int) / Value\parse 'num'
+num = ((P '-')^-1 * (float + int)) / Value\parse 'num'
 
 atom = num + sym + str
 

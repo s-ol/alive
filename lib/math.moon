@@ -1,23 +1,21 @@
-import Stream, Op, Const from require 'core'
+import Op, Value from require 'core'
 unpack or= table.unpack
 
 class BinOp extends Op
-  new: (...) =>
-    super ...
-    @out = Stream 'num', 0
+  new: =>
+    super 'num', 0
 
-  setup: (...) =>
-    @children = { ... }
-    assert #@children >= 2, "#{@} needs at least two parameters"
-    @out
+  setup: (params) =>
+    super params
+    assert #@inputs >= 2, "#{@} needs at least two parameters"
 
 class add extends BinOp
   @doc: "(+ a b [c]...)
 (add a b [c]...) - add values"
 
-  update: (dt) =>
+  tick: =>
     value = 0
-    for child in *@children
+    for child in *@inputs
       value += child\unwrap 'num'
     @out\set value
 
@@ -27,9 +25,9 @@ class sub extends BinOp
 
 subtracts all other arguments from a"
 
-  update: (dt) =>
-    value = @children[1]\unwrap 'num'
-    for child in *@children[2,]
+  tick: =>
+    value = @inputs[1]\unwrap 'num'
+    for child in *@inputs[2,]
       value -= child\unwrap 'num'
     @out\set value
 
@@ -37,9 +35,9 @@ class mul extends BinOp
   @doc: "(* a b [c]...)
 (mul a b [c]...) - multiply values"
 
-  update: (dt) =>
+  tick: =>
     value = 1
-    for child in *@children
+    for child in *@inputs
       value *= child\unwrap 'num'
     @out\set value
 
@@ -49,9 +47,9 @@ class div extends BinOp
 
 divides a by all other arguments"
 
-  update: (dt) =>
-    value = @children[1]\unwrap 'num'
-    for child in *@children[2,]
+  tick: =>
+    value = @inputs[1]\unwrap 'num'
+    for child in *@inputs[2,]
       value /= child\unwrap 'num'
     @out\set value
 
@@ -61,7 +59,7 @@ evenodd_op = (name, remainder) ->
       @out = Stream 'bool'
       @out
 
-    update: (dt) =>
+    tick: =>
       a, divi = (@a\unwrap 'num'), @div\unwrap 'num'
       @out\set (a % divi) == remainder
 
@@ -73,15 +71,15 @@ div defaults to 2"
 
 func_op = (name, arity, func) ->
   k = class extends Op
+    new: =>
+      super 'num'
+
     setup: (...) =>
       @params = { ... }
       if arity != '*'
         assert #@params == arity, "#{@} needs exactly #{arity} parameters"
 
-      @out = Stream 'num'
-      @out
-
-    update: (dt) =>
+    tick: =>
       @out\set func unpack [p\unwrap 'num' for p in *@params]
 
   k.__name = name

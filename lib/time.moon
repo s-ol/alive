@@ -87,19 +87,22 @@ class tick extends Op
 
 counts upwards by one every period seconds and returns the number of completed ticks."
   new: =>
-    super 'num'
+    super 'num', 0
     @phase = 0
 
   setup: (params) =>
+    super params
     @assert_types 'num', 'num'
 
-  update: (dt) =>
+  tick: (first) =>
     -- if clock is dirty
-    if @inputs[1].dirty
+    if first or @inputs[1].dirty
       dt, period = @unwrap_inputs!
       @phase += dt / period
 
-      @out\set math.floor @phase
+      next_num = math.floor @phase
+      if next_num != @.out!
+        @out\set next_num
 
 class every extends Op
   @doc: "(every clock period) - trigger every period seconds
@@ -110,11 +113,12 @@ returns true once every period seconds."
     @phase = 0
 
   setup: (@period) =>
+    super params
     @assert_types 'num', 'num'
 
-  update: (dt) =>
+  tick: (first) =>
     -- if clock is dirty
-    if @inputs[1].dirty
+    if first or @inputs[1].dirty
       dt, period = @unwrap_inputs!
       @phase += dt / period
 

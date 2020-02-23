@@ -10,13 +10,15 @@ class op_invoke extends Action
 
     def = head\unwrap 'opdef', "cant op-invoke #{@head}"
     @head, @op = head, def!
+    @first = true
 
     true
     
   eval: (scope, tail) =>
     children = L\push -> [L\push expr\eval, scope for expr in *tail]
     @op\setup [child.value for child in *children]
-    @op\tick true
+    @op\tick @first
+    @first = nil
 
     Result :children, value: @op.out, op: @op
 

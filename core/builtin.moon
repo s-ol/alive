@@ -12,9 +12,9 @@ prints the docstring for sym in the console"
   eval: (scope, tail) =>
     assert #tail == 1, "'doc' takes exactly one parameter"
 
-    def = L\push tail[1]\eval, scope
+    result = L\push tail[1]\eval, scope
     with Result children: { def }
-      def = def.value\const!\unwrap!
+      def = result\const!\unwrap!
       L\print "(doc #{tail[1]\stringify!}):\n#{def.doc}\n"
 
 class def extends Action

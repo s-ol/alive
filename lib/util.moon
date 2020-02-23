@@ -1,4 +1,4 @@
-import Op from require 'core'
+import Value, Op from require 'core'
 
 class switch_ extends Op
   @doc: "(switch i v0 [v1 v2...]) - switch between multiple inputs
@@ -15,9 +15,9 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
 
     for inp in *@inputs[3,]
       assert inp.type == first.type, "not all values have the same type: #{first.type} != #{inp.type}"
-    @out = Stream first.type
+    @out = Value first.type, first!
 
-  update: (dt) =>
+  tick: =>
     i = @inputs[1]\unwrap!
     active = switch i
       when true
@@ -44,7 +44,7 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
 --    @out = Stream typ
 --    @out
 --
---  update: (dt) =>
+--  tick: =>
 --    i = @i\unwrap!
 --    active = switch i
 --      when true
@@ -68,7 +68,7 @@ class edge extends Op
     super params
     @assert_types 'bool'
 
-  update: (dt) =>
+  tick: =>
     now = @params[1]\unwrap!
     if now and not @last
       @out\set true
@@ -85,7 +85,7 @@ default defaults to zero."
     { i, init } = @inputs
     @out = Value i.type, default and init\unwrap!
 
-  tick =>
+  tick: =>
     if next = @params[1]\unwrap!
       @out\set next
 

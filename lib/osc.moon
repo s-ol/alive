@@ -1,4 +1,4 @@
-import Stream, Op from require 'core'
+import Op from require 'core'
 import pack, unpack from require 'osc'
 import dns, udp from require 'socket'
 
@@ -19,7 +19,7 @@ class addr extends Op
     @out\set { :ip, :port }
 
 class out extends Op
-  @doc: "(out host port path val) - send a value via OSC"
+  @doc: "(out remote path val) - send a value via OSC"
 
   new: (...) =>
     @@udp or= udp!
@@ -29,8 +29,9 @@ class out extends Op
     assert @inputs[3], "need a value"
     @assert_types 'udp/remote', 'str', @inputs[3].type
 
-  update: (dt) =>
+  tick: =>
     remote, path, value = @unwrap_inputs!
+    { :ip, :port } = remote
     msg = pack path, value
     @@udp\sendto msg, ip, port
 

@@ -27,28 +27,36 @@ range can be one of:
 
     @inputs[5] or= Value.num 8
     @inputs[6] or= Value.str 'uni'
-    @assert_types 'midi/port', 'num', 'num', 'num', 'num', 'str'
+    assert #@inputs == 6
+    assert @inputs[6].type == 'num' or @inputs[6].type == 'str'
+    @assert_first_types 'midi/port', 'num', 'num', 'num', 'num'
     @impulses = { @inputs[1]\unwrap! }
 
     if not @out\unwrap!
       @out\set apply_range @inputs[6], 0
 
-  tick: =>
-    port, i, start, chan, steps = unpack [i\unwrap! for i in *@inputs]
+  tick: (first) =>
     port = @inputs[1]\unwrap!
     _, i, start, chan, steps = unpack @inputs
+
+    if first or @inputs[5]\dirty!
+      steps = @inputs[5]!
+      while steps > #@steps
+        table.insert @steps, 0
+      while steps < #@steps
+        table.remove @steps
 
     curr_i = i\unwrap! % #@steps
     changed = false
 
     for msg in port\receive!
-      if msg.status == 'control-change' and msg.chan == chan
-        i = msg.a - start
-        if i < #@steps
-          @steps[i+1] = msg.b
-          changed = i == curr_i
+      if msg.status == 'control-change' and msg.chan == chan!
+        rel_i = msg.a - start!
+        if rel_i >= 0 and rel_i < #@steps
+          @steps[rel_i+1] = msg.b
+          changed = rel_i == curr_i
 
-    if changed or i\dirty! or start\dirty! or chan\dirty! or steps\diry!
+    if changed or i\dirty! or start\dirty! or chan\dirty! or steps\dirty!
       @out\set apply_range @inputs[6], @steps[curr_i+1]
 
 class gate_seq extends Op
@@ -57,46 +65,17 @@ class gate_seq extends Op
 returns true or false for the i-th step steps (buttons starting from start).
 steps defaults to 8."
 
-  destroy: =>
-    launch\detach @mask if @mask
-
   new: =>
+    super 'bool', false
     @steps = {}
-    @out = Stream 'bool'
 
-  setup: (@i, start, chan, steps=(Const.num 8)) =>
-    launch\detach @mask if @mask
+  setup: (params) =>
+    super params
 
-    for i=1, #@steps
-      launch\send 'note-on', @chan, (@start+i), 0, color 0, 0
-
-    @start = start\const!\unwrap 'num'
-    @chan = chan\const!\unwrap 'num'
-    steps = steps\const!\unwrap 'num'
-
-    while steps > #@steps
-      table.insert @steps, false
-    while steps < #@steps
-      table.remove @steps
-
-    for i=1, steps
-      @display i
-
-    @mask = launch\attach { status: 'note-on', chan: @chan }, (_, _, note, _) ->
-      @toggle note
-
-    @out
-
-  toggle: (note) =>
-    i = note - @start
-    val = @steps[i+1]
-    if val != nil
-      @steps[i+1] = not val
-      curr_i = (@i\unwrap 'num') % #@steps
-      @display i, i == curr_i
-
-  display: (i, active) =>
-    launch\send 'note-on', @chan, (@start + i), light @steps[i+1], active
+    @inputs[5] or= Value.num 8
+    @inputs[6] or= Value.str 'uni'
+    @assert_types 'midi/port', 'num', 'num', 'num', 'num', 'str'
+    @impulses = { @inputs[1]\unwrap! }
 
   light = (set, active) ->
     set = if set then 'S' else ' '
@@ -106,17 +85,35 @@ steps defaults to 8."
       when ' A' then 1, 1
       when 'S ' then 1, 0
       when 'SA' then 3, 1
+  display: (i, active) =>
+    port, _, start, chan = @unwrap_inputs!
+    port\send 'note-on', chan, (start + i), light @steps[i+1], active
 
-  update: (dt) =>
-    launch\tick!
+  tick: (first) =>
+    port, curr_i, start, chan, steps = @unwrap_inputs!
 
-    curr_i = (@i\unwrap 'num') % #@steps
-    prev_i = (curr_i - 1) % #@steps
+    if first or @inputs[5]\dirty!
+      while steps > #@steps
+        table.insert @steps, false
+      while steps < #@steps
+        table.remove @steps
 
-    @display curr_i, true
-    @display prev_i, false
+    curr_i = curr_i % #@steps
 
-    @out\set @steps[curr_i+1]
+    for msg in port\receive!
+      if msg.status == 'note-on' and msg.chan == chan
+        rel_i = msg.a - start
+        if rel_i >= 0 and rel_i < #@steps
+          @steps[rel_i+1] = not @steps[rel_i+1]
+          @display rel_i, rel_i == curr_i
+
+    if @inputs[2]\dirty!
+      prev_i = (curr_i - 1) % #@steps
+
+      @display curr_i, true
+      @display prev_i, false
+
+      @out\set @steps[curr_i+1]
 
 {
   'gate-seq': gate_seq

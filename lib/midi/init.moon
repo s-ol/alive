@@ -44,7 +44,9 @@ range can be one of:
     super params
     @inputs[3] or= Value.num -1
     @inputs[4] or= Value.str 'uni'
-    @assert_types 'midi/port', 'num', 'num', 'str'
+    assert #@inputs == 4
+    assert @inputs[4].type == 'num' or @inputs[4].type == 'str'
+    @assert_types 'midi/port', 'num', 'num'
     @impulses = { @inputs[1]\unwrap! }
 
     if not @out\unwrap!

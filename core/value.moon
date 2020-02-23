@@ -98,6 +98,7 @@ class Value
   -- @value     - Lua value - access through :unwrap()
   new: (@type, @value, @raw) =>
     @updated = 0
+    pcall @\set, @value
 
   dirty: => @updated == Registry.active!.tick
 
