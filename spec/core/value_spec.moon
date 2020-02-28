@@ -66,6 +66,17 @@ describe 'Value', ->
       assert.has_error -> (Value.str 'hi')\unwrap 'num'
       assert.has_error -> (Value.sym 'hi')\unwrap 'str'
 
+    test 'with __call shorthand', ->
+      assert.is.equal 3.14, (Value.num 3.14)!
+      assert.is.equal 'hi', (Value.str 'hi')!
+      assert.is.equal 'hi', (Value.sym 'hi')!
+      assert.is.equal 3.14, (Value.num 3.14) 'num'
+      assert.is.equal 'hi', (Value.str 'hi') 'str'
+      assert.is.equal 'hi', (Value.sym 'hi') 'sym'
+      assert.has_error -> (Value.num 3.14) 'sym'
+      assert.has_error -> (Value.str 'hi') 'num'
+      assert.has_error -> (Value.sym 'hi') 'str'
+
   describe 'checks equality', ->
     test 'using the type', ->
       val = Value 'num', 3

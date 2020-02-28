@@ -73,9 +73,6 @@ class SimpleRegistry extends Registry
 
   last: (index) =>
   replace: (index, expr) =>
-  finalize: =>
-    assert @ == @@active_registry, "not the active registry!"
-    @@active_registry, @prev = @prev, nil
 
 {
   :Registry

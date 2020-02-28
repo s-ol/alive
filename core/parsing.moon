@@ -44,13 +44,7 @@ cell = P {
   :expr, :explist, :cell
 }
 
-parse_error = (root, rest) ->
-  if #rest > 0
-    error "failed to parse, rest is:\n#{rest}"
-
-  root
-
-program = root * (C (P 1)^0) * -1 / parse_error
+program = root * -1
 
 {
   :comment
