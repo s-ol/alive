@@ -37,6 +37,8 @@ class Result
       for d in *@op.impulses
         @all_impulses[d] = true
 
+  is_const: => not next @all_impulses
+
   -- asserts value-constness and returns the value
   const: (msg) =>
     assert not (next @all_impulses), msg or "eval-time const expected"
