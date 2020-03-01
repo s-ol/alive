@@ -19,10 +19,6 @@ class Cell
       when 'builtin'
         head\unwrap!
       else
-        print head
-        for k,v in pairs head
-          print k,v
-          print head.__class.__name
         error "cannot evaluate expr with head #{head}"
 
     Action\eval_cell scope, @tag, head, @tail!

@@ -27,36 +27,38 @@ class Result
     @op = params.op
     @children = params.children or {}
 
-    @all_impulses = {}
+    @side_inputs, is_child = {}, {}
     for child in *@children
-      for d in pairs child.all_impulses
-        @all_impulses[d] = true
+      for d in pairs child.side_inputs
+        @side_inputs[d] = true
+      if child.value
+        is_child[child.value] = true
 
     if @op
-      assert @op.impulses, "#{@op} not set up correctly (impulses)"
-      for d in *@op.impulses
-        @all_impulses[d] = true
+      for input in @op\all_inputs!
+        continue if is_child[input]
+        @side_inputs[input] = true
 
-  is_const: => not next @all_impulses
+  is_const: => not next @side_inputs
 
   -- asserts value-constness and returns the value
   const: (msg) =>
-    assert not (next @all_impulses), msg or "eval-time const expected"
+    assert not (next @side_inputs), msg or "eval-time const expected"
     @value
 
   -- create a value-copy of this result that has the same impulses but without
   -- affecting the original's update logic
   make_ref: =>
     with Result value: @value
-      .all_impulses = @all_impulses
+      .side_inputs = @side_inputs
 
   -- in depth-first order, tick all Ops who have dirty Stream inputs or impulses
   --
   -- short-circuits if there are no dirty Streams in the entire subtree
   tick: =>
     any_dirty = false
-    for stream in pairs @all_impulses
-      if stream\dirty!
+    for input in pairs @side_inputs
+      if input\dirty!
         any_dirty = true
         break
 
@@ -70,16 +72,12 @@ class Result
       -- we have to check self_dirty here, because streams from child
       -- expressions might have changed
       self_dirty = false
-      for stream in *@op.impulses
-        if stream\dirty!
-          self_dirty = true
-          break
-      for stream in *@op.inputs
+      for stream in @op\all_inputs!
         if stream\dirty!
           self_dirty = true
           break
 
-      L\trace "#{op} is #{if self_dirty then 'dirty' else 'clean'}"
+      L\trace "#{@op} is #{if self_dirty then 'dirty' else 'clean'}"
       return unless self_dirty
 
       @op\tick!
@@ -100,7 +98,6 @@ class Value
   -- @value     - Lua value - access through :unwrap()
   new: (@type, @value, @raw) =>
     @updated = 0
-    pcall @\set, @value
 
   dirty: => @updated == Registry.active!.tick
 

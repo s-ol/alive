@@ -4,7 +4,7 @@ import Result, Value from require 'core.value'
 -- wrap in non-const result
 wrap = (value) ->
   with Result :value
-    .all_impulses = { 'fake' }
+    .side_inputs = { 'fake' }
 
 -- wrap in const result
 wrap_const = (value) -> Result :value
@@ -157,9 +157,9 @@ describe 'match', ->
   c_str = wrap_const Value.str 'hello'
 
   it 'matches lists', ->
-    assert.is.same {num, num, str}, {match 'num num str', {num, num, str}}
-    assert.is.same {num, str}, {match 'num str', {num, str}}
-    assert.is.same {c_num, str}, {match '=num str', {c_num, str}}
+    assert.is.same {num, num, str}, match 'num num str', {num, num, str}
+    assert.is.same {num, str}, match 'num str', {num, str}
+    assert.is.same {c_num, str}, match '=num str', {c_num, str}
 
   it 'throws type errors', ->
     assert.has.error -> match 'str num str', {num, num, str}
@@ -172,18 +172,18 @@ describe 'match', ->
     assert.has.error -> match '*num', {num, num, str}
 
   it 'matches optional arguments', ->
-    assert.is.same {str, num, str}, {match 'str num? str', {str, num, str}}
-    assert.is.same {str, false, str}, {match 'str num? str', {str, str}}
-    assert.is.same {str, false}, {match 'str num?', {str}}
+    assert.is.same {str, num, str}, match 'str num? str', {str, num, str}
+    assert.is.same {str, nil, str}, match 'str num? str', {str, str}
+    assert.is.same {str, nil}, match 'str num?', {str}
 
   it 'matches splats', ->
-    assert.is.same {{c_str, str, str}, num}, {match '*str num', {c_str, str, str, num}}
-    assert.is.same {c_str, {str, str}}, {match 'any? *str', {c_str, str, str}}
+    assert.is.same {{c_str, str, str}, num}, match '*str num', {c_str, str, str, num}
+    assert.is.same {c_str, {str, str}}, match 'any? *str', {c_str, str, str}
     assert.has.error -> match '*str num', {num}
     assert.has.error -> match 'any? *str', {str}
 
   it 'matches optional splats', ->
-    assert.is.same {{c_str, str, str}, num}, {match '*str? num', {c_str, str, str, num}}
-    assert.is.same {c_str, {str, str}}, {match 'any? *str?', {c_str, str, str}}
-    assert.is.same {{}, num}, {match '*str? num', {num}}
-    assert.is.same {str, {}}, {match 'any? *str?', {str}}
+    assert.is.same {{c_str, str, str}, num}, match '*str? num', {c_str, str, str, num}
+    assert.is.same {c_str, {str, str}}, match 'any? *str?', {c_str, str, str}
+    assert.is.same {{}, num}, match '*str? num', {num}
+    assert.is.same {str, {}}, match 'any? *str?', {str}

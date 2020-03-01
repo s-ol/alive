@@ -1,55 +1,50 @@
-import Registry, Value, Op from require 'core'
+import Registry, Value, Result, Op from require 'core'
+import ValueInput, EventInput from require 'core.base'
+import match from require 'core.pattern'
 import monotime from require 'system'
-
-delta = do
-  period = 1 / 60
-  
-  local last
-  ->
 
 class clock extends Op
   new: =>
-    super 'num'
-    @impulses = { Registry.active!.kr }
-    @out\set 0
+    super 'clock', { dt: 0, time: monotime! }
 
-  setup: (params) =>
-    super params
+  setup: =>
     @last = monotime!
+    super kr: EventInput Registry.active!.kr
 
   tick: =>
     time = monotime!
     dt = time - @last
     if dt >= 1/60
-      @out\set dt
+      @out\set :dt, :time
       @last = time
 
 class lfo extends Op
-  @doc: "(lfo clock freq [wave]) - low-frequency oscillator
+  @doc: "(lfo [clock] freq [wave]) - low-frequency oscillator
 
 oscillates between 0 and 1 at the frequency freq.
-wave selects the wave shape from the following (default sin):
-- sin
+wave selects the wave shape from the following:
+- sin (default)
 - saw
 - tri"
 
-  tau = math.pi * 2
   new: =>
     super 'num'
     @phase = 0
 
-  default_wave = Value.str 'sin'
-  setup: (params) =>
-    super params
+  default_wave = Result value: Value.str 'sin'
+  setup: (inputs, scope) =>
+    { clock, freq, wave } = match 'clock? num any?', inputs
+    super
+      clock: EventInput clock or scope\get '*clock*'
+      freq: ValueInput freq
+      wave: ValueInput wave or default_wave
 
-    @inputs[3] or= default_wave
-    @assert_types 'num', 'num', 'str'
-
+  tau = math.pi * 2
   tick: =>
-    -- if clock is dirty
-    if @inputs[1].dirty
-      dt, freq, wave = @unwrap_inputs!
-      @phase += dt * freq
+    if @inputs.clock\dirty!
+      { :clock, :freq, :wave } = @unwrap_all!
+
+      @phase += clock.dt * freq
       @out\set switch wave
         when 'sin' then .5 + .5 * math.cos @phase * tau
         when 'saw' then @phase % 1
@@ -57,7 +52,7 @@ wave selects the wave shape from the following (default sin):
         else error "unknown wave type"
 
 class ramp extends Op
-  @doc: "(ramp clock period [max]) - sawtooth lfo
+  @doc: "(ramp [clock] period [max]) - sawtooth lfo
 
 ramps from 0 to max (default same as ramp) once every period seconds."
 
@@ -65,62 +60,68 @@ ramps from 0 to max (default same as ramp) once every period seconds."
     super 'num'
     @phase = 0
 
-  setup: (params) =>
-    super params
-    assert @inputs[1].type == 'num', "tick requires a clock value"
-    assert @inputs[2].type == 'num', "tick requires a period value"
+  setup: (inputs, scope) =>
+    { clock, period, max } = match 'clock? num num?', inputs
+    super
+      clock: EventInput clock or scope\get '*clock*'
+      period: ValueInput period
+      max: max and ValueInput max
 
   tick: =>
-    -- if clock is dirty
-    if @inputs[1].dirty
-      dt, period, max = @unwrap_inputs!
+    clock_dirty = @inputs.clock\dirty!
+    if clock_dirty
+      { :clock, :period, :max } = @unwrap_all!
       max or= period
-      @phase += dt / period
+      @phase += clock.dt / period
 
       if @phase >= 1
         @phase -= 1
 
+    if clock_dirty or (@inputs.max and @inputs.max\dirty!)
       @out\set @phase * max
 
 class tick extends Op
-  @doc: "(tick clock period) - count ticks
+  @doc: "(tick [clock] period) - count ticks
 
 counts upwards by one every period seconds and returns the number of completed ticks."
   new: =>
-    super 'num', 0
-    @phase = 0
+    @phase, @count = 0, 0
+    super 'num', @count
 
-  setup: (params) =>
-    super params
-    @assert_types 'num', 'num'
+  setup: (inputs, scope) =>
+    { clock, period } = match 'clock? num', inputs
+    super
+      clock: EventInput clock or scope\get '*clock*'
+      period: ValueInput period
 
-  tick: (first) =>
-    -- if clock is dirty
-    if first or @inputs[1].dirty
-      dt, period = @unwrap_inputs!
-      @phase += dt / period
+  tick: =>
+    if @inputs.clock\dirty!
+      { :clock, :period, :max } = @unwrap_all!
+      @phase += clock.dt / period
 
-      next_num = math.floor @phase
-      if next_num != @.out!
-        @out\set next_num
+      if @phase >= 1
+        @phase -= 1
+        @count += 1
+        @out\set @count
 
 class every extends Op
-  @doc: "(every clock period) - trigger every period seconds
+  @doc: "(every [clock] period) - trigger every period seconds
 
 returns true once every period seconds."
   new: =>
     super 'bang'
     @phase = 0
 
-  setup: (@period) =>
-    super params
-    @assert_types 'num', 'num'
+  setup: (inputs, scope) =>
+    { clock, period } = match 'clock? num', inputs
+    super
+      clock: EventInput clock or scope\get '*clock*'
+      period: ValueInput period
 
-  tick: (first) =>
-    -- if clock is dirty
-    if first or @inputs[1].dirty
-      dt, period = @unwrap_inputs!
-      @phase += dt / period
+  tick: =>
+    if @inputs.clock\dirty!
+      { :clock, :period, :max } = @unwrap_all!
+      @phase += clock.dt / period
 
       if @phase >= 1
         @phase -= 1

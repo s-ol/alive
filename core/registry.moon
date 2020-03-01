@@ -1,11 +1,11 @@
-import Value from require 'core.value'
+import Result, Value from require 'core.value'
 
 class Registry
   new: () =>
     @map = {}
 
     @tick = 0
-    @kr = Value.bool true
+    @kr = Result value: Value.bool true
 
 -- methods for Tag
 
@@ -48,7 +48,7 @@ class Registry
   wrap_tick: (fn) => (...) ->
     @grab!
     @tick += 1
-    @kr\set true
+    @kr.value\set true
 
     with fn ...
       @release!

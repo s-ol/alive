@@ -1,7 +1,39 @@
 -- base definitions for extensions
-import Value from require 'core.value'
+import Value, Result from require 'core.value'
 
 unpack or= table.unpack
+
+class Input
+  new: (value) =>
+    @stream = switch value.__class
+      when Result
+        assert value.value, "Input from result without value!"
+      when Value
+        value
+      else
+        error "Input from unknown value: #{value}"
+
+  merge: (previous) =>
+
+  finish_setup: =>
+  dirty: => @stream\dirty!
+  unwrap: => @stream\unwrap!
+  type: => @stream.type
+  __call: => @stream\unwrap!
+  __inherited: (cls) => cls.__base.__call = @__call
+
+-- ValueInput scheduling policy
+--
+-- during setup, only marked dirty if old and new stream differ in value
+class ValueInput extends Input
+  merge: (old) => @dirty_setup = not old or @stream\unwrap! != old\unwrap!
+  finish_setup: => @dirty_setup = false
+  dirty: => @dirty_setup or @stream\dirty!
+
+-- EventInput scheduling policy
+--
+-- only marked dirty if the input stream itself is dirty
+class EventInput extends Input
 
 -- a persistent expression Operator
 --
@@ -17,7 +49,37 @@ class Op
   -- after this method finishes, :tick(true) is called once, after which
   -- @impulses and @out have to be set and may not change until :setup()
   -- is called again.
-  setup: (@inputs) =>
+  setup: do
+    do_merge = (old, cur) ->
+      for k, cur_val in pairs cur
+        old_val = old and old[k]
+
+        -- are these inputs or nested tables?
+        cur_plain = cur_val and not cur_val.__class
+        old_plain = old_val and not old_val.__class
+
+        if cur_plain and old_plain
+          -- both are tables, recurse
+          do_merge old_val, cur_val
+        elseif cur_plain == old_plain
+          -- both are streams (or nil), merge them
+          cur_val\merge old_val
+
+    (inputs) =>
+      old_inputs = @inputs
+      @inputs = inputs
+      do_merge old_inputs, @inputs
+
+  -- iterate over the (potentially nested) inputs table
+  all_inputs: do
+    do_yield = (table) ->
+      for k, v in pairs table
+        if v.__class
+          coroutine.yield v
+        else
+          do_yield v
+
+    => coroutine.wrap -> do_yield @inputs
 
   -- called once per frame if any inputs or impulses are dirty, and once
   -- immediately after :setup(). 'first' will be true in the latter case.
@@ -28,8 +90,14 @@ class Op
   destroy: =>
 
 -- utilities
-  unwrap_inputs: =>
-    unpack [input! for input in *@inputs]
+  unwrap_all: do
+    do_unwrap = (value) ->
+      if value.__class
+        value\unwrap!
+      else
+        {k, do_unwrap v for k,v in pairs value}
+
+    => do_unwrap @inputs
 
   assert_types: (...) =>
     num = select '#', ...
@@ -123,6 +191,7 @@ class FnDef
     "(fn (#{table.concat [p\stringify! for p in *@params], ' '}) ...)"
 
 {
+  :ValueInput, :EventInput
   :Dispatcher
   :Op
   :Action

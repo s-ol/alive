@@ -40,7 +40,7 @@ class Pattern
     else
       matches = @matches results[1]
       assert @opt or matches, "couldn't match argument #{results[1]} as type #{@type}!"
-      matches and table.remove results, 1
+      if matches then table.remove results, 1
 
 match = (pattern, results) ->
   patterns = while pattern
@@ -50,7 +50,7 @@ match = (pattern, results) ->
     Pattern pat
   values = [p\match results for p in *patterns]
   assert #results == 0, "#{#results} extra arguments given!"
-  unpack values
+  values
 
 {
   :Pattern

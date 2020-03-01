@@ -1,6 +1,8 @@
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 import band, bor, lshift, rshift from require 'bit32'
 import Op, Registry from require 'core'
+import ValueInput, EventInput from require 'core.base'
+import match from require 'core.pattern'
 
 MIDI = {
   [0x9]: 'note-on'
@@ -62,58 +64,58 @@ class MidiPort
 class input extends Op
   @doc: "(midi/input name) - create a MIDI input port"
 
-  new: =>
-    super 'midi/port'
-    @impulses = { Registry.active!.kr }
+  new: => super 'midi/port'
 
-  setup: (params) =>
-    super params
-    @assert_types 'str'
+  setup: (inputs) =>
+    { name } = match 'str', inputs
+    super
+      name: ValueInput name
+      root: EventInput Registry.active!.kr
 
-  tick: (first) =>
-    { name } = @inputs
-    if first or name\dirty!
-      @out\set MidiPort find_port RtMidiIn, name\unwrap!
+  tick: =>
+    if @inputs.name\dirty!
+      @out\set MidiPort find_port RtMidiIn, @inputs.name!
 
     @out\unwrap!\tick!
 
 class output extends Op
   @doc: "(midi/output name) - create a MIDI output port"
 
-  new: =>
-    super 'midi/port'
+  new: => super 'midi/port'
 
-  setup: (params) =>
-    super params
-    @assert_types 'str'
+  setup: (inputs) =>
+    { name } = match 'str', inputs
+    super
+      name: ValueInput name
+      root: EventInput Registry.active!.kr
 
-  tick: (first) =>
-    { name } = @inputs
-    if first or name\dirty!
-      @out\set MidiPort nil, find_port RtMidiOut, name\unwrap!
+  tick: =>
+    if @inputs.name\dirty!
+      @out\set MidiPort nil, find_port RtMidiOut, @inputs.name!
+
+    @out\unwrap!\tick!
 
 class inout extends Op
   @doc: "(midi/inout inname outname) - create a bidirectional MIDI port"
 
-  new: =>
-    super 'midi/port'
-    @impulses = { Registry.active!.kr }
+  new: => super 'midi/port'
 
-  setup: (params) =>
-    super params
-    @assert_types 'str', 'str'
+  setup: (inputs) =>
+    { inp, out } = match 'str, str', inputs
+    super
+      inp: ValueInput inp
+      out: ValueInput out
+      root: EventInput Registry.active!.kr
 
-  tick: (first) =>
-    { inp, out } = @inputs
-
-    if first or inp\dirty! or out\dirty!
-      inp, out = inp\unwrap!, out\unwrap!
-      @out\set MidiPort (find_port RtMidiIn, inp), (find_port RtMidiOut, out)
+  tick: =>
+    { :inp, :out } = @inputs
+    if inp\dirty! or out\dirty!
+      @out\set MidiPort (find_port RtMidiIn, inp!), (find_port RtMidiOut, out!)
 
     @out\unwrap!\tick!
 
 apply_range = (range, val) ->
-  if range.type == 'str'
+  if range\type! == 'str'
     switch range\unwrap!
       when 'raw' then val
       when 'uni' then val / 128

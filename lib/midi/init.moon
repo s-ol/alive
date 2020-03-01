@@ -1,5 +1,7 @@
 import Value, Op from require 'core'
 import input, output, inout, apply_range from require 'lib.midi.core'
+import ValueInput, EventInput from require 'core.base'
+import match from require 'core.pattern'
 
 class gate extends Op
   @doc: "(midi/gate port note [chan]) - gate from note-on and note-off messages"
@@ -7,18 +9,21 @@ class gate extends Op
   new: =>
     super 'bool', false
 
-  setup: (params) =>
-    super params
-    @inputs[3] or= Value.num -1
-    @assert_types 'midi/port', 'num', 'num'
-    @impulses = { @inputs[1]\unwrap! }
+  setup: (inputs) =>
+    { port, note, chan } = match '=midi/port num num?', inputs
+    super
+      port: EventInput port.value!
+      note: ValueInput note
+      chan: ValueInput chan or Value.num -1
 
   tick: =>
-    local port, note, chan
-    { port, note, chan } = [i\unwrap! for i in *@inputs]
+    { port, note, chan } = @inputs
+
+    if note\dirty! or chan\dirty!
+      @out\set false
 
     for msg in port\receive!
-      if msg.a == note and (chan == -1 or msg.chan == chan)
+      if msg.a == note! and (chan == -1 or msg.chan == chan!)
         if msg.status == 'note-on'
           @out\set true
         elseif msg.status == 'note-off'
@@ -37,30 +42,25 @@ range can be one of:
   new: =>
     super 'num'
 
-  destroy: =>
-    dispatch\detach @mask if @mask
 
-  setup: (params) =>
-    super params
-    @inputs[3] or= Value.num -1
-    @inputs[4] or= Value.str 'uni'
-    assert #@inputs == 4
-    assert @inputs[4].type == 'num' or @inputs[4].type == 'str'
-    @assert_types 'midi/port', 'num', 'num'
-    @impulses = { @inputs[1]\unwrap! }
+  setup: (inputs) =>
+    { port, cc, chan, range } = match '=midi/port num num? any?', inputs
+    super
+      port:  EventInput port.value!
+      cc:    ValueInput cc
+      chan:  ValueInput chan or Value.num -1
+      range: ValueInput range or Value.str 'uni'
 
     if not @out\unwrap!
-      @out\set apply_range @inputs[4], 0
+      @out\set apply_range @inputs.range, 0
 
   tick: =>
-    local port, cc, chan
-    { port, cc, chan } = [i\unwrap! for i in *@inputs]
-
+    { port, cc, chan, range } = @inputs
     for msg in port\receive!
       if msg.status == 'control-change' and
-         (chan == -1 or msg.chan == chan) and
-         msg.a == cc
-        @out\set apply_range @inputs[4], msg.b
+         (chan == -1 or msg.chan == chan!) and
+         msg.a == cc!
+        @out\set apply_range range, msg.b
 
 {
   :input
