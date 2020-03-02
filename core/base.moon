@@ -31,7 +31,7 @@ class Input
 --
 -- during setup, only marked dirty if old and new stream differ in value
 class ValueInput extends Input
-  merge: (old) => @dirty_setup = not old or @stream\unwrap! != old\unwrap!
+  merge: (old) => @dirty_setup = not old or @stream != old.stream
   finish_setup: => @dirty_setup = false
   dirty: => @dirty_setup or @stream\dirty!
 

@@ -1,67 +1,63 @@
-import Op, Value from require 'core'
+import Op, Value, ValueInput, match from require 'core'
 unpack or= table.unpack
 
-class BinOp extends Op
-  new: =>
-    super 'num', 0
+class ReduceOp extends Op
+  new: => super 'num'
 
-  setup: (params) =>
-    super params
-    assert #@inputs >= 2, "#{@} needs at least two parameters"
+  setup: (inputs) =>
+    { first, rest } = match 'num *num', inputs
+    super
+      first: ValueInput first
+      rest: [ValueInput v for v in *rest]
 
-class add extends BinOp
+  tick: =>
+    { :first, :rest } = @unwrap_all!
+    accum = first
+    for val in *rest
+      accum = @.fn accum, val
+    @out\set accum
+
+class add extends ReduceOp
   @doc: "(+ a b [c]...)
 (add a b [c]...) - add values"
 
-  tick: =>
-    value = 0
-    for child in *@inputs
-      value += child\unwrap 'num'
-    @out\set value
+  fn: (a, b) -> a + b
 
-class sub extends BinOp
+class sub extends ReduceOp
   @doc: "(- a b [c]...)
 (sub a b [c]...) - subtract values
 
 subtracts all other arguments from a"
 
-  tick: =>
-    value = @inputs[1]\unwrap 'num'
-    for child in *@inputs[2,]
-      value -= child\unwrap 'num'
-    @out\set value
+  fn: (a, b) -> a - b
 
-class mul extends BinOp
+class mul extends ReduceOp
   @doc: "(* a b [c]...)
 (mul a b [c]...) - multiply values"
 
-  tick: =>
-    value = 1
-    for child in *@inputs
-      value *= child\unwrap 'num'
-    @out\set value
+  fn: (a, b) -> a * b
 
-class div extends BinOp
+class div extends ReduceOp
   @doc: "(/ a b [c]...)
 (div a b [c]...) - divide values
 
 divides a by all other arguments"
 
-  tick: =>
-    value = @inputs[1]\unwrap 'num'
-    for child in *@inputs[2,]
-      value /= child\unwrap 'num'
-    @out\set value
+  fn: (a, b) -> a / b
 
 evenodd_op = (name, remainder) ->
   class k extends Op
-    setup: (@a, @div=Const.num 2) =>
-      @out = Stream 'bool'
-      @out
+    new: => super 'bool'
+
+    setup: (inputs) =>
+      { val, div } = match 'num num?', inputs
+      super
+        val: ValueInput val
+        div: ValueInput div or Value.num 2
 
     tick: =>
-      a, divi = (@a\unwrap 'num'), @div\unwrap 'num'
-      @out\set (a % divi) == remainder
+      { :val, :div } = @unwrap_all!
+      @out\set (val % div) == remainder
 
   k.__name = name
   k.doc = "(#{name} a [div]) - check for #{name} divison
@@ -71,16 +67,14 @@ div defaults to 2"
 
 func_op = (name, arity, func) ->
   k = class extends Op
-    new: =>
-      super 'num'
+    new: => super 'num'
 
-    setup: (...) =>
-      @params = { ... }
-      if arity != '*'
-        assert #@params == arity, "#{@} needs exactly #{arity} parameters"
+    setup: (inputs) =>
+      { params } = match '*num', inputs
+      assert #params == arity, "#{@} needs exactly #{arity} parameters" if arity != '*'
+      super [ValueInput p for p in *params]
 
-    tick: =>
-      @out\set func unpack [p\unwrap 'num' for p in *@params]
+    tick: => @out\set func unpack @unwrap_all!
 
   k.__name = name
   k
@@ -98,7 +92,9 @@ module = {
   even: evenodd_op 'even', 0
   odd: evenodd_op 'odd', 1
 
-  pi: math.pi, huge: math.huge
+  pi: math.pi
+  tau: math.pi*2
+  huge: math.huge
 }
 
 for name, arity in pairs {

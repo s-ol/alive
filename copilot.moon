@@ -23,7 +23,9 @@ class Copilot
 
   patch: =>
     ast = L\try "error parsing:", parse, slurp @file
-    return unless ast
+    if not ast
+      L\error "error parsing"
+      return
 
     scope = Scope ast, globals
     root = L\try "error evaluating:", ast\eval, scope, @registry

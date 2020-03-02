@@ -46,6 +46,11 @@ class Result
     assert not (next @side_inputs), msg or "eval-time const expected"
     @value
 
+  -- asserts a value exists and returns its type
+  type: =>
+    assert @value, "Result with value expected"
+    @value.type
+
   -- create a value-copy of this result that has the same impulses but without
   -- affecting the original's update logic
   make_ref: =>
