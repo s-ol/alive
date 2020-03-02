@@ -1,4 +1,4 @@
-import Value, Op from require 'core'
+import Value, Op, ValueInput, EventInput, IOInput, match from require 'core'
 import apply_range from require 'lib.midi.core'
 import bor, lshift from require 'bit32'
 
@@ -22,42 +22,42 @@ range can be one of:
     super 'num'
     @steps = {}
 
-  setup: (params) =>
-    super params
+  setup: (inputs) =>
+    { port, i, start,
+      chan, steps, range } = match 'midi/port num num num num? any?', inputs
 
-    @inputs[5] or= Value.num 8
-    @inputs[6] or= Value.str 'uni'
-    assert #@inputs == 6
-    assert @inputs[6].type == 'num' or @inputs[6].type == 'str'
-    @assert_first_types 'midi/port', 'num', 'num', 'num', 'num'
-    @impulses = { @inputs[1]\unwrap! }
+    super
+      port:  IOInput port
+      i:     ValueInput i
+      start: ValueInput start
+      chan:  ValueInput chan
+      steps: ValueInput steps or Value.num 8
+      range: ValueInput range or Value.str 'uni'
 
     if not @out\unwrap!
-      @out\set apply_range @inputs[6], 0
+      @out\set apply_range @inputs.range, 0
 
-  tick: (first) =>
-    port = @inputs[1]\unwrap!
-    _, i, start, chan, steps = unpack @inputs
+  tick: =>
+    { :port, :i, :start, :chan, :steps, :range } = @inputs
 
-    if first or @inputs[5]\dirty!
-      steps = @inputs[5]!
-      while steps > #@steps
+    if steps\dirty!
+      while steps! > #@steps
         table.insert @steps, 0
-      while steps < #@steps
+      while steps! < #@steps
         table.remove @steps
 
-    curr_i = i\unwrap! % #@steps
-    changed = false
-
-    for msg in port\receive!
-      if msg.status == 'control-change' and msg.chan == chan!
-        rel_i = msg.a - start!
-        if rel_i >= 0 and rel_i < #@steps
-          @steps[rel_i+1] = msg.b
-          changed = rel_i == curr_i
-
-    if changed or i\dirty! or start\dirty! or chan\dirty! or steps\dirty!
-      @out\set apply_range @inputs[6], @steps[curr_i+1]
+    curr_i = i! % #@steps
+    if port\dirty!
+      changed = false
+      for msg in port!\receive!
+        if msg.status == 'control-change' and msg.chan == chan!
+          rel_i = msg.a - start!
+          if rel_i >= 0 and rel_i < #@steps
+            @steps[rel_i+1] = msg.b
+            changed = rel_i == curr_i
+      @out\set apply_range range, @steps[curr_i+1] if changed
+    else
+      @out\set apply_range range, @steps[curr_i+1]
 
 class gate_seq extends Op
   @doc: "(launctl/gate-seq port i start chan [steps]) - Gate-Sequencer
@@ -69,13 +69,15 @@ steps defaults to 8."
     super 'bool', false
     @steps = {}
 
-  setup: (params) =>
-    super params
+  setup: (inputs) =>
+    { port, i, start, chan, steps } = match 'midi/port num num num num?', inputs
 
-    @inputs[5] or= Value.num 8
-    @inputs[6] or= Value.str 'uni'
-    @assert_types 'midi/port', 'num', 'num', 'num', 'num', 'str'
-    @impulses = { @inputs[1]\unwrap! }
+    super
+      port:  IOInput port
+      i:     ValueInput i
+      start: ValueInput start
+      chan:  ValueInput chan
+      steps: ValueInput steps or Value.num 8
 
   light = (set, active) ->
     set = if set then 'S' else ' '
@@ -85,29 +87,31 @@ steps defaults to 8."
       when ' A' then 1, 1
       when 'S ' then 1, 0
       when 'SA' then 3, 1
+
   display: (i, active) =>
-    port, _, start, chan = @unwrap_inputs!
+    { :port, :start, :chan } = @unwrap_all!
     port\send 'note-on', chan, (start + i), light @steps[i+1], active
 
-  tick: (first) =>
-    port, curr_i, start, chan, steps = @unwrap_inputs!
+  tick: =>
+    { :port, :i, :start, :chan, :steps } = @inputs
 
-    if first or @inputs[5]\dirty!
-      while steps > #@steps
+    if steps\dirty!
+      while steps! > #@steps
         table.insert @steps, false
-      while steps < #@steps
+      while steps! < #@steps
         table.remove @steps
 
-    curr_i = curr_i % #@steps
+    curr_i = i! % #@steps
 
-    for msg in port\receive!
-      if msg.status == 'note-on' and msg.chan == chan
-        rel_i = msg.a - start
-        if rel_i >= 0 and rel_i < #@steps
-          @steps[rel_i+1] = not @steps[rel_i+1]
-          @display rel_i, rel_i == curr_i
+    if port\dirty!
+      for msg in port!\receive!
+        if msg.status == 'note-on' and msg.chan == chan!
+          rel_i = msg.a - start!
+          if rel_i >= 0 and rel_i < #@steps
+            @steps[rel_i+1] = not @steps[rel_i+1]
+            @display rel_i, rel_i == curr_i
 
-    if @inputs[2]\dirty!
+    if i\dirty!
       prev_i = (curr_i - 1) % #@steps
 
       @display curr_i, true

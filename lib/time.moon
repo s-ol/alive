@@ -1,6 +1,5 @@
-import Registry, Value, Result, Op from require 'core'
-import ValueInput, EventInput from require 'core.base'
-import match from require 'core.pattern'
+import Registry, Value, Result, Op, ValueInput, EventInput, match
+  from require 'core'
 import monotime from require 'system'
 
 class clock extends Op

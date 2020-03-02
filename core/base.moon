@@ -5,6 +5,7 @@ unpack or= table.unpack
 
 class Input
   new: (value) =>
+    assert value, "nil passed to Input: #{value}"
     @stream = switch value.__class
       when Result
         assert value.value, "Input from result without value!"
@@ -19,8 +20,12 @@ class Input
   dirty: => @stream\dirty!
   unwrap: => @stream\unwrap!
   type: => @stream.type
+
   __call: => @stream\unwrap!
-  __inherited: (cls) => cls.__base.__call = @__call
+  __tostring: => "#{@@__name}:#{@stream}"
+  __inherited: (cls) =>
+    cls.__base.__call = @__call
+    cls.__base.__tostring = @__tostring
 
 -- ValueInput scheduling policy
 --
@@ -34,6 +39,19 @@ class ValueInput extends Input
 --
 -- only marked dirty if the input stream itself is dirty
 class EventInput extends Input
+
+-- IOInput scheduling policy
+--
+-- lifts streams of IO objects to events
+class IOInput extends Input
+  dirty: => @stream\unwrap!\dirty!
+
+class IO
+  -- called in the main event loop
+  tick: =>
+
+  -- whether a tree update is necessary
+  dirty: =>
 
 -- a persistent expression Operator
 --
@@ -61,7 +79,7 @@ class Op
         if cur_plain and old_plain
           -- both are tables, recurse
           do_merge old_val, cur_val
-        elseif cur_plain == old_plain
+        elseif not (cur_plain or old_plain)
           -- both are streams (or nil), merge them
           cur_val\merge old_val
 
@@ -191,8 +209,9 @@ class FnDef
     "(fn (#{table.concat [p\stringify! for p in *@params], ' '}) ...)"
 
 {
-  :ValueInput, :EventInput
+  :ValueInput, :EventInput, :IOInput
   :Dispatcher
+  :IO
   :Op
   :Action
   :FnDef

@@ -36,8 +36,8 @@ class Result
 
     if @op
       for input in @op\all_inputs!
-        continue if is_child[input]
-        @side_inputs[input] = true
+        continue if is_child[input.stream]
+        @side_inputs[input.stream] = true
 
   is_const: => not next @side_inputs
 
@@ -97,7 +97,7 @@ class Value
   --                             * scope, opdef, fndef, builtin
   -- @value     - Lua value - access through :unwrap()
   new: (@type, @value, @raw) =>
-    @updated = 0
+    @updated = nil
 
   dirty: => @updated == Registry.active!.tick
 

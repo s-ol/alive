@@ -1,8 +1,6 @@
+import IO, Op, Registry, ValueInput, match from require 'core'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 import band, bor, lshift, rshift from require 'bit32'
-import Op, Registry from require 'core'
-import ValueInput, EventInput from require 'core.base'
-import match from require 'core.pattern'
 
 MIDI = {
   [0x9]: 'note-on'
@@ -28,11 +26,9 @@ find_port = (Klass, name) ->
 
     \openport id
 
-class MidiPort
+class MidiPort extends IO
   new: (@inp, @out) =>
-
-  dirty: =>
-    @updated == Registry.active!.tick
+    @messages = {}
 
   tick: =>
     if @inp
@@ -43,76 +39,65 @@ class MidiPort
         { status, a, b } = bytes
         chan = band status, 0xf
         status = MIDI[rshift status, 4]
-        { :status, :chan, :a, :b }
+        { :status, :chan, :a, :b, port: @ }
 
-      if @messages
-        @updated = Registry.active!.tick
+  dirty: => #@messages > 0
 
   receive: =>
-    assert @inp, "#{@} is not an input port"
-    return unless @messages
     coroutine.wrap ->
       for msg in *@messages
         coroutine.yield msg
 
   send: (status, chan, a, b) =>
-    assert @out, "#{@} is not an output port"
+    assert @out, "#{@} is not an output or bidirectional port"
     if 'string' == type 'status'
       status = bor (lshift rMIDI[status], 4), chan
     @out\sendmessage status, a, b
 
-class input extends Op
+class PortOp extends Op
+  new: => super 'midi/port'
+
+  destroy: =>
+    Registry.active!\remove_io @port if @port
+
+  tick: (inp, out) =>
+    if (inp and inp\dirty!) or (out and out\dirty!)
+      Registry.active!\remove_io @port if @port
+      inp = inp and find_port RtMidiIn, inp!
+      out = out and find_port RtMidiOut, out!
+      @port = MidiPort inp, out
+      Registry.active!\add_io @port
+
+      @out\set @port
+
+class input extends PortOp
   @doc: "(midi/input name) - create a MIDI input port"
 
-  new: => super 'midi/port'
-
   setup: (inputs) =>
     { name } = match 'str', inputs
-    super
-      name: ValueInput name
-      root: EventInput Registry.active!.kr
+    super name: ValueInput name
 
-  tick: =>
-    if @inputs.name\dirty!
-      @out\set MidiPort find_port RtMidiIn, @inputs.name!
+  tick: => super @inputs.name
 
-    @out\unwrap!\tick!
-
-class output extends Op
+class output extends PortOp
   @doc: "(midi/output name) - create a MIDI output port"
 
-  new: => super 'midi/port'
-
   setup: (inputs) =>
     { name } = match 'str', inputs
-    super
-      name: ValueInput name
-      root: EventInput Registry.active!.kr
+    super name: ValueInput name
 
-  tick: =>
-    if @inputs.name\dirty!
-      @out\set MidiPort nil, find_port RtMidiOut, @inputs.name!
+  tick: => super nil, @inputs.name
 
-    @out\unwrap!\tick!
-
-class inout extends Op
+class inout extends PortOp
   @doc: "(midi/inout inname outname) - create a bidirectional MIDI port"
 
-  new: => super 'midi/port'
-
   setup: (inputs) =>
-    { inp, out } = match 'str, str', inputs
+    { inp, out } = match 'str str', inputs
     super
       inp: ValueInput inp
       out: ValueInput out
-      root: EventInput Registry.active!.kr
 
-  tick: =>
-    { :inp, :out } = @inputs
-    if inp\dirty! or out\dirty!
-      @out\set MidiPort (find_port RtMidiIn, inp!), (find_port RtMidiOut, out!)
-
-    @out\unwrap!\tick!
+  tick: => super @inputs.inp, @inputs.out
 
 apply_range = (range, val) ->
   if range\type! == 'str'

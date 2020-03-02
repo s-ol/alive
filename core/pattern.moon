@@ -35,12 +35,19 @@ class Pattern
       matched = while @matches results[1]
         table.remove results, 1
 
-      assert @opt or #matched > 0, "expected at least one argument for spread!"
+      assert @opt or #matched > 0, "expected at least one argument for spread"
       matched
     else
       matches = @matches results[1]
-      assert @opt or matches, "couldn't match argument #{results[1]} as type #{@type}!"
+      assert @opt or matches, "couldn't match argument #{results[1]} as #{@}"
       if matches then table.remove results, 1
+
+  __tostring: =>
+    str = @type
+    str = '*' .. str if @splat
+    str = '=' .. str if @const
+    str = str .. '?' if @opt
+    str
 
 match = (pattern, results) ->
   patterns = while pattern

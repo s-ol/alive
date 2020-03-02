@@ -3,6 +3,7 @@ import Result, Value from require 'core.value'
 class Registry
   new: () =>
     @map = {}
+    @io = {}
 
     @tick = 0
     @kr = Result value: Value.bool true
@@ -21,6 +22,10 @@ class Registry
     table.insert @pending, { :tag, :expr }
 
   active: -> assert Registry.active_registry, "no active Registry!"
+
+-- IO
+  add_io: (io) => @io[io] = true
+  remove_io: (io) => @io[io] = nil
 
 -- public methods
 
@@ -49,6 +54,9 @@ class Registry
     @grab!
     @tick += 1
     @kr.value\set true
+
+    for io in pairs @io
+      io\tick!
 
     with fn ...
       @release!
