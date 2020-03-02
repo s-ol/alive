@@ -1,9 +1,11 @@
-import Scope, Value, Op from require 'core'
+import Scope, Value, Result, Op from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 
 class TestOp extends Op
   new: (...) => super ...
+
+wrap_res = (value) -> Result :value
 
 describe 'Scope', ->
   describe 'constifies', ->
@@ -94,21 +96,63 @@ describe 'Scope', ->
 
     assert.is.equal pi, (root\get 'deep/child/test')\const!
 
+  describe 'can set symbols', ->
+    one = wrap_res Value.num 1
+    two = wrap_res Value.num 2
+    scope = Scope!
+
+    it 'disallows re-setting symbols', ->
+      scope\set 'test', one
+      assert.is.equal one, scope\get 'test'
+
+    it 'throws if overwriting', ->
+      assert.has.error -> scope\set 'test', two
+      assert.is.equal one, scope\get 'test'
+
   describe 'inheritance', ->
     root = Scope!
     root\set_raw 'hidden', 1234
     root\set_raw 'inherited', "inherited string"
 
-    scope = Scope nil, root
+    scope = Scope root
 
     it 'allows access', ->
       got = (scope\get 'inherited')\const!
       assert.is.equal 'str', got.type
       assert.is.equal "inherited string", got.value
 
-    it 'can keep defs', ->
+    it 'can be shadowed', ->
       scope\set_raw 'hidden', "overwritten"
 
       got = (scope\get 'hidden')\const!
       assert.is.equal 'str', got.type
       assert.is.equal "overwritten", got.value
+
+  describe 'dynamic inheritance', ->
+    root = Scope!
+    dyn_root = Scope!
+
+    root\set_raw 'normal', 'normal'
+    root\set_raw '*dynamic*', 'normal'
+    dyn_root\set_raw 'normal', 'dynamic'
+    dyn_root\set_raw '*dynamic*', 'dynamic'
+
+    dyn_root\set_raw '*nested*', { value: 3 }
+
+    it 'follows a different parent', ->
+      merged = Scope root, dyn_root
+      assert.is.equal 'normal', (merged\get 'normal').value!
+      assert.is.equal 'dynamic', (merged\get '*dynamic*').value!
+
+    it 'falls back to the immediate parent', ->
+      merged = Scope root
+      assert.is.equal 'normal', (merged\get '*dynamic*').value!
+
+    it 'looks in self first', ->
+      merged = Scope root
+      merged\set_raw '*dynamic*', 'merged'
+      assert.is.equal 'merged', (merged\get '*dynamic*').value!
+
+    it 'can resolve nested', ->
+      merged = Scope root, dyn_root
+      assert.is.equal 3, (merged\get '*nested*/value').value!

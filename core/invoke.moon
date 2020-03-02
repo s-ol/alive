@@ -39,12 +39,12 @@ class fn_invoke extends Action
 
     assert #params == #tail, "argument count mismatch in #{@head}"
 
-    fn_scope = Scope @, scope
+    fn_scope = Scope scope, outer_scope
 
     children = for i=1,#params
       name = params[i]\unwrap 'sym'
       with L\push tail[i]\eval, outer_scope
-        fn_scope\set name, .value
+        fn_scope\set name, \make_ref!
 
     body = body\clone @tag
     result = body\eval fn_scope

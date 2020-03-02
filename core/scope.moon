@@ -1,7 +1,7 @@
 import Result, Value from require 'core.value'
 
 class Scope
-  new: (@node, @parent) =>
+  new: (@parent, @dynamic_parent) =>
     @values = {}
 
   set_raw: (key, val) =>
@@ -11,7 +11,13 @@ class Scope
   set: (key, val) =>
     L\trace "setting #{key} = #{val} in #{@}"
     assert val.__class == Result, "expected #{key}=#{val} to be Result"
+    assert not @values[key], "cannot redefine symbol #{key}!"
     @values[key] = val
+
+  recurse: (key) =>
+    parent = if key\match '^%*.*%*$' then @dynamic_parent else @parent
+    parent or= @parent
+    return parent and L\push parent\get, key
 
   get: (key, prefix='') =>
     L\debug "checking for #{key} in #{@}"
@@ -22,7 +28,7 @@ class Scope
     start, rest = key\match '^(.-)/(.+)'
 
     if not start
-      return @parent and L\push -> @parent\get key
+      return @recurse key
 
     child = @get start
     assert child and child.value.type == 'scope', "#{start} is not a scope (looking for #{key})"
@@ -40,7 +46,6 @@ class Scope
 
   __tostring: =>
     buf = "<Scope"
-    buf ..= "@#{@node}" if @node
 
     depth = -1
     parent = @parent

@@ -27,7 +27,7 @@ class Copilot
       L\error "error parsing"
       return
 
-    scope = Scope ast, globals
+    scope = Scope globals
     root = L\try "error evaluating:", ast\eval, scope, @registry
     return unless root
 

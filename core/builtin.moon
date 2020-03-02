@@ -148,6 +148,7 @@ evaluates and continously updates expr1, expr2, ...
 the last expression's value is returned."
 
   eval: (scope, tail) =>
+    scope = Scope scope
     Result children: [expr\eval scope for expr in *tail]
 
 class if_ extends Action
