@@ -16,7 +16,16 @@ class op_invoke extends Action
   eval: (scope, tail) =>
     children = L\push -> [L\push expr\eval, scope for expr in *tail]
     @op\setup [result for result in *children]
-    @op\tick true
+
+    any_dirty = false
+    for input in @op\all_inputs!
+      if input\dirty!
+        any_dirty = true
+        break
+
+    if any_dirty
+      @op\tick true
+
     for input in @op\all_inputs!
       input\finish_setup!
 

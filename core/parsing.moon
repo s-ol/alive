@@ -29,7 +29,7 @@ num = ((P '-')^-1 * (float + int)) / Value\parse 'num'
 atom = num + sym + str
 
 expr = (V 'cell') + atom
-explist = Ct mspace * (V 'expr') * (space * (V 'expr'))^0 * mspace
+explist = Ct mspace * ((V 'expr') * (space * (V 'expr'))^0 * mspace)^-1
 
 tag = (P '[') * (digit^1 / Tag\parse) * (P ']')
 cell = (P '(') * tag^-1 * (V 'explist') * (P ')') / Cell\parse
