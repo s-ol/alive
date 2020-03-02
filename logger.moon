@@ -48,6 +48,15 @@ class Logger
     else
       error unpack res
 
+  try: (msg, fn, ...) =>
+    ok, err = xpcall fn, debug.traceback, ...
+
+    if not ok
+      @error msg, err
+
+    if ok then err
+
+-- static
   init: (...) ->
     export L
     L = Logger ...

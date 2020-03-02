@@ -22,28 +22,21 @@ class Copilot
       error "not a file: #{@file}"
 
   patch: =>
-    ast, err = parse slurp @file
-
-    if not ast
-      L\error "error parsing: #{err}"
-      return
+    ast = L\try "error parsing:", parse, slurp @file
+    return unless ast
 
     scope = Scope ast, globals
-    ok, err = pcall ast\eval, scope, @registry
-    if not ok
-      L\error "error evaluating: #{err}"
-      return
+    root = L\try "error evaluating:", ast\eval, scope, @registry
+    return unless root
 
-    @root = err
+    @root = root if root
     ast
 
   tick: =>
     @poll!
 
     if @root
-      ok, err = pcall @registry\wrap_tick @root\tick
-      if not ok
-        L\error err
+      L\try "error evaluating:", @registry\wrap_tick @root\tick
 
   tb = (msg) -> debug.traceback msg, 2
   poll: =>
@@ -54,7 +47,7 @@ class Copilot
     if @last_modification < modification
       L\log "#{@file} changed at #{modification}"
       ast = L\push @registry\wrap_eval @\patch
-      spit @file, ast\stringify!
+      spit @file, ast\stringify! if ast
       @last_modification = os.time!
 
 :Copilot
