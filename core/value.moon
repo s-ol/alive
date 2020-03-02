@@ -36,8 +36,8 @@ class Result
 
     if @op
       for input in @op\all_inputs!
-        continue if is_child[input.stream]
-        @side_inputs[input.stream] = true
+        if input.impure or not is_child[input.stream]
+          @side_inputs[input] = true
 
   is_const: => not next @side_inputs
 

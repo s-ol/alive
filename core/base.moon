@@ -44,6 +44,7 @@ class EventInput extends Input
 --
 -- lifts streams of IO objects to events
 class IOInput extends Input
+  impure: true
   dirty: => @stream\unwrap!\dirty!
 
 class IO

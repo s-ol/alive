@@ -67,7 +67,6 @@ class PortOp extends Op
       out = out and find_port RtMidiOut, out!
       @port = MidiPort inp, out
       Registry.active!\add_io @port
-
       @out\set @port
 
 class input extends PortOp

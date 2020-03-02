@@ -1,21 +1,45 @@
-import Registry, Value, Result, Op, ValueInput, EventInput, match
+import Registry, Value, IO, Op, ValueInput, IOInput, match
   from require 'core'
 import monotime from require 'system'
 
-class clock extends Op
-  new: =>
-    super 'clock', { dt: 0, time: monotime! }
-
-  setup: =>
+class Clock extends IO
+  new: (@frametime) =>
     @last = monotime!
-    super kr: EventInput Registry.active!.kr
+    @dt = 0
+    @is_dirty = false
 
   tick: =>
     time = monotime!
-    dt = time - @last
-    if dt >= 1/60
-      @out\set :dt, :time
+    @dt = time - @last
+    @is_dirty = if @dt >= @frametime
       @last = time
+      true
+    else
+      false
+
+  dirty: => @is_dirty
+
+class clock extends Op
+  @doc: "(clock [fps]) - a clock source
+
+IO that triggers other operators at a fixed frame rate.
+fps defaults to 60 and has to be an eval-time constant"
+
+  new: => super 'clock'
+
+  setup: (inputs) =>
+    { fps } = match 'num?', inputs
+    super fps: ValueInput fps or Value.num 60
+
+  destroy: =>
+    Registry.active!\remove_io @clock if @clock
+
+  tick: =>
+    if @inputs.fps\dirty!
+      Registry.active!\remove_io @clock if @clock
+      @clock = Clock 1 / @inputs.fps!
+      Registry.active!\add_io @clock
+      @out\set @clock
 
 class lfo extends Op
   @doc: "(lfo [clock] freq [wave]) - low-frequency oscillator
@@ -30,11 +54,11 @@ wave selects the wave shape from the following:
     super 'num'
     @phase = 0
 
-  default_wave = Result value: Value.str 'sin'
+  default_wave = Value.str 'sin'
   setup: (inputs, scope) =>
     { clock, freq, wave } = match 'clock? num any?', inputs
     super
-      clock: EventInput clock or scope\get '*clock*'
+      clock: IOInput clock or scope\get '*clock*'
       freq: ValueInput freq
       wave: ValueInput wave or default_wave
 
@@ -62,7 +86,7 @@ ramps from 0 to max (default same as ramp) once every period seconds."
   setup: (inputs, scope) =>
     { clock, period, max } = match 'clock? num num?', inputs
     super
-      clock: EventInput clock or scope\get '*clock*'
+      clock: IOInput clock or scope\get '*clock*'
       period: ValueInput period
       max: max and ValueInput max
 
@@ -90,7 +114,7 @@ counts upwards by one every period seconds and returns the number of completed t
   setup: (inputs, scope) =>
     { clock, period } = match 'clock? num', inputs
     super
-      clock: EventInput clock or scope\get '*clock*'
+      clock: IOInput clock or scope\get '*clock*'
       period: ValueInput period
 
   tick: =>
@@ -114,7 +138,7 @@ returns true once every period seconds."
   setup: (inputs, scope) =>
     { clock, period } = match 'clock? num', inputs
     super
-      clock: EventInput clock or scope\get '*clock*'
+      clock: IOInput clock or scope\get '*clock*'
       period: ValueInput period
 
   tick: =>
