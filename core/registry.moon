@@ -23,10 +23,6 @@ class Registry
 
   active: -> assert Registry.active_registry, "no active Registry!"
 
--- IO
-  add_io: (io) => @io[io] = true
-  remove_io: (io) => @io[io] = nil
-
 -- public methods
 
   wrap_eval: (fn) => (...) ->

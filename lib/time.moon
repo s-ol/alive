@@ -31,15 +31,9 @@ fps defaults to 60 and has to be an eval-time constant"
     { fps } = match 'num?', inputs
     super fps: ValueInput fps or Value.num 60
 
-  destroy: =>
-    Registry.active!\remove_io @clock if @clock
-
   tick: =>
     if @inputs.fps\dirty!
-      Registry.active!\remove_io @clock if @clock
-      @clock = Clock 1 / @inputs.fps!
-      Registry.active!\add_io @clock
-      @out\set @clock
+      @out\set Clock 1 / @inputs.fps!
 
 class lfo extends Op
   @doc: "(lfo [clock] freq [wave]) - low-frequency oscillator
@@ -97,7 +91,7 @@ ramps from 0 to max (default same as ramp) once every period seconds."
       max or= period
       @phase += clock.dt / period
 
-      if @phase >= 1
+      while @phase >= 1
         @phase -= 1
 
     if clock_dirty or (@inputs.max and @inputs.max\dirty!)
@@ -122,7 +116,7 @@ counts upwards by one every period seconds and returns the number of completed t
       { :clock, :period, :max } = @unwrap_all!
       @phase += clock.dt / period
 
-      if @phase >= 1
+      while @phase >= 1
         @phase -= 1
         @count += 1
         @out\set @count
@@ -146,7 +140,7 @@ returns true once every period seconds."
       { :clock, :period, :max } = @unwrap_all!
       @phase += clock.dt / period
 
-      if @phase >= 1
+      while @phase >= 1
         @phase -= 1
         @out\set true
 

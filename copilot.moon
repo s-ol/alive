@@ -38,7 +38,9 @@ class Copilot
     @poll!
 
     if @root
-      L\try "error evaluating:", @registry\wrap_tick @root\tick
+      L\try "error evaluating:", @registry\wrap_tick ->
+        @root\tick_io!
+        @root\tick!
 
   tb = (msg) -> debug.traceback msg, 2
   poll: =>

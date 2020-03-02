@@ -57,17 +57,11 @@ class MidiPort extends IO
 class PortOp extends Op
   new: => super 'midi/port'
 
-  destroy: =>
-    Registry.active!\remove_io @port if @port
-
   tick: (inp, out) =>
     if (inp and inp\dirty!) or (out and out\dirty!)
-      Registry.active!\remove_io @port if @port
       inp = inp and find_port RtMidiIn, inp!
       out = out and find_port RtMidiOut, out!
-      @port = MidiPort inp, out
-      Registry.active!\add_io @port
-      @out\set @port
+      @out\set MidiPort inp, out
 
 class input extends PortOp
   @doc: "(midi/input name) - create a MIDI input port"

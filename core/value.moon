@@ -1,9 +1,9 @@
 -- ALV Value types
-local Scope, Registry, Op, Action, FnDef
+local Scope, Registry, Op, Action, IOInput, FnDef
 load_ = ->
   import Scope from require 'core.scope'
   import Registry from require 'core.registry'
-  import Op, Action, FnDef from require 'core.base'
+  import Op, Action, IOInput, FnDef from require 'core.base'
 
 ancestor = (klass) ->
   assert klass, "cant find the ancestor of nil"
@@ -29,15 +29,15 @@ class Result
 
     @side_inputs, is_child = {}, {}
     for child in *@children
-      for d in pairs child.side_inputs
-        @side_inputs[d] = true
+      for s, d in pairs child.side_inputs
+        @side_inputs[s] = d
       if child.value
         is_child[child.value] = true
 
     if @op
       for input in @op\all_inputs!
         if input.impure or not is_child[input.stream]
-          @side_inputs[input] = true
+          @side_inputs[input.stream] = input
 
   is_const: => not next @side_inputs
 
@@ -57,12 +57,20 @@ class Result
     with Result value: @value
       .side_inputs = @side_inputs
 
+  -- tick all IO instances that are effecting this (sub) tree
+  -- should be called once per frame on the root, right before tick
+  tick_io: =>
+    for stream, input in pairs @side_inputs
+      if input.__class == IOInput
+        io = input!
+        io\tick!
+
   -- in depth-first order, tick all Ops who have dirty Stream inputs or impulses
   --
   -- short-circuits if there are no dirty Streams in the entire subtree
   tick: =>
     any_dirty = false
-    for input in pairs @side_inputs
+    for stream, input in pairs @side_inputs
       if input\dirty!
         any_dirty = true
         break
