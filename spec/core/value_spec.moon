@@ -1,4 +1,5 @@
-import Value, Result, Op, Action, Scope from require 'core'
+import Value, Result, Scope from require 'core'
+import Op, Action from require 'core.base'
 import Logger from require 'logger'
 Logger.init 'silent'
 

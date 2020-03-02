@@ -1,4 +1,4 @@
-import Op, ValueInput, EventInput, match from require 'core'
+import Op, ValueInput, EventInput, match from require 'core.base'
 
 class out extends Op
   @doc: "(out [name-str?] value) - log value to the console"

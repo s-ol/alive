@@ -1,4 +1,4 @@
-import Op, EventInput, ValueInput, ColdInput, match from require 'core'
+import Op, EventInput, ValueInput, ColdInput, match from require 'core.base'
 import udp from require 'socket'
 
 conn = udp!

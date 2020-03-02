@@ -1,5 +1,5 @@
 import Registry, Value, IO, Op, ValueInput, IOInput, match
-  from require 'core'
+  from require 'core.base'
 import monotime from require 'system'
 
 class Clock extends IO

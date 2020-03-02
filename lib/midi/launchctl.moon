@@ -1,4 +1,5 @@
-import Value, Op, ValueInput, EventInput, IOInput, match from require 'core'
+import Value, Op, ValueInput, EventInput, IOInput, match
+  from require 'core.base'
 import apply_range from require 'lib.midi.core'
 import bor, lshift from require 'bit32'
 

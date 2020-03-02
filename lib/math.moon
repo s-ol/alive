@@ -1,4 +1,4 @@
-import Op, Value, ValueInput, match from require 'core'
+import Op, Value, ValueInput, match from require 'core.base'
 unpack or= table.unpack
 
 class ReduceOp extends Op

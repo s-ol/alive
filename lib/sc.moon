@@ -1,4 +1,4 @@
-import Op, EventInput, ColdInput, match from require 'core'
+import Op, EventInput, ColdInput, match from require 'core.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 

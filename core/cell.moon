@@ -23,8 +23,8 @@ class Cell
 
     Action\eval_cell scope, @tag, head, @tail!
 
-  -- quoting a Cell recursively quotes children, but preserves identity this
-  -- means that a quoted Cell may only be 'used' once. use :clone() otherwise.
+  -- quoting a Cell recursively quotes children, but preserves identity. This
+  -- means that a quoted Cell may only be 'used' once. Use :clone() otherwise.
   quote: (scope) =>
     children = [child\quote scope for child in *@children]
     Cell @tag, children, @white

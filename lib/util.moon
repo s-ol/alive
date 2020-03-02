@@ -1,4 +1,5 @@
-import Op, Value, ValueInput, EventInput, ColdInput, match from require 'core'
+import Op, Value, ValueInput, EventInput, ColdInput, match
+  from require 'core.base'
 
 all_same = (list) ->
   for v in *list[2,]

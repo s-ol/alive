@@ -1,4 +1,4 @@
-import Value, Op, ValueInput, IOInput, match from require 'core'
+import Value, Op, ValueInput, IOInput, match from require 'core.base'
 import input, output, inout, apply_range from require 'lib.midi.core'
 
 class gate extends Op

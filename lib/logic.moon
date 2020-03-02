@@ -1,4 +1,4 @@
-import Op, ValueInput, match from require 'core'
+import Op, ValueInput, match from require 'core.base'
 
 all_same = (first, list) ->
   for v in *list

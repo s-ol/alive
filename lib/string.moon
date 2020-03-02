@@ -1,4 +1,4 @@
-import Op, ValueInput from require 'core'
+import Op, ValueInput from require 'core.base'
 
 class str extends Op
   @doc: "(str v1 [v2]...)

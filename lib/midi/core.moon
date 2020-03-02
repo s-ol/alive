@@ -1,4 +1,4 @@
-import IO, Op, Registry, ValueInput, match from require 'core'
+import IO, Op, Registry, ValueInput, match from require 'core.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 import band, bor, lshift, rshift from require 'bit32'
 

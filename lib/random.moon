@@ -1,4 +1,4 @@
-import Op, Value, ValueInput, EventInput, match from require 'core'
+import Op, Value, ValueInput, EventInput, match from require 'core.base'
 
 apply_range = (range, val) ->
   if range\type! == 'str'
