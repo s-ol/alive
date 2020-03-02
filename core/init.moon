@@ -1,6 +1,6 @@
 L or= setmetatable {}, __index: => ->
 
-import Op, IO, Action, FnDef, EventInput, ValueInput, IOInput
+import Op, IO, Action, FnDef, EventInput, ValueInput, IOInput, ColdInput
   from require 'core.base'
 import match from require 'core.pattern'
 
@@ -21,7 +21,8 @@ globals = Scope.from_table require 'core.builtin'
   :Cell, :RootCell
 
   :Op, :IO, :Action, :FnDef
-  :EventInput, :ValueInput, :IOInput, :match
+  :EventInput, :ValueInput, :IOInput, :ColdInput,
+  :match
   :Scope
 
   :Registry, :Tag

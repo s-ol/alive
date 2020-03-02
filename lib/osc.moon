@@ -1,41 +1,67 @@
-import Op from require 'core'
-import pack, unpack from require 'osc'
+import Op, ValueInput, EventInput, ColdInput, match from require 'core'
+import pack from require 'osc'
 import dns, udp from require 'socket'
 
-class addr extends Op
-  @doc: "(remote host port) - UDP remote definition"
+unpack or= table.unpack
 
-  new: =>
-    super 'udp/remote'
-    @@udp or= udp!
+class connect extends Op
+  @doc: "(osc/connect host port) - UDP remote definition"
 
-  setup: (params) =>
-    super params
-    @assert_types 'str', 'num'
+  new: => super 'udp/socket'
+
+  setup: (inputs) =>
+    { host, port } = match 'str num', inputs
+    super
+      host: ValueInput host
+      port: ValueInput port
 
   tick: =>
-    host, port = @unwrap_inputs!
+    { :host, :port } = @unwrap_all!
     ip = dns.toip host
-    @out\set { :ip, :port }
 
-class out extends Op
-  @doc: "(out remote path val) - send a value via OSC"
+    @out\set with sock = udp!
+      \setpeername ip, port
 
-  new: (...) =>
-    @@udp or= udp!
+class send extends Op
+  @doc: "(osc/send socket path val) - send a value via OSC
 
-  setup: (params) =>
-    super params
-    assert @inputs[3], "need a value"
-    @assert_types 'udp/remote', 'str', @inputs[3].type
+sends a message only when val is dirty."
+
+  setup: (inputs) =>
+    { socket, path, value } = match 'udp/socket str any', inputs
+    super
+      socket: ColdInput socket
+      path:   ColdInput path
+      value:  EventInput value
 
   tick: =>
-    remote, path, value = @unwrap_inputs!
-    { :ip, :port } = remote
+    if @inputs.value\dirty!
+      { :socket, :path, :value } = @unwrap_all!
+      msg = if 'table' == type value
+        pack path, unpack value
+      else
+        pack path, value
+      socket\send msg
+
+class send_state extends Op
+  @doc: "(osc/send! socket path val) - synchronize a value via OSC
+
+sends a whenever any parameter changes."
+
+  setup: (inputs) =>
+    { socket, path, value } = match 'udp/socket str any', inputs
+    super
+      socket: ValueInput socket
+      path:   ValueInput path
+      value:  ValueInput value
+
+  tick: =>
+    { :socket, :path, :value } = @unwrap_all!
     msg = pack path, value
-    @@udp\sendto msg, ip, port
+    socket\send msg
 
 {
-  :addr
-  :out
+  :connect
+  :send
+  'send!': send_state
 }

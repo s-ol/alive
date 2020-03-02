@@ -5,7 +5,7 @@ all_same = (first, list) ->
     if v != first
       return false
 
-  true
+  first
 
 tobool = (val) ->
   switch val
@@ -83,9 +83,7 @@ class not_eq extends Op
     diff = true
     for a=1, #@inputs-1
       for b=a+1, #@inputs
-        print @inputs[a], @inputs[b]
         if @inputs[a].stream == @inputs[b].stream
-          print "found a match #{a} == #{b}"
           diff = false
           break
 

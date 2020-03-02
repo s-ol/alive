@@ -16,6 +16,7 @@ range can be one of:
 - 'uni' [ 0 - 1[ (default)
 - 'bip' [-1 - 1[
 - 'rad' [ 0 - tau[
+- 'deg' [ 0 - 360[
 - (num) [ 0 - num["
 
   new: =>

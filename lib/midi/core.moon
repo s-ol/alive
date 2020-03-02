@@ -105,6 +105,7 @@ apply_range = (range, val) ->
       when 'uni' then val / 128
       when 'bip' then val / 64 - 1
       when 'rad' then val / 64 * math.pi
+      when 'deg' then val / 128 * 360
       else
         error "unknown range #{@range}"
   elseif range.type == 'num'

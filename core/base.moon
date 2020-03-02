@@ -27,6 +27,12 @@ class Input
     cls.__base.__call = @__call
     cls.__base.__tostring = @__tostring
 
+-- ColdInput scheduling policy
+--
+-- never marked dirty
+class ColdInput extends Input
+  dirty: => false
+
 -- ValueInput scheduling policy
 --
 -- during setup, only marked dirty if old and new stream differ in value
@@ -210,8 +216,7 @@ class FnDef
     "(fn (#{table.concat [p\stringify! for p in *@params], ' '}) ...)"
 
 {
-  :ValueInput, :EventInput, :IOInput
-  :Dispatcher
+  :ValueInput, :EventInput, :IOInput, :ColdInput
   :IO
   :Op
   :Action

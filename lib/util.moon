@@ -1,4 +1,11 @@
-import Value, Op from require 'core'
+import Op, Value, ValueInput, EventInput, ColdInput, match from require 'core'
+
+all_same = (list) ->
+  for v in *list[2,]
+    if v != list[1]
+      return false
+
+  list[1]
 
 class switch_ extends Op
   @doc: "(switch i v0 [v1 v2...]) - switch between multiple inputs
@@ -7,27 +14,29 @@ when i is true, the first value is reproduced.
 when i is false, the second value is reproduced.
 when i is a num, it is (floor)ed and the matching argument (starting from 0) is reproduced."
 
-  setup: (params) =>
-    super params
+  setup: (inputs) =>
+    { i, values } = match 'any *any', inputs
 
-    { i, first } = @inputs
-    assert i.type == 'bool' or i.type == 'num', "#{@}: i has to be bool or num"
+    i_type = i\type!
+    assert i_type == 'bool' or i_type == 'num', "#{@}: i has to be bool or num"
+    typ = all_same [v\type! for v in *values]
+    @out = Value typ
 
-    for inp in *@inputs[3,]
-      assert inp.type == first.type, "not all values have the same type: #{first.type} != #{inp.type}"
-    @out = Value first.type, first!
+    super
+      i: ValueInput i
+      values: [ValueInput v for v in *values]
 
   tick: =>
-    i = @inputs[1]\unwrap!
-    active = switch i
+    { :i, :values } = @inputs
+    active = switch i!
       when true
-        @inputs[2]
+        values[1]
       when false
-        @inputs[3]
+        values[2]
       else
-        i = 2 + (math.floor i) % (#@inputs - 1)
-        @inputs[i]
-    @out\set active and active\unwrap!
+        i = 1 + (math.floor i!) % #values
+        values[i]
+    @out\set active and active!
 
 --class switch_pause extends Op
 --  @doc: "(switch- i v0 [v1 v2...]) - switch and pause multiple inputs
@@ -60,38 +69,40 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
 
 class edge extends Op
   @doc: "(edge bool) - convert rising edges to bangs"
+  new: => super 'bang'
 
-  new: =>
-    super 'bang'
-
-  setup: (params) =>
-    super params
-    @assert_types 'bool'
+  setup: (inputs) =>
+    { value } = match 'bool', inputs
+    super value: EventInput
 
   tick: =>
-    now = @params[1]\unwrap!
+    now = @inputs.value!
     if now and not @last
       @out\set true
       @last = now
 
-class keep extends Op
-  @doc: "(keep value [init]) - keep the last non-nil value
+class default extends Op
+  @doc: "(default stream default) - provide a default value for an event stream
 
-always reproduces the last non-nil value the input produced or default.
+starts out as default but forwards events from stream.
 default defaults to zero."
 
   setup: (params) =>
-    super params
-    { i, init } = @inputs
-    @out = Value i.type, default and init\unwrap!
+    { value, init } = match 'any any', inputs
+    super
+      value: EventInput value
+      init: ColdInput init
+
+    @out = Value value\type!
+    @out\set @inputs.init\unwrap!
 
   tick: =>
-    if next = @params[1]\unwrap!
-      @out\set next
+    { :value } = @inputs
+    if value\dirty!
+      @out\set value!
 
 {
   'switch': switch_
---  'switch-': switch_pause
   :edge
-  :keep
+  :default
 }

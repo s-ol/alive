@@ -8,14 +8,14 @@ class gate extends Op
     super 'bool', false
 
   setup: (inputs) =>
-    { :port, :note, :chan } = match 'midi/port num num?', inputs
+    { port, note, chan } = match 'midi/port num num?', inputs
     super
       port: IOInput port
       note: ValueInput note
       chan: ValueInput chan or Value.num -1
 
   tick: =>
-    { port, note, chan } = @inputs
+    { :port, :note, :chan } = @inputs
 
     if note\dirty! or chan\dirty!
       @out\set false
@@ -28,6 +28,32 @@ class gate extends Op
           elseif msg.status == 'note-off'
             @out\set false
 
+class trig extends Op
+  @doc: "(midi/trig port note [chan]) - gate from note-on and note-off messages"
+
+  new: =>
+    super 'bang', false
+
+  setup: (inputs) =>
+    { port, note, chan } = match 'midi/port num num?', inputs
+    super
+      port: IOInput port
+      note: ValueInput note
+      chan: ValueInput chan or Value.num -1
+
+  tick: =>
+    { :port, :note, :chan } = @inputs
+
+    if note\dirty! or chan\dirty!
+      @out\set false
+
+    if port\dirty!
+      for msg in port!\receive!
+        if msg.a == note! and (chan! == -1 or msg.chan == chan!)
+          if msg.status == 'note-on'
+            @out\set true
+
+
 class cc extends Op
   @doc: "(midi/cc port cc [chan [range]]) - MIDI CC to number
 
@@ -36,6 +62,7 @@ range can be one of:
 - 'uni' [ 0 - 1[ (default)
 - 'bip' [-1 - 1[
 - 'rad' [ 0 - tau[
+- 'deg' [ 0 - 360[
 - (num) [ 0 - num["
 
   new: =>
@@ -66,5 +93,6 @@ range can be one of:
   :output
   :inout
   :gate
+  :trig
   :cc
 }
