@@ -3,7 +3,11 @@ MODREFS=$(MODULES:lib/%.moon=docs/reference/%.html)
 
 .PHONY: docs clean
 
-docs: $(MODREFS) docs/reference/index.html
+docs: docs/index.html docs/guide.html $(MODREFS) docs/reference/index.html
+
+docs/%.html: docs/%.md extra/docs.moon extra/layout.moon
+	@echo "building page $<"
+	moon extra/docs.moon $@ markdown $<
 
 docs/reference/%.html: lib/%.moon extra/docs.moon extra/layout.moon
 	@echo "building docs for $<"
@@ -15,3 +19,4 @@ docs/reference/index.html: $(MODREFS) extra/docs.moon extra/layout.moon
 
 clean:
 	rm -rf docs/reference/*
+	rm docs/index.html docs/guide.html

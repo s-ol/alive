@@ -1,6 +1,8 @@
 -- mmm.dom
 -- see https://mmm.s-ol.nu/meta/mmm.dom/
 
+export opairs
+
 -- ordered table iterator, for stable(r) renderers
 sort = (t, order_fn, only_strings) ->
   with index = [k for k,v in pairs t when (not only_strings) or 'string' == type k]

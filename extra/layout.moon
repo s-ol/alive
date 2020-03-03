@@ -7,7 +7,7 @@ render = (name, value, prefix=nil) ->
 
   content = switch value.type
     when 'scope'
-      ul for k, result in pairs value!.values
+      ul for k, result in opairs value!.values
         li render k, result.value, id
     when 'opdef', 'builtin'
       p value!.doc
@@ -33,16 +33,11 @@ r = (name, page='') ->
   import a, code from require 'extra.dom'
   a (code name), href: "#{page}##{name}"
 
-spit = (file, str) ->
-  file = io.open file, 'w'
-  file\write str
-  file\close!
-
 -- layout and write a doc page
 -- opts:
 --  - title
 --  - body
-write = (opts) ->
+layout = (opts) ->
   import nav, div, span, b, code, i, a, article from require 'extra.dom'
 
   navigation = nav div {
@@ -53,16 +48,17 @@ write = (opts) ->
     a 'reference', href: abs 'reference/index.html'
   }
   body = article opts.body
+  title = if opts.title
+    "#{opts.title} - alive"
+  else
+    "alive documentation"
 
-  assert OUT, "OUT needs to be set"
-  spit OUT, "<!DOCTYPE html>
+  "<!DOCTYPE html>
 <html>
   <head>
-    <title>#{opts.title} - alive docs</title>
+    <title>#{title}</title>
     <link rel=\"stylesheet\" href=\"#{abs 'style.css'}\">
-    <style>
-
-    </style>
+    #{opts.css or ''}
   </head>
   <body>
     #{navigation}
@@ -74,5 +70,5 @@ write = (opts) ->
 {
   :r
   :render
-  :write
+  :layout
 }

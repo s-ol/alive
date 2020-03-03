@@ -14,8 +14,8 @@ prints the docstring for sym in the console"
 
     result = L\push tail[1]\eval, scope
     with Result children: { def }
-      def = result\const!\unwrap!
-      L\print "(doc #{tail[1]\stringify!}):\n#{def.doc}\n"
+      value = result\const!
+      L\print "(doc #{tail[1]\stringify!}):\n#{value.doc}\n"
 
 class def extends Action
   @doc: "(def sym1 val-expr1
@@ -68,7 +68,7 @@ name-str has to be an eval-time constant."
     name = result\const!
 
     L\trace @, "loading module #{name}"
-    Result value: Value.wrap require "lib.#{name\unwrap 'str'}"
+    Result value: require "lib.#{name\unwrap 'str'}"
 
 class import_ extends Action
   @doc: "(import sym1 [sym2]...) - require and define modules
@@ -81,7 +81,7 @@ requires modules sym1, sym2, ... and defines them as sym1, sym2, ... in the curr
 
     for child in *tail
       name = (child\quote scope)\unwrap 'sym'
-      scope\set name, Result value: Value.wrap require "lib.#{name}"
+      scope\set name, Result value: require "lib.#{name}"
 
     Result!
 
@@ -97,7 +97,7 @@ requires modules sym1, sym2, ... and merges them into the current scope"
 
     for child in *tail
       name = (child\quote scope)\unwrap 'sym'
-      scope\use (Value.wrap require "lib.#{name}")\unwrap 'scope'
+      scope\use (require "lib.#{name}")\unwrap 'scope'
 
     Result!
 

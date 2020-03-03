@@ -14,7 +14,12 @@ text-based language and works without special editor support.
 - [osc][osc]:               `luarocks install osc`
 - [socket][socket]:         `luarocks install luasocket`
 - [system][system]:         `luarocks install luasystem`
+- [discount][discount]:     `luarocks install discout` (optional, for docs)
 
+## docs
+
+with `make` the HTML documentation is generated in `docs/`.
+ 
 ## running
 
     $ moon init.moon <session.alv>
@@ -25,3 +30,4 @@ text-based language and works without special editor support.
 [osc]:        https://github.com/lubyk/osc
 [system]:     https://github.com/o-lim/luasystem
 [socket]:     http://w3.impa.br/~diego/software/luasocket/
+[discount]:   https://luarocks.org/modules/craigb/discount
