@@ -1,4 +1,5 @@
-import space, atom, expr, explist, cell, program, comment from require 'core.parsing'
+import space, atom, expr, explist, cell, program, comment
+  from require 'core.parsing'
 import Value from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'

@@ -1,14 +1,16 @@
 L or= setmetatable {}, __index: => ->
 
-import Value, Result, load_ from require 'core.value'
+import Value from require 'core.value'
+import Result from require 'core.result'
 import Scope from require 'core.scope'
-load_!
-
 import Registry from require 'core.registry'
 import Tag from require 'core.tag'
 
 import Cell, RootCell from require 'core.cell'
 import cell, program from require 'core.parsing'
+
+with require 'core.cycle'
+  \load!
 
 globals = Scope.from_table require 'core.builtin'
 

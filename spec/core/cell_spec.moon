@@ -1,5 +1,4 @@
-import Cell, RootCell, Value, Scope, globals from require 'core'
-import Registry from require 'core.registry'
+import Cell, RootCell, Value, Scope, Registry, globals from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 

@@ -1,5 +1,6 @@
 -- base definitions for extensions
-import Value, Result from require 'core.value'
+import Value from require 'core.value'
+import Result from require 'core.result'
 import match from require 'core.pattern'
 
 unpack or= table.unpack

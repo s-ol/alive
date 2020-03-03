@@ -1,5 +1,5 @@
 import Pattern, match from require 'core.pattern'
-import Result, Value from require 'core.value'
+import Result, Value from require 'core'
 
 -- wrap in non-const result
 wrap = (value) ->
