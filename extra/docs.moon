@@ -2,7 +2,7 @@ import Value, Scope from require 'core'
 import render, layout from require 'extra.layout'
 import section, h2, p, ul, li, a, code, r from require 'extra.dom'
 
-export OUT
+export OUT, require
 { OUT, command } = arg
 
 slurp = (file) ->
@@ -18,6 +18,13 @@ spit = (file, str) ->
 spit OUT, switch command
   when 'module'
     { _, _, module, name } = arg
+
+    require = do
+      old_require = require
+      blacklist = {k, true for k in *{'osc', 'socket', 'system', 'luartmidi'}}
+      (mod, ...) ->
+        return {} if blacklist[mod]
+        old_require mod, ...
 
     name or= module
     module = Scope.from_table require module

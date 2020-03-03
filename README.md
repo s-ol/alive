@@ -9,12 +9,15 @@ text-based language and works without special editor support.
 ## dependencies
 
 - [MoonScript][moonscript]: `luarocks install moonscript`
-- [luafilesystem][lfs]:     `luarocks install luafilesystem`
-- [LPeg][lpeg]:             `luarocks install lpeg`
+- [luafilesystem][lfs]*:    `luarocks install luafilesystem`
+- [LPeg][lpeg]*:            `luarocks install lpeg`
 - [osc][osc]:               `luarocks install osc`
 - [socket][socket]:         `luarocks install luasocket`
 - [system][system]:         `luarocks install luasystem`
-- [discount][discount]:     `luarocks install discout` (optional, for docs)
+- [lua-rtmidi][rtmidi]:     `luarocks install https://raw.githubusercontent.com/s-ol/lua-rtmidi/master/lua-rtmidi-dev-1.rockspec`
+- [discount][discount]:     `luarocks install discount` (optional, for docs)
+
+\* these are also `moonscript` dependencies and do not neet to be installed manually.
 
 ## docs
 
@@ -31,3 +34,4 @@ with `make` the HTML documentation is generated in `docs/`.
 [system]:     https://github.com/o-lim/luasystem
 [socket]:     http://w3.impa.br/~diego/software/luasocket/
 [discount]:   https://luarocks.org/modules/craigb/discount
+[rtmidi]:     https://github.com/s-ol/lua-rtmidi/

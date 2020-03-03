@@ -1,7 +1,8 @@
 import Op, EventInput, ValueInput, ColdInput, match from require 'core.base'
 import udp from require 'socket'
 
-conn = udp!
+local conn
+
 hex = "0123456789abcdef"
 encode = (arg) ->
   switch type arg
@@ -16,6 +17,7 @@ send = (...) ->
   for i = 1, select '#', ...
     tbl = select i, ...
     str ..= table.concat [encode v for v in *tbl]
+  conn or= udp!
   conn\sendto str, '127.0.0.1', 49161
 
 class play extends Op
