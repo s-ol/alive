@@ -1,20 +1,25 @@
 MODULES=$(wildcard lib/*.moon) lib/midi/launchctl.moon
 MODREFS=$(MODULES:lib/%.moon=docs/reference/%.html)
+DEPS=core/version.moon extra/docs.moon extra/layout.moon extra/dom.moon
 
-.PHONY: docs clean
+.PHONY: docs release clean
 
 docs: docs/index.html docs/guide.html $(MODREFS) docs/reference/index.html
 
-docs/%.html: docs/%.md extra/docs.moon extra/layout.moon
+release:
+	rm -f core/version.moon
+	extra/git-version.sh >core/version.moon
+
+docs/%.html: docs/%.md $(DEPS)
 	@echo "building page $<"
 	moon extra/docs.moon $@ markdown $<
 
-docs/reference/%.html: lib/%.moon extra/docs.moon extra/layout.moon
+docs/reference/%.html: lib/%.moon $(DEPS) 
 	@echo "building docs for $<"
 	@mkdir -p `dirname $@`
 	moon extra/docs.moon $@ module lib.$(*:/=.) $*
 
-docs/reference/index.html: $(MODREFS) extra/docs.moon extra/layout.moon
+docs/reference/index.html: $(MODREFS) $(DEPS)
 	moon extra/docs.moon $@ reference $(MODULES)
 
 clean:

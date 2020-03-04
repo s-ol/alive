@@ -1,3 +1,5 @@
+v = require 'core.version'
+
 -- render an ALV Value to a HTML string
 render = (name, value, prefix=nil) ->
   import div, label, code, ul, li, i, a, p from require 'extra.dom'
@@ -38,11 +40,16 @@ r = (name, page='') ->
 --  - title
 --  - body
 layout = (opts) ->
-  import nav, div, span, b, code, i, a, article from require 'extra.dom'
+  import header, footer, nav, div, span, b, code, a, article from require 'extra.dom'
 
-  navigation = nav div {
-    span (b 'alive'), ' ', (code 'v0.0'), ' documentation'
-    i!
+  head = header nav {
+    span {
+      a 'alive', href: abs 'index.html'
+      ' '
+      code v.tag
+      ' documentation'
+    }
+    div class: 'grow'
     a 'home', href: abs 'index.html'
     a 'getting started', href: abs 'guide.html'
     a 'reference', href: abs 'reference/index.html'
@@ -52,17 +59,27 @@ layout = (opts) ->
     "#{opts.title} - alive"
   else
     "alive documentation"
+  foot = footer div {
+    'alive '
+    a (code v.tag), href: "https://git.s-ol.nu/alivecoding/#{v.tag}"
+    ', generated '
+    os.date '!%Y-%m-%d %T'
+  }
 
   "<!DOCTYPE html>
 <html>
   <head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=640\">
+
     <title>#{title}</title>
     <link rel=\"stylesheet\" href=\"#{abs 'style.css'}\">
     #{opts.css or ''}
   </head>
   <body>
-    #{navigation}
+    #{head}
     #{body}
+    #{foot}
   </body>
 </html>"
 

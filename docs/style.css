@@ -13,12 +13,18 @@ body {
   font-family: 'Source Sans Pro', sans-serif;
   color: #222222;
 }
+@media (max-width: 699px) {
+  body {
+    width: 100vw;
+  }
+}
 
 article {
   padding: 3rem 2em 1em;
 }
 
 code {
+  font-size: 0.9em;
   font-family: 'Source Code Pro', monospace;
 }
 
@@ -36,30 +42,56 @@ ul {
   padding-left: 0.6em;
 }
 
-nav {
+header {
   position: fixed;
   width: inherit;
   height: 4rem;
   top: 0;
-  padding: 1em 2em 4px;
+  padding: 1rem 2rem 4px;
   background: #eeeeee;
   box-sizing: border-box;
 }
 
-nav div {
+nav {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
 
   border-bottom: 1px solid #222222;
   padding-bottom: 1em;
 }
 
-nav i {
+nav span,
+nav a {
+  flex: 0 0 auto;
+}
+
+nav > a {
+  margin-left: 1rem;
+}
+
+nav span a {
+  font-weight: bold;
+  text-decoration: none;
+}
+
+nav .grow {
   flex: 1;
 }
 
-nav a {
-  margin-left: 1rem;
+footer {
+  font-size: 0.8em;
+  padding: 0 2rem;
+}
+
+footer > div {
+  border-top: 1px solid #222222;
+  text-align: right;
+  padding: 0.5rem 0;
+}
+
+.embed {
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .def {
