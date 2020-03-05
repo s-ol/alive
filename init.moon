@@ -16,6 +16,7 @@ for a in *arg
 
 Logger.init arguments.log
 
+assert arguments[1], "no filename given"
 copilot = Copilot arguments[1]
 
 while true

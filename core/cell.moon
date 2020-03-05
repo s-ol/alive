@@ -8,7 +8,8 @@ import Tag from require 'core.tag'
 class Cell
 -- AST interface
   eval: (scope) =>
-    head = (@head!\eval scope)\const!
+    head = assert @head!, "cannot evaluate expr without head"
+    head = (head\eval scope)\const!
     Action = switch head.type
       when 'opdef'
         -- scope\get 'op-invoke'
@@ -47,9 +48,11 @@ class Cell
         buf ..= if depth > 0 then ' ' else @white[i]
 
       if depth > 0
-        buf = buf\sub 1, #b@uf - 1
+        buf = buf\sub 1, #buf - 1
 
-    '(' .. @tag\stringify! .. buf .. ')'
+    tag = if depth == -1 then @tag\stringify! else ''
+
+    '(' .. tag .. buf .. ')'
 
 -- internal
   -- tag:      the parsed Tag

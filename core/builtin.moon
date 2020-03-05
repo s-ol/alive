@@ -1,6 +1,7 @@
 -- builtin special forms
 import Action, FnDef from require 'core.base'
-import Result, Value from require 'core.value'
+import Value from require 'core.value'
+import Result from require 'core.result'
 import Cell from require 'core.cell'
 import Scope from require 'core.scope'
 
@@ -15,7 +16,7 @@ prints the docstring for sym in the console"
     result = L\push tail[1]\eval, scope
     with Result children: { def }
       value = result\const!
-      L\print "(doc #{tail[1]\stringify!}):\n#{value.doc}\n"
+      L\print "(doc #{tail[1]}):\n#{value.doc}\n"
 
 class def extends Action
   @doc: "(def sym1 val-expr1
@@ -68,7 +69,8 @@ name-str has to be an eval-time constant."
     name = result\const!
 
     L\trace @, "loading module #{name}"
-    Result value: require "lib.#{name\unwrap 'str'}"
+    scope = Value.wrap require "lib.#{name\unwrap 'str'}"
+    Result :value
 
 class import_ extends Action
   @doc: "(import sym1 [sym2]...) - require and define modules
@@ -81,8 +83,8 @@ requires modules sym1, sym2, ... and defines them as sym1, sym2, ... in the curr
 
     for child in *tail
       name = (child\quote scope)\unwrap 'sym'
-      scope\set name, Result value: require "lib.#{name}"
-
+      value = Value.wrap require "lib.#{name}"
+      scope\set name, Result :value -- (require "lib.#{name})\unwrap 'scope'
     Result!
 
 class import_star extends Action
@@ -97,7 +99,8 @@ requires modules sym1, sym2, ... and merges them into the current scope"
 
     for child in *tail
       name = (child\quote scope)\unwrap 'sym'
-      scope\use (require "lib.#{name}")\unwrap 'scope'
+      value = Value.wrap require "lib.#{name}"
+      scope\use value\unwrap 'scope' -- (require "lib.#{name}")\unwrap 'scope'
 
     Result!
 
@@ -180,7 +183,7 @@ class trace extends Action
     assert #tail == 1, "'trace' takes exactly one parameter"
 
     with result = L\push tail[1]\eval, scope
-      L\print "trace #{tail[1]\stringify!}: #{result.value}"
+      L\print "trace #{tail[1]}: #{result.value}"
 
 {
   :doc, :trace

@@ -1,4 +1,5 @@
-import Result, Value from require 'core.value'
+import Value from require 'core.value'
+import Result from require 'core.result'
 import Action from require 'core.base'
 import Scope from require 'core.scope'
 
