@@ -1,5 +1,5 @@
 import Value, Scope from require 'core'
-import render, layout from require 'extra.layout'
+import render, layout, autoref from require 'extra.layout'
 import section, h2, p, ul, li, a, code, r from require 'extra.dom'
 
 export OUT, require
@@ -30,9 +30,9 @@ spit OUT, switch command
     module = Scope.from_table require module
 
     layout
-      title: "#{name} module reference"
+      title: "#{name} reference"
       body: section {
-        h2 (code name), ' reference'
+        h2 (code name), ' module reference'
         ul for key, res in opairs module.values
           li render key, res.value
       }
@@ -44,11 +44,12 @@ spit OUT, switch command
         section {
           id: 'modules'
           h2 a "module index", href: '#modules'
-          p "These modules can be imported using #{r 'require'}, #{r 'import'} and " ..
-            "#{r 'import*'}."
+          p autoref "These modules can be imported using [require][], " ..
+            "[import][] and [import*][]."
           ul for file in *arg[3,]
-            module = file\match '^lib/(.*)%.moon$'
-            li a (code module), href: "#{module}.html"
+            path = file\match '^lib/(.*)%.moon$'
+            name = path\gsub '/', '.'
+            li a (code name), href: "#{path}.html"
         }
         section {
           id: 'builtins'
@@ -67,7 +68,7 @@ spit OUT, switch command
     contents = slurp file
     require 'discount'
 
-    layout compile contents, 'githubtags', 'fencedcode'
+    layout compile autoref contents, 'githubtags', 'fencedcode'
 
   else
     error "unknown command '#{command}'"

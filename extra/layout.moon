@@ -30,10 +30,28 @@ abs = (page) ->
   up = string.rep '../', depth
   "#{up}#{page}"
 
+-- generate a link to a reference entry
+-- entry is one of
+-- builtin-name; mod.name/name; mod.name
+link = (ref) ->
+  mod, sym = ref\match '^(.+)/(.*)$'
+  abs "reference/#{mod or 'index'}.html##{sym or ref}"
+
 -- link to a reference
-r = (name, page='') ->
+r = (text, ref) ->
   import a, code from require 'extra.dom'
-  a (code name), href: "#{page}##{name}"
+  href = link ref or text
+  if ref
+    a text, :href
+  else
+    text = text\gsub '/$', ''
+    a (code text), :href
+
+-- substitute markdown-style reference links
+autoref = (str) ->
+  str = str\gsub '%[([^%]]-)%]%[%]', r
+  str = str\gsub '%[([^%]]-)%]%[:(.-):%]', r
+  str
 
 -- layout and write a doc page
 -- opts:
@@ -85,7 +103,7 @@ layout = (opts) ->
 
 
 {
-  :r
+  :autoref
   :render
   :layout
 }

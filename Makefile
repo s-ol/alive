@@ -17,7 +17,7 @@ docs/%.html: docs/%.md $(DEPS)
 docs/reference/%.html: lib/%.moon $(DEPS) 
 	@echo "building docs for $<"
 	@mkdir -p `dirname $@`
-	moon extra/docs.moon $@ module lib.$(*:/=.) $*
+	moon extra/docs.moon $@ module lib.$(subst /,.,$*) $(subst /,.,$*)
 
 docs/reference/index.html: $(MODREFS) $(DEPS)
 	moon extra/docs.moon $@ reference $(MODULES)

@@ -28,7 +28,7 @@ code {
   font-size: 0.9em;
   font-family: 'Source Code Pro', monospace;
   background: #cccccc;
-  padding: 0.05em 0.2em;
+  padding: 0.03em 0.2em;
 }
 
 
@@ -45,6 +45,10 @@ pre > code {
 h1, h2, h3,
 h4, h5, h6 {
   margin: 0.5em 0 0.25em;
+}
+h1 a, h2 a, h3 a,
+h4 a, h5 a, h6 a {
+  text-decoration: none;
 }
 h1 + p, h2 + p, h3 + p,
 h4 + p, h5 + p, h6 + p {
@@ -121,8 +125,11 @@ footer > div {
   text-decoration: none;
 }
 
-.def:target > label a {
-  font-weight: bold;
+a:hover code,
+.def:target > label code {
+  text-decoration: none;
+  background: #202020;
+  color: #cccccc;
 }
 
 .nest {

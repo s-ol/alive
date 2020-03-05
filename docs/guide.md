@@ -7,8 +7,8 @@ run. `alive` can be used to create music, visuals or installations, but by
 itself does not create neither sound nor video. Rather, `alive` is used
 together with other tools and synthesizers like [SuperCollider][supercollider],
 [Pilot][pilot] and many more. `alive` takes the role of a 'conductor', telling
-the other tools what to play when by sending commands to them using a variety of
-protocols (such as OSC and MIDI).
+the other tools what to play when by sending commands to them using a variety
+of protocols (such as OSC and MIDI).
 
 Before we get to making sound though, we should learn a bit about the `alive`
 programming language, and how to install and use it.
@@ -28,8 +28,8 @@ Once you have luarocks, you can install the dependencies for `alive`:
 If you have trouble installing some of the dependencies, note that `osc`,
 `luasocket` and `lua-rtmidi` are optional, however you will not be able to use
 the corresponding modules of the `alive` standard library if you do not install
-them. To follow the later parts of this guide at least `osc` and `luasocket` are
-required.
+them. To follow the later parts of this guide at least `osc` and `luasocket`
+are required.
 
 After installing the dependencies, you can clone the
 [`alivecoding` repository][git] using git:
@@ -54,8 +54,8 @@ copilot at any time using `^C` (control-C).
 parenthesized lists like `(head a b c...)`, where the first element of the list
 (`head`) is the name of an operator of function, which defines what the
 expression as a whole will do, while the other elements are parameters whose
-meaning depends on the `head`. Let's start with a simple operator, `trace`:
-`trace` is used to inspect values by printing them to the copilot. Enter the
+meaning depends on the `head`. Let's start with a simple operator, [trace][]:
+[trace][] is used to inspect values by printing them to the copilot. Enter the
 following in your file and save it:
 
     (trace "hello world")
@@ -68,7 +68,7 @@ You should notice two things happening:
        trace "hello world": <Value str: hello world>
 
    In the first line, it notifies us that the file has changed. In the second
-   line, we can see the output from `trace`: it lets us know that our input
+   line, we can see the output from [trace][]: it lets us know that our input
    `"hello world"` evaluated to a `Value` with the type `str` (string) and
    contents `hello world`.
 2. Your editor may notify you that `hello.alv` has changed, or reload the file
@@ -80,7 +80,7 @@ It now looks like this:
 
     ([1]trace "hello world")
 
-The `[1]` that the copilot added to our expression is that expression's `tag`.
+The [1] that the copilot added to our expression is that expression's `tag`.
 In `alive`, every expression has a tag that helps the copilot to identify the
 individual expressions as you make changes to your code. The copilot will make
 sure that all expressions are tagged by adding missing tags when you save the
@@ -124,22 +124,22 @@ There are only two boolean values, `true` and `false`:
     true
     false
 
-You can try using `trace` with all of these values to get used to how they are
-printed.
+You can try using [trace][] with all of these values to get used to how they
+are printed.
 
 ### importing modules
-Apart from `trace`, there are only very little builtin operators in `alive` -
-you can see all of them in the *builtins* section of the [reference][reference].
+Apart from [trace][], there are only very little builtin operators in `alive` -
+you can see all of them in the *builtins* section of the [reference][:/:].
 All of the 'real' functionality of `alive` is grouped into *modules*, that have
 to be loaded individually. *Modules* help organize all of the operators, so that
 it is less overwhelming to look for a concrete feature. It is also possible to
 create your own plugins as new modules, which will be covered in another guide
 soon.
 
-Let's try using the [`+` operator][plus] from the `math` module. To use operators
-from a module, we need to tell `alive` to load it first: We can load *all* the
-operators from the `math` module into the current scope using the
-[`import*`][import*] builtin:
+Let's try using the [`+` operator][:math/+:] from the [math/][] module. To use
+operators from a module, we need to tell `alive` to load it first: We can load
+*all* the operators from the [math/][] module into the current scope using the
+[import*][] builtin:
 
     (import* math)
     (trace (+ 1 2))
@@ -150,19 +150,31 @@ prints
 
 Because it can get a bit confusing when all imported operators are mixed in the
 global scope, it is also possible to load the module into its own scope and use
-it with a prefix. This is what the [`import`][import] builtin is for:
+it with a prefix. This is what the [import][] builtin is for:
 
     (import math)
     (trace (math/+ 1 2))
 
+### comments
+To annotate your code, you can use comments. In `alive`, comments begin with
+`#(` and end on a matching `)`. This way you can uncomment a complete
+expression simply by adding a `#` character in front.
+
+    #(this is a comment)
+    
+    #(this is a long,
+      multi-line comment,
+      (and it also has nested parentheses).
+      It ends after this sentence.)
+
 ### defining symbols
-Both `import` and `import*` are actually shorthands for other builtins:
-[`def`][def] and [`use`][use]. `def` is used to *define a symbol* in the
+Both [import][] and [import*][] are actually shorthands for other builtins:
+[def][] and [use][]. [def][] is used to *define a symbol* in the
 current scope. You can use it to associate a *symbol* (a name, like `hello`,
-`trace` or `+`) with a value. After a symbol is defined, the name becomes an
-alias that behaves like the value itself. For example, we can use `def` to
+`trace`, or `+`) with a value. After a symbol is defined, the name becomes an
+alias that behaves like the value itself. For example, we can use [def][] to
 give the result of our calculation a name, and then refer to it in by that
-symbol in the `trace` operator:
+symbol in the [trace][] operator:
 
     (import* math)
     
@@ -186,12 +198,12 @@ symbols starting and ending with asterisks (`*clock*`):
   for the symbol `world` within the scope found by dynamically resolving
   `*hello*`.
 
-The `import` builtin is actually a shorthand for the following expression:
+The [import][] builtin is actually a shorthand for the following expression:
 
     (def math (require "math"))
     (trace (math/+ 1 2))
 
-[`require`][require] returns a *scope*, which is defined as the symbol `math`.
+[require][] returns a *scope*, which is defined as the symbol `math`.
 Then `math/+` is resolved by looking for `+` in this nested scope. Note that
 the symbol that the scope is defined as and the name of the module that is
 loaded do not have to be the same, you could call the alias whatever you want:
@@ -200,16 +212,16 @@ loaded do not have to be the same, you could call the alias whatever you want:
     (trace (fancy-math/+ 1 2))
 
 In practice this is rarely useful, which is why the `require` shortcut exists.
-The full version of `import*` on the other hand defines every symbol from the
+The full version of [import*][] on the other hand defines every symbol from the
 imported module individually. The expanded version is the following:
 
     (use (require "math"))
     (trace (+ 1 2))
 
-[`use`][use] copies all symbol definitions from the scope it is passed to the
+[use][] copies all symbol definitions from the scope it is passed to the
 current scope.
 
-Note that `import`, `import*`, `def`, and `use` all can take multiple
+Note that [import][], [import*][], [def][], and [use][] all can take multiple
 arguments:
 
     (import* math logic)
@@ -221,22 +233,22 @@ is the same as
     (def midi (require "midi")
          osc  (require "osc"))
 
-It is common to have an `import` and `import*` expression at the top of an
+It is common to have an [import][] and [import*][] expression at the top of an
 `alive` program to load all of the modules that will be used later, but the
 modules don't necessarily have to be loaded at the very beginning, as long as
 all symbols are defined before they are being used.
 
-### scopes
+### nested scopes
 Once a symbol is defined, it cannot be changed or removed:
 
     (def a 3)
     (def a 4) #(error!)
 
 However it is possible to 'shadow' a symbol with another one in a nested scope.
-So far, all symbols we have defined - using `def`, `import` and `import*` -
+So far, all symbols we have defined - using `def`, [import][] and [import*][] -
 have been defined in the *global scope*, the scope that is active in the whole
 `alive` program. However some builtins create a new scope that their parameters
-are evaluated in. One of them is [`do`][do], which does only that:
+are evaluated in. One of them is [do][], which does only that:
 
     (import string)
     
@@ -260,8 +272,8 @@ from the parent scope. Symbols that are not explicitly redefined in a nested
 scope keep their values, and changes in the nested scope do not impact the
 parent scope.
 
-### functions
-Another builtin that creates a nested scope is [`fn`][fn], which is used to
+### defining functions
+Another builtin that creates a nested scope is [fn][], which is used to
 create a *user-defined function*, which can be used to simplify repetitive
 code, amongst other things:
 
@@ -280,7 +292,7 @@ the names of the parameters have to be given. The function defined here takes
 two parameters, `a` and `b`. The last part of the function definition is called
 the *function body*.
 
-A function created using `fn` can be called like an operator. When a function
+A function created using [fn][] can be called like an operator. When a function
 is called, the parameters to the function are defined with the names given in
 the definition, and then the function body is executed. The previous example is
 equivalent to the following:
@@ -333,10 +345,3 @@ try typing in `84c` and hitting enter. This should play a short sound (the note
 [luarocks]:      https://github.com/luarocks/luarocks/#installing
 [git]:           https://git.s-ol.nu/alivecoding
 [reference]:     reference/
-[plus]:          reference/math.html#+
-[import*]:       reference/#import*
-[import]:        reference/#import
-[require]:       reference/#require
-[use]:           reference/#use
-[fn]:            reference/#fn
-[defn]:          reference/#defn
