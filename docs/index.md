@@ -10,8 +10,8 @@ running, such as *livecoding* or *algorave* music performances.
 
 Unlike other livecoding languages, programming with `alivecoding` does not
 mean evaluating separate pieces of code and sending individual commands to the
-programming environment. Instead, you can keep editing the program as a whole,
-and whenever you save the file `alive` will apply your changes to the running
+programming environment. Instead, you can keep editing the program as a whole
+and whenever you save the file, `alive` will apply your changes to the running
 system seamlessly, without resetting any part of your program (unless you want
 it to).
 

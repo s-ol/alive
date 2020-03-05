@@ -2,9 +2,9 @@
 % - 
 % -
 # getting started with alive
-`alive` is a language for creating and changing programs that continuosly
+`alive` is a language for creating and changing programs that continuously
 run. `alive` can be used to create music, visuals or installations, but by
-itself does not create neither sound nor video. Rather, `alive` is used
+itself does creates neither sound nor video. Rather, `alive` is used
 together with other tools and synthesizers like [SuperCollider][supercollider],
 [Pilot][pilot] and many more. `alive` takes the role of a 'conductor', telling
 the other tools what to play when by sending commands to them using a variety
@@ -14,7 +14,7 @@ Before we get to making sound though, we should learn a bit about the `alive`
 programming language, and how to install and use it.
 
 ## installation
-`alive` is written in the Lua programming langauge, and relies on a number of
+`alive` is written in the Lua programming language, and relies on a number of
 other software projects to run. To manage these dependencies `luarocks` is
 used, follow [this link][luarocks] for instructions on setting it up.
 Once you have luarocks, you can install the dependencies for `alive`:
@@ -26,7 +26,7 @@ Once you have luarocks, you can install the dependencies for `alive`:
     $ luarocks install https://raw.githubusercontent.com/s-ol/lua-rtmidi/master/lua-rtmidi-dev-1.rockspec
 
 If you have trouble installing some of the dependencies, note that `osc`,
-`luasocket` and `lua-rtmidi` are optional, however you will not be able to use
+`luasocket` and `lua-rtmidi` are optional, however, you will not be able to use
 the corresponding modules of the `alive` standard library if you do not install
 them. To follow the later parts of this guide at least `osc` and `luasocket`
 are required.
@@ -36,7 +36,7 @@ After installing the dependencies, you can clone the
 
     $ git clone https://git.s-ol.nu/alivecoding.git
 
-You should now be able to run `alive` from within the repository, but first you
+You should now be able to run `alive` from within the repository, but first, you
 will need to create a file for it to run. Create an empty file in the text
 editor you want to use, and save it as `hello.alv` in the `alivecoding`
 repository. Then launch the `alive` copilot like so:
@@ -52,7 +52,7 @@ copilot at any time using `^C` (control-C).
 ## `alive` basics
 `alive`'s syntax is very similar to Lisp. Expressions take the form of
 parenthesized lists like `(head a b c...)`, where the first element of the list
-(`head`) is the name of an operator of function, which defines what the
+(`head`) is the name of an operator or function, which defines what the
 expression as a whole will do, while the other elements are parameters whose
 meaning depends on the `head`. Let's start with a simple operator, [trace][]:
 [trace][] is used to inspect values by printing them to the copilot. Enter the
@@ -105,10 +105,10 @@ Numbers can start with a negetive sign. The following are all valid numbers:
     123.
 
 Strings can be written in two ways: using double quotes (`"`), as we did above,
-or using single quotes (`'`). In both types of strings you can escape a quote
-that otherwise would signify the end of the string using a single backslash,
-and represent a backslash using two backlashes. The following are all valid
-strings:
+or using single quotes (`'`). In both types of strings, you can escape a quote
+that otherwise would signify the end of the string by adding a single backslash
+before it. Consequently, backslashes also have to be escaped in the same way.
+The following are all valid strings:
 
     "hello world"
     'hello world'
@@ -131,7 +131,7 @@ are printed.
 Apart from [trace][], there are only very little builtin operators in `alive` -
 you can see all of them in the *builtins* section of the [reference][:/:].
 All of the 'real' functionality of `alive` is grouped into *modules*, that have
-to be loaded individually. *Modules* help organize all of the operators, so that
+to be loaded individually. *Modules* help organize all of the operators so that
 it is less overwhelming to look for a concrete feature. It is also possible to
 create your own plugins as new modules, which will be covered in another guide
 soon.
@@ -188,15 +188,15 @@ symbols starting and ending with asterisks (`*clock*`):
 
 - Symbols containing slashes (except at beginning and end of the symbol) are
   split into multiple symbols, and looked up recursively in the scope. For
-  example `math/+` is found by first looking for a value for the symbol `math`,
+  example, `math/+` is found by first looking for a value for the symbol `math`,
   and then looking for the symbol `+` in that value. If the value for the
   symbol `math` is not a scope, an error is thrown.
 - Symbols starting and ending with asterisks are called `dynamic symbols` and
   are looked up in a different way inside user-defined functions. This will be
   covered in detail later.
-- The two special formats can be mixed, for example `*hello*/world` will look
-  for the symbol `world` within the scope found by dynamically resolving
-  `*hello*`.
+- The two special formats can be mixed: when evaluating `*hello*/world`,
+  `alive` will look for the symbol `world` within the scope found by dynamically
+  resolving `*hello*`.
 
 The [import][] builtin is actually a shorthand for the following expression:
 
@@ -211,7 +211,7 @@ loaded do not have to be the same, you could call the alias whatever you want:
     (def fancy-math (require "math"))
     (trace (fancy-math/+ 1 2))
 
-In practice this is rarely useful, which is why the `require` shortcut exists.
+In practice, this is rarely useful, which is why the `require` shortcut exists.
 The full version of [import*][] on the other hand defines every symbol from the
 imported module individually. The expanded version is the following:
 
@@ -244,11 +244,11 @@ Once a symbol is defined, it cannot be changed or removed:
     (def a 3)
     (def a 4) #(error!)
 
-However it is possible to 'shadow' a symbol with another one in a nested scope.
-So far, all symbols we have defined - using `def`, [import][] and [import*][] -
-have been defined in the *global scope*, the scope that is active in the whole
-`alive` program. However some builtins create a new scope that their parameters
-are evaluated in. One of them is [do][], which does only that:
+It is, however, possible to 'shadow' a symbol by re-defining it in a nested
+scope: So far, all symbols we have defined - using `def`, [import][] and
+[import*][] - have been defined in the *global scope*, the scope that is active
+in the whole `alive` program. The [do][] builtin can be used to create a new
+scope and evaluate some expressions in it:
 
     (import string)
     
@@ -292,10 +292,10 @@ the names of the parameters have to be given. The function defined here takes
 two parameters, `a` and `b`. The last part of the function definition is called
 the *function body*.
 
-A function created using [fn][] can be called like an operator. When a function
-is called, the parameters to the function are defined with the names given in
-the definition, and then the function body is executed. The previous example is
-equivalent to the following:
+A function created using [fn][] can be called just like an operator. When a
+function is called, the parameters to the function are defined with the names
+given in the definition, and then the function body is executed. The previous
+example is equivalent to the following:
 
     (import* math)
     
@@ -320,7 +320,7 @@ and the output of both is:
     trace (+ a b): <Value num: 7>
 
 In `alive`, functions are first-class values and can be passed around just like
-numbers, strings etc. However it is very common to define a function with a
+numbers, strings, etc. However it is very common to define a function with a
 name, so there is the `defn` shorthand, which combines the `def` and `fn`
 builtins into a single expression. Compare this equivalent definition of the
 `add-and-trace` function:
