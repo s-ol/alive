@@ -18,7 +18,7 @@ render = (name, value, prefix=nil) ->
 
   div {
     :id, class: 'def'
-    label (a (code name), :id, href: "##{id}"), ' (', type, '):'
+    label (a (code name), href: "##{id}"), ' (', type, '):'
     div content, class: 'nest'
   }
 

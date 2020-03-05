@@ -3,6 +3,7 @@ html {
   padding: 0;
   background: #222222 center center fixed;
   background-image: url("data:image/svg+xml,%3Csvg width='30' height='30' viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23606060' fill-opacity='0.4'%3E%3Cpath d='m7.5,9v12h4v-2h-2v-8h2V9Zm11,0v2h2v8h-2v2h4V9Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  scroll-padding-top: 4rem;
 }
 
 body {
@@ -26,10 +27,28 @@ article {
 code {
   font-size: 0.9em;
   font-family: 'Source Code Pro', monospace;
+  background: #cccccc;
+  padding: 0.05em 0.2em;
 }
 
-h2 {
+
+pre {
+  white-space: pre-wrap;
+  padding: 0.5rem 1rem;
+  background: #cccccc;
+}
+pre > code {
+  padding: 0;
+  background: none;
+}
+
+h1, h2, h3,
+h4, h5, h6 {
   margin: 0.5em 0 0.25em;
+}
+h1 + p, h2 + p, h3 + p,
+h4 + p, h5 + p, h6 + p {
+  margin-top: 0;
 }
 
 a {
@@ -96,6 +115,14 @@ footer > div {
 
 .def {
   margin-top: 0.5rem;
+}
+
+.def > label a {
+  text-decoration: none;
+}
+
+.def:target > label a {
+  font-weight: bold;
 }
 
 .nest {
