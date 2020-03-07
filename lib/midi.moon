@@ -1,4 +1,4 @@
-import Value, Op, ValueInput, IOInput, match from require 'core.base'
+import Value, Op, Input, match from require 'core.base'
 import input, output, inout, apply_range from require 'lib.midi.core'
 
 class gate extends Op
@@ -10,9 +10,9 @@ class gate extends Op
   setup: (inputs) =>
     { port, note, chan } = match 'midi/port num num?', inputs
     super
-      port: IOInput port
-      note: ValueInput note
-      chan: ValueInput chan or Value.num -1
+      port: Input.io port
+      note: Input.value note
+      chan: Input.value chan or Value.num -1
 
   tick: =>
     { :port, :note, :chan } = @inputs
@@ -37,9 +37,9 @@ class trig extends Op
   setup: (inputs) =>
     { port, note, chan } = match 'midi/port num num?', inputs
     super
-      port: IOInput port
-      note: ValueInput note
-      chan: ValueInput chan or Value.num -1
+      port: Input.io port
+      note: Input.value note
+      chan: Input.value chan or Value.num -1
 
   tick: =>
     { :port, :note, :chan } = @inputs
@@ -71,10 +71,10 @@ range can be one of:
   setup: (inputs) =>
     { port, cc, chan, range } = match 'midi/port num num? any?', inputs
     super
-      port:  IOInput port
-      cc:    ValueInput cc
-      chan:  ValueInput chan or Value.num -1
-      range: ValueInput range or Value.str 'uni'
+      port:  Input.io port
+      cc:    Input.value cc
+      chan:  Input.value chan or Value.num -1
+      range: Input.value range or Value.str 'uni'
 
     if not @out\unwrap!
       @out\set apply_range @inputs.range, 0

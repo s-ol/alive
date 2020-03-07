@@ -1,3 +1,7 @@
+----
+-- Builtins for invoking `Op`s and `FnDef`s.
+--
+-- @module invoke
 import Value from require 'core.value'
 import Result from require 'core.result'
 import Action from require 'core.base'

@@ -1,9 +1,0 @@
-([1]import* debug time)
-([2]import midi)
-
-([3]trace "help")
-
-([4]def device ([5]midi/input "system:midi_capture_2"))
-
-([6]out 'name' ([7]midi/cc device 0))
-([8]out 'gate' ([9]midi/gate device 44))

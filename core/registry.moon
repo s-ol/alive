@@ -1,14 +1,12 @@
+----
+-- `Tag` Registry.
+--
+-- @classmod Registry
+
 import Value from require 'core.value'
 import Result from require 'core.result'
 
 class Registry
-  new: () =>
-    @map = {}
-    @io = {}
-
-    @tick = 0
-    @kr = Result value: Value.bool true
-
 -- methods for Tag
 
   last: (index) => @last_map[index]
@@ -24,8 +22,23 @@ class Registry
 
   active: -> assert Registry.active_registry, "no active Registry!"
 
--- public methods
+  next_tag: => #@map + 1
 
+--- methods
+-- @section methods
+
+  --- create an instance.
+  new: =>
+    @map = {}
+    @io = {}
+
+    @tick = 0
+    @kr = Result value: Value.bool true
+
+  --- wrap a function with an eval-cycle.
+  --
+  -- @tparam function fn
+  -- @treturn function `fn` wrapped with eval-cycle logic
   wrap_eval: (fn) => (...) ->
     @grab!
     @last_map, @map, @pending = @map, {}, {}
@@ -47,6 +60,10 @@ class Registry
 
       @release!
 
+  --- wrap a function with a tick.
+  --
+  -- @tparam function fn
+  -- @treturn function `fn` wrapped with tick logic
   wrap_tick: (fn) => (...) ->
     @grab!
     @tick += 1
@@ -65,8 +82,6 @@ class Registry
   release: =>
     assert @ == @@active_registry, "not the active registry!"
     @@active_registry, @prev = @prev, nil
-
-  next_tag: => #@map + 1
 
 class SimpleRegistry extends Registry
   new: =>

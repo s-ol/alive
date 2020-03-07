@@ -1,4 +1,4 @@
-import Op, EventInput, ColdInput, match from require 'core.base'
+import Op, Input, match from require 'core.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
@@ -15,10 +15,10 @@ class play extends Op
       assert val\type! == 'num', "only numbers are supported as control values"
 
     super
-      socket: ColdInput socket
-      synth:  ColdInput synth
-      trig:   EventInput trig
-      ctrls: [ColdInput v for v in *ctrls]
+      trig:   Input.event trig
+      socket: Input.cold socket
+      synth:  Input.cold synth
+      ctrls: [Input.cold v for v in *ctrls]
 
   tick: =>
     if @inputs.trig\dirty! and @inputs.trig!

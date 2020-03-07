@@ -1,4 +1,4 @@
-import Op, Value, ValueInput, match from require 'core.base'
+import Op, Value, Input, match from require 'core.base'
 unpack or= table.unpack
 
 class ReduceOp extends Op
@@ -7,8 +7,8 @@ class ReduceOp extends Op
   setup: (inputs) =>
     { first, rest } = match 'num *num', inputs
     super
-      first: ValueInput first
-      rest: [ValueInput v for v in *rest]
+      first: Input.value first
+      rest: [Input.value v for v in *rest]
 
   tick: =>
     { :first, :rest } = @unwrap_all!
@@ -52,8 +52,8 @@ evenodd_op = (name, remainder) ->
     setup: (inputs) =>
       { val, div } = match 'num num?', inputs
       super
-        val: ValueInput val
-        div: ValueInput div or Value.num 2
+        val: Input.value val
+        div: Input.value div or Value.num 2
 
     tick: =>
       { :val, :div } = @unwrap_all!
@@ -72,7 +72,7 @@ func_op = (name, arity, func) ->
     setup: (inputs) =>
       { params } = match '*num', inputs
       assert #params == arity, "#{@} needs exactly #{arity} parameters" if arity != '*'
-      super [ValueInput p for p in *params]
+      super [Input.value p for p in *params]
 
     tick: => @out\set func unpack @unwrap_all!
 

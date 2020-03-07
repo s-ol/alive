@@ -1,5 +1,15 @@
+----
+-- `alive` source code version information
+--
+-- @module version
+
+--- exports
+-- @table exports
+-- @tfield string tag the last versions git tag
+-- @tfield string rev_short the short git revision hash
+-- @tfield string rev_long the full git revision hash
 {
   tag: "v0.0"
-  rev_short: "4742960"
-  rev_long: "4742960c455251f306bf271d50f69724b8beba04"
+  rev_short: "891c138"
+  rev_long: "891c138c8a8a4c9269f3eb70f424b5c1ea3898b0"
 }

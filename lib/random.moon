@@ -1,4 +1,4 @@
-import Op, Value, ValueInput, EventInput, match from require 'core.base'
+import Op, Value, Input, match from require 'core.base'
 
 apply_range = (range, val) ->
   if range\type! == 'str'
@@ -36,8 +36,8 @@ generates a random value in range on create and trigger.
   setup: (inputs) =>
     { trig, range } = match 'bang? any?', inputs
     super
-      trig: trig and EventInput trig
-      range: ValueInput range or Value.str 'uni'
+      trig: trig and Input.event trig
+      range: Input.value range or Value.str 'uni'
 
   tick: =>
     @gen! if @inputs.trig and @inputs.trig\dirty!
@@ -59,8 +59,8 @@ each component is in range.
     setup: (inputs) =>
       { trig, range } = match 'bang? any?', inputs
       super
-        trig: trig and EventInput trig
-        range: ValueInput range or Value.str 'uni'
+        trig: trig and Input.event trig
+        range: Input.value range or Value.str 'uni'
 
     tick: =>
       @gen! if @inputs.trig and @inputs.trig\dirty!

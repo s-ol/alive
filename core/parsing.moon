@@ -1,5 +1,9 @@
+----
+-- Lpeg Grammar for parsing `alive` code.
+--
+-- @module parsing
 import Value from require 'core.value'
-import Cell, RootCell from require 'core.cell'
+import Cell from require 'core.cell'
 import Tag from require 'core.tag'
 import R, S, P, V, C, Ct from require 'lpeg'
 
@@ -35,7 +39,7 @@ tag = (P '[') * (digit^1 / Tag\parse) * (P ']')
 cell = (P '(') * tag^-1 * (V 'explist') * (P ')') / Cell\parse
 
 root = P {
-  (V 'explist') / RootCell\parse
+  (V 'explist') / Cell\parse_root
   :expr, :explist, :cell
 }
 
@@ -46,6 +50,17 @@ cell = P {
 
 program = root * -1
 
+--- exports
+-- @table exports
+-- @tfield pattern comment
+-- @tfield pattern space
+-- @tfield pattern atom
+-- @tfield pattern expr
+-- @tfield pattern explist
+-- @tfield pattern explist
+-- @tfield pattern cell
+-- @tfield pattern root
+-- @tfield pattern program the main parsing entrypoint
 {
   :comment
   :space

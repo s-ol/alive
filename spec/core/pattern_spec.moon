@@ -1,4 +1,4 @@
-import Pattern, match from require 'core.pattern'
+import Pattern, match from require 'core.base.match'
 import Result, Value from require 'core'
 
 -- wrap in non-const result

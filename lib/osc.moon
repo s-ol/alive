@@ -1,4 +1,4 @@
-import Op, ValueInput, EventInput, ColdInput, match from require 'core.base'
+import Op, Input, match from require 'core.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
@@ -12,8 +12,8 @@ class connect extends Op
   setup: (inputs) =>
     { host, port } = match 'str num', inputs
     super
-      host: ValueInput host
-      port: ValueInput port
+      host: Input.value host
+      port: Input.value port
 
   tick: =>
     { :host, :port } = @unwrap_all!
@@ -30,9 +30,9 @@ sends a message only when val is dirty."
   setup: (inputs) =>
     { socket, path, value } = match 'udp/socket str any', inputs
     super
-      socket: ColdInput socket
-      path:   ColdInput path
-      value:  EventInput value
+      socket: Input.cold socket
+      path:   Input.cold path
+      value:  Input.value value
 
   tick: =>
     if @inputs.value\dirty!
@@ -51,9 +51,9 @@ sends a whenever any parameter changes."
   setup: (inputs) =>
     { socket, path, value } = match 'udp/socket str any', inputs
     super
-      socket: ValueInput socket
-      path:   ValueInput path
-      value:  ValueInput value
+      socket: Input.value socket
+      path:   Input.value path
+      value:  Input.value value
 
   tick: =>
     { :socket, :path, :value } = @unwrap_all!

@@ -1,3 +1,7 @@
+----
+-- `alive` Value(stream), implements the `AST` inteface.
+--
+-- @classmod Value
 import Result from require 'core.result'
 import scope, base, registry from require 'core.cycle'
 
@@ -7,26 +11,63 @@ ancestor = (klass) ->
     klass = klass.__parent
   klass
 
--- ALV Type wrapper
 class Value
-  -- @type      - type name.
-  --              builtin types: * literals: sym, num, bool
-  --                             * scope, opdef, fndef, builtin
-  -- @value     - Lua value - access through :unwrap()
-  new: (@type, @value, @raw) =>
-    @updated = nil
+--- methods
+-- @section methods
 
+  --- construct a new Value.
+  --
+  -- @tparam string type the type name
+  -- @tparam any value the Lua value to be accessed through \unwrap
+  -- @tparam string raw the raw string that resulted in this value. Used by `parsing`.
+  new: (@type, @value, @raw) =>
+
+  --- return whether this Value was changed in the current tick.
+  --
+  -- @treturn bool
   dirty: => @updated == registry.Registry.active!.tick
 
+  --- update this Value.
+  --
+  -- Marks this Value as dirty for the remainder of the current tick.
   set: (@value) => @updated = registry.Registry.active!.tick
 
-  -- unwrap to the Lua type
-  -- asserts @type == type, msg if given
+  --- unwrap to the Lua type.
+  --
+  -- Asserts `@type == type` if `type` is given.
+  --
+  -- @tparam[opt] string type the type to check for
+  -- @tparam[optchain] string msg message to throw if type don't match
+  -- @treturn @value
   unwrap: (type, msg) =>
     assert type == @type, msg or "#{@} is not a #{type}" if type
     @value
 
--- AST interface
+  --- alias for `\unwrap`.
+  __call: (...) => @unwrap ...
+
+  --- compare two values.
+  --
+  -- Compares two `Value`s by comparing their types and their Lua values.
+  __eq: (other) => other.type == @type and other.value == @value
+
+  __tostring: =>
+    value = if 'table' == (type @value) and rawget @value, '__base' then @value.__name else @value
+    "<#{@@__name} #{@type}: #{value}>"
+
+--- AST interface
+--
+-- `Value` implements the `AST` interface.
+-- @section ast
+
+  --- evaluate this literal constant.
+  --
+  -- Throws an error if `@type` is not a literal (`num`, `str` or `sym`).
+  -- Returns an eval-time const result for `num` and `str`.
+  -- Resolves `sym`s in `scope` and returns a reference to them.
+  --
+  -- @tparam Scope scope the scope to evaluate in
+  -- @treturn Result the evaluation result
   eval: (scope) =>
     switch @type
       when 'num', 'str'
@@ -36,24 +77,33 @@ class Value
       else
         error "cannot evaluate #{@}"
 
+  --- quote this literal constant.
+  --
+  -- @treturn Value self
   quote: => @
 
+  --- stringify this literal constant.
+  --
+  -- Throws an error if `@raw` is not set.
+  --
+  -- @treturn string the exact string this Value was parsed from
   stringify: => assert @raw, "stringifying Value that wasn't parsed"
 
+  --- clone this literal constant.
+  --
+  -- @treturn Value self
   clone: (prefix) => @
-  -- in case of doubt:
-  -- clone: (prefix) => Value @type, @value, @raw
 
--- static
-  __tostring: =>
-    value = if 'table' == (type @value) and rawget @value, '__base' then @value.__name else @value
-    "<#{@@__name} #{@type}: #{value}>"
-  __call: (...) => @unwrap ...
-  __eq: (other) => other.type == @type and other.value == @value
+--- static functions
+-- @section static
 
-  -- wrap a Lua type
-  @wrap: (val, name='(unknown)') ->
-
+  --- wrap a Lua value.
+  --
+  -- Attempts to guess the type and wrap a Lua value.
+  --
+  -- @tparam any val the value to wrap
+  -- @tparam[opt] string name the name of this value (for error logging)
+  wrap: (val, name='(unknown)') ->
     typ = switch type val
       when 'number' then 'num'
       when 'string' then 'str'
@@ -83,16 +133,31 @@ class Value
     Value typ, val
 
   unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
-  @parse: (type, sep) =>
+  --- create a capture-function (for parsing with Lpeg).
+  --
+  -- @tparam string type the type name (one of `num`, `sym` or `str`)
+  -- @tparam string sep the seperator char (only for `str`)
+  parse: (type, sep) =>
     switch type
       when 'num' then (match) -> @ 'num', (tonumber match), match
       when 'sym' then (match) -> @ 'sym', match, match
       when 'str' then (match) -> @ 'str', (unescape match), sep .. match .. sep
 
-  @num: (num) -> Value 'num', num, tostring num
-  @str: (str) -> Value 'str', str, "'#{str}'"
-  @sym: (sym) -> Value 'sym', sym, sym
-  @bool: (bool) -> Value 'bool', bool, tostring bool
+  --- create a constant number.
+  -- @tparam number num the number
+  num: (num) -> Value 'num', num, tostring num
+
+  --- create a constant string.
+  -- @tparam string str the string
+  str: (str) -> Value 'str', str, "'#{str}'"
+
+  --- create a constant symbol.
+  -- @tparam string sym the symbol
+  sym: (sym) -> Value 'sym', sym, sym
+
+  --- create a constant boolean.
+  -- @tparam boolean bool the boolean
+  bool: (bool) -> Value 'bool', bool, tostring bool
 
 {
   :Value

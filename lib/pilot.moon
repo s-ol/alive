@@ -1,4 +1,4 @@
-import Op, EventInput, ValueInput, ColdInput, match from require 'core.base'
+import Op, Input, match from require 'core.base'
 import udp from require 'socket'
 
 local conn
@@ -27,8 +27,8 @@ class play extends Op
     { trig, args } = match 'bang *any', inputs
     assert #args < 6, "too many arguments!"
     super
-      trig: EventInput trig
-      args: [ColdInput a for a in *args]
+      trig: Input.event trig
+      args: [Input.cold a for a in *args]
 
   tick: =>
     { :trig, :args } = @inputs
@@ -42,10 +42,10 @@ class play_ extends Op
     { chan, octv, note, args } = match 'any any any *any', inputs
     assert #args < 3, "too many arguments!"
     super
-      chan: ColdInput chan
-      octv: ColdInput octv
-      note: EventInput note
-      args: [ColdInput a for a in *args]
+      chan: Input.cold chan
+      octv: Input.cold octv
+      note: Input.event note
+      args: [Input.cold a for a in *args]
 
   tick: =>
     if @inputs.note\dirty!
@@ -60,9 +60,9 @@ which is one of 'DIS', 'CHO', 'REV' or 'FEE'"
   setup: (inputs) =>
     { which, a, b } = match 'str num num', inputs
     super {
-      ColdInput which
-      ValueInput a
-      ValueInput b
+      Input.cold which
+      Input.value a
+      Input.value b
     }
 
   tick: =>

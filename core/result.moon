@@ -1,16 +1,26 @@
+----
+-- Result of evaluating an expression.
+--
+-- Contains (all optional):
+--
+-- - `@value`: a `Value`
+-- - `@op`: an `Op` (to update)
+-- - `@children`: a lsit of child `Results` (from subexpressions)
+-- - `@side_inputs`: cached list of all `Inputs` affecting any `Op` in this
+--   subtree
+--
+-- `Result`s form a tree that controls execution order and message passing
+-- between `Op`s.
+--
+-- @classmod Result
 import base from require 'core.cycle'
 
--- Result of evaluating an expression
--- carries (all optional):
--- - a Value
--- - an Op (to update)
--- - children (results of subexpressions that were evaluated)
--- - cached list of all Dispatchers affecting all Ops in the subtree
---
--- Results form a tree that controls execution order and message passing
--- between Ops.
 class Result
-  -- params: table with optional keys op, value, children
+--- methods
+-- @section methods
+
+  --- create a new Result.
+  -- @param params table with optional keys op, value, children. default: {}
   new: (params={}) =>
     @value = params.value
     @op = params.op
@@ -28,35 +38,38 @@ class Result
         if input.impure or not is_child[input.stream]
           @side_inputs[input.stream] = input
 
+  --- return whether this Result's value is const.
   is_const: => not next @side_inputs
 
-  -- asserts value-constness and returns the value
+  --- assert value-constness and returns the value.
+  -- @tparam[opt] string msg the error message to throw
   const: (msg) =>
     assert not (next @side_inputs), msg or "eval-time const expected"
     @value
 
-  -- asserts a value exists and returns its type
+  --- assert this result has a value, returns its type.
   type: =>
     assert @value, "Result with value expected"
     @value.type
 
-  -- create a value-copy of this result that has the same impulses but without
-  -- affecting the original's update logic
+  --- create a copy of this result with value-copy semantics.
+  -- the copy has the same @value and @side_inputs, but will not update
+  -- anything on \tick.
   make_ref: =>
     with Result value: @value
       .side_inputs = @side_inputs
 
-  -- tick all IO instances that are effecting this (sub) tree
-  -- should be called once per frame on the root, right before tick
+  --- tick all IO instances that are effecting this (sub)tree.
+  -- should be called once per frame on the root, right before tick.
   tick_io: =>
     for stream, input in pairs @side_inputs
       if input.__class == base.IOInput
         io = input!
         io\tick!
 
-  -- in depth-first order, tick all Ops who have dirty Stream inputs or impulses
+  --- in depth-first order, tick all Ops which have dirty Inputs.
   --
-  -- short-circuits if there are no dirty Streams in the entire subtree
+  -- short-circuits if there are no dirty Inputs in the entire subtree
   tick: =>
     any_dirty = false
     for stream, input in pairs @side_inputs
@@ -64,15 +77,15 @@ class Result
         any_dirty = true
         break
 
-    -- early-out if no streams are dirty in this whole subtree
+    -- early-out if no Inputs are dirty in this whole subtree
     return unless any_dirty
 
     for child in *@children
       child\tick!
 
     if @op
-      -- we have to check self_dirty here, because streams from child
-      -- expressions might have changed
+      -- we have to check self_dirty here, because Inputs from children may
+      -- have become dirty due to \tick
       self_dirty = false
       for stream in @op\all_inputs!
         if stream\dirty!
@@ -84,7 +97,6 @@ class Result
 
       @op\tick!
 
--- static
   __tostring: =>
     buf = "<result=#{@value}"
     buf ..= " #{@op}" if @op

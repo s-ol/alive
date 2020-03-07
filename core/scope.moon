@@ -1,14 +1,36 @@
+----
+-- Mapping from `sym`s to `Result`s.
+--
+-- @classmod Scope
 import Value from require 'core.value'
 import Result from require 'core.result'
 
 class Scope
+--- methods
+-- @section methods
+
+  --- create an instance.
+  --
+  -- @tparam[opt] Scope parent a parent this scope inherits definitions from
+  -- @tparam[opt] Scope dynamic_parent a parent scope that should be checked for
+  -- dynamic definitions
   new: (@parent, @dynamic_parent) =>
     @values = {}
 
+  --- set a Lua value in the scope.
+  --
+  -- wraps `val` in a `Value` and `Result` before calling `\set`.
+  --
+  -- @tparam string key
+  -- @tparam any val
   set_raw: (key, val) =>
     value = Value.wrap val, key
     @values[key] = Result :value
 
+  --- set a symbol to a `Result`.
+  --
+  -- @tparam string key
+  -- @tparam Result val
   set: (key, val) =>
     L\trace "setting #{key} = #{val} in #{@}"
     assert val.__class == Result, "expected #{key}=#{val} to be Result"
@@ -20,6 +42,11 @@ class Scope
     parent or= @parent
     return parent and L\push parent\get, key
 
+  --- resolve a key in this Scope.
+  --
+  -- @tparam string key the key to resolve
+  -- @tparam[opt] string prefix a prefix (for internal use with nested scopes)
+  -- @treturn ?Result the value of the definition that was found, or `nil`
   get: (key, prefix='') =>
     L\debug "checking for #{key} in #{@}"
     if val = @values[key]
@@ -35,11 +62,26 @@ class Scope
     assert child and child.value.type == 'scope', "#{start} is not a scope (looking for #{key})"
     child.value\unwrap!\get rest, "#{prefix}#{start}/"
 
+  --- copy definitions from another scope.
+  --
+  -- copies all definitions from `other`. Does not copy inherited definitions.
+  --
+  -- @tparam Scope other
   use: (other) =>
     L\trace "using defs from #{other} in #{@}"
     for k, v in pairs other.values
       @values[k] = v
 
+--- static functions
+-- @section static
+
+  --- converts a Lua table to a Scope.
+  --
+  -- `tbl` may contain more tables (or `Scope`s).
+  -- Uses `Value``.wrap` on the values recursively.
+  --
+  -- @tparam table tbl the table to convert
+  -- @treturn Scope
   from_table: (tbl) ->
     with Scope!
       for k, v in pairs tbl
@@ -64,4 +106,6 @@ class Scope
     buf ..= ">"
     buf
 
-:Scope
+{
+  :Scope
+}

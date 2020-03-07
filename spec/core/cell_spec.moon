@@ -1,4 +1,5 @@
-import Cell, RootCell, Value, Scope, Registry, globals from require 'core'
+import Cell, RootCell from require 'core.cell'
+import Value, Scope, Registry, globals from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 
@@ -20,14 +21,14 @@ describe 'Cell', ->
 
 describe 'RootCell', ->
   test 'head is always "do"', ->
-    cell = RootCell\parse {}
+    cell = Cell\parse_root {}
     assert.is.equal (Value.sym 'do'), cell\head!
 
     cell = RootCell nil, { hello_world, two_plus_two }
     assert.is.equal (Value.sym 'do'), cell\head!
 
   test 'tail is all children', ->
-    cell = RootCell\parse {}
+    cell = Cell\parse_root {}
     assert.is.same {}, cell\tail!
 
     cell = RootCell nil, { hello_world, two_plus_two }

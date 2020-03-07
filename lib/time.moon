@@ -1,4 +1,4 @@
-import Registry, Value, IO, Op, ValueInput, IOInput, match
+import Registry, Value, IO, Op, Input, match
   from require 'core.base'
 import monotime from require 'system'
 
@@ -29,7 +29,7 @@ fps defaults to 60 and has to be an eval-time constant"
 
   setup: (inputs) =>
     { fps } = match 'num?', inputs
-    super fps: ValueInput fps or Value.num 60
+    super fps: Input.value fps or Value.num 60
 
   tick: =>
     if @inputs.fps\dirty!
@@ -52,9 +52,9 @@ wave selects the wave shape from the following:
   setup: (inputs, scope) =>
     { clock, freq, wave } = match 'clock? num any?', inputs
     super
-      clock: IOInput clock or scope\get '*clock*'
-      freq: ValueInput freq
-      wave: ValueInput wave or default_wave
+      clock: Input.io clock or scope\get '*clock*'
+      freq: Input.value freq
+      wave: Input.value wave or default_wave
 
   tau = math.pi * 2
   tick: =>
@@ -80,9 +80,9 @@ ramps from 0 to max (default same as ramp) once every period seconds."
   setup: (inputs, scope) =>
     { clock, period, max } = match 'clock? num num?', inputs
     super
-      clock: IOInput clock or scope\get '*clock*'
-      period: ValueInput period
-      max: max and ValueInput max
+      clock: Input.io clock or scope\get '*clock*'
+      period: Input.value period
+      max: max and Input.value max
 
   tick: =>
     clock_dirty = @inputs.clock\dirty!
@@ -108,8 +108,8 @@ counts upwards by one every period seconds and returns the number of completed t
   setup: (inputs, scope) =>
     { clock, period } = match 'clock? num', inputs
     super
-      clock: IOInput clock or scope\get '*clock*'
-      period: ValueInput period
+      clock: Input.io clock or scope\get '*clock*'
+      period: Input.value period
 
   tick: =>
     if @inputs.clock\dirty!
@@ -132,8 +132,8 @@ returns true once every period seconds."
   setup: (inputs, scope) =>
     { clock, period } = match 'clock? num', inputs
     super
-      clock: IOInput clock or scope\get '*clock*'
-      period: ValueInput period
+      clock: Input.io clock or scope\get '*clock*'
+      period: Input.value period
 
   tick: =>
     if @inputs.clock\dirty!

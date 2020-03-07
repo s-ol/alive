@@ -1,4 +1,4 @@
-import Op, Value, ValueInput, EventInput, ColdInput, match
+import Op, Value, Input, match
   from require 'core.base'
 
 all_same = (list) ->
@@ -24,8 +24,8 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
     @out = Value typ
 
     super
-      i: ValueInput i
-      values: [ValueInput v for v in *values]
+      i: Input.value i
+      values: [Input.value v for v in *values]
 
   tick: =>
     { :i, :values } = @inputs
@@ -74,7 +74,7 @@ class edge extends Op
 
   setup: (inputs) =>
     { value } = match 'bool', inputs
-    super value: EventInput
+    super value: Input.value
 
   tick: =>
     now = @inputs.value!
@@ -91,8 +91,8 @@ default defaults to zero."
   setup: (params) =>
     { value, init } = match 'any any', inputs
     super
-      value: EventInput value
-      init: ColdInput init
+      value: Input.event value
+      init: Input.cold init
 
     @out = Value value\type!
     @out\set @inputs.init\unwrap!

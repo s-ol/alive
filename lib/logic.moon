@@ -1,4 +1,4 @@
-import Op, ValueInput, match from require 'core.base'
+import Op, Input, match from require 'core.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -20,8 +20,8 @@ class ReduceOp extends Op
   setup: (inputs) =>
     { first, rest } = match "any *any", inputs
     super
-      first: ValueInput first
-      rest: [ValueInput v for v in *rest]
+      first: Input.value first
+      rest: [Input.value v for v in *rest]
 
   tick: =>
     { :first, :rest } = @unwrap_all!
@@ -45,8 +45,8 @@ If the value types dont match, the result is an eval-time constant 'false'."
 
     super if same
       {
-        first: ValueInput first
-        rest: [ValueInput v for v in *rest]
+        first: Input.value first
+        rest: [Input.value v for v in *rest]
       }
     else
       {}
@@ -73,7 +73,7 @@ class not_eq extends Op
 
   setup: (inputs) =>
     assert #inputs > 1, "neq need at least two values"
-    super [ValueInput v for v in *inputs]
+    super [Input.value v for v in *inputs]
 
   tick: =>
     if not @inputs[1]
@@ -105,7 +105,7 @@ class not_ extends Op
 
   setup: (inputs) =>
     { value } = match 'any', inputs
-    super value: ValueInput value
+    super value: Input.value value
 
   tick: => @out\set not tobool @inputs.value!
 
@@ -115,7 +115,7 @@ class bool extends Op
 
   setup: (inputs) =>
     { value } = match 'any', inputs
-    super value: ValueInput value
+    super value: Input.value value
 
   tick: => @out\set tobool @inputs\value!
 

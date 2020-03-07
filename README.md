@@ -17,6 +17,7 @@ text-based language and works without special editor support.
 - [lua-rtmidi][rtmidi]:     `luarocks install https://raw.githubusercontent.com/s-ol/lua-rtmidi/master/lua-rtmidi-dev-1.rockspec`
 - [busted][busted]:         `luarocks install busted` (optional, for tests)
 - [discount][discount]:     `luarocks install discount` (optional, for docs)
+- [ldoc][ldoc]:             `luarocks install ldoc` (optional, for docs)
 
 \* these are also `moonscript` dependencies and do not neet to be installed manually.
 
