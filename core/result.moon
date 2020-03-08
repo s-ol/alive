@@ -1,14 +1,6 @@
 ----
 -- Result of evaluating an expression.
 --
--- Contains (all optional):
---
--- - `@value`: a `Value`
--- - `@op`: an `Op` (to update)
--- - `@children`: a lsit of child `Results` (from subexpressions)
--- - `@side_inputs`: cached list of all `Inputs` affecting any `Op` in this
---   subtree
---
 -- `Result`s form a tree that controls execution order and message passing
 -- between `Op`s.
 --
@@ -16,8 +8,8 @@
 import base from require 'core.cycle'
 
 class Result
---- methods
--- @section methods
+--- members
+-- @section members
 
   --- create a new Result.
   -- @param params table with optional keys op, value, children. default: {}
@@ -103,6 +95,25 @@ class Result
     buf ..= " (#{#@children} children)" if #@children > 0
     buf ..= ">"
     buf
+
+  --- the `Value` result
+  --
+  -- @tfield ?Value value
+
+  --- an Op
+  --
+  -- @tfield ?Op op
+
+  --- list of child `Result`s from subexpressions
+  --
+  -- @tfield {}|{Result,...} children
+
+  --- cached mapping of all `Value`/`Input` pairs affecting this Result.
+  --
+  -- This is the union of all `children`s `side_inputs` and all `Input`s from
+  -- `op` that are not the `value` of any child.
+  --
+  -- @tfield {[Value]=Input,...} side_inputs
 
 {
   :Result

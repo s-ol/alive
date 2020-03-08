@@ -36,10 +36,10 @@ expr = (V 'cell') + atom
 explist = Ct mspace * ((V 'expr') * (space * (V 'expr'))^0 * mspace)^-1
 
 tag = (P '[') * (digit^1 / Tag\parse) * (P ']')
-cell = (P '(') * tag^-1 * (V 'explist') * (P ')') / Cell\parse
+cell = (P '(') * tag^-1 * (V 'explist') * (P ')') / Cell.parse
 
 root = P {
-  (V 'explist') / Cell\parse_root
+  (V 'explist') / Cell.parse_root
   :expr, :explist, :cell
 }
 

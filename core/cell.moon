@@ -12,12 +12,9 @@ import Tag from require 'core.tag'
 local RootCell
 
 class Cell
---- methods
--- @section methods
+--- members
+-- @section members
 
-  -- tag:      the parsed Tag
-  -- children: sequence of child AST Nodes
-  -- white:    optional sequence of whitespace segments ([0 .. #@children])
   new: (@tag=Tag.blank!, @children, @white) =>
     if not @white
       @white = [' ' for i=1,#@children]
@@ -37,6 +34,22 @@ class Cell
 
   __tostring: => @stringify 2
 
+  --- the parsed Tag.
+  --
+  -- @tfield Tag tag
+
+  --- sequence of child AST Nodes
+  --
+  -- @tfield {AST,...} children
+
+  --- optional sequence of whitespace segments.
+  --
+  -- If set, `whitespace[i]` is the whitespace between `children[i]` and
+  -- `children[i+1]`, or the closing parenthesis of this Cell. `whitespace[0]`
+  -- is the space between the opening parenthesis and `children[1]`.
+  --
+  -- @tfield ?{string,...} whitespace
+
 --- AST interface
 --
 -- `Cell` implements the `AST` interface.
@@ -44,14 +57,14 @@ class Cell
 
   --- evaluate this Cell.
   --
-  -- `\eval`uates the head of the expression, and finds the appropriate
+  -- `AST:eval`uates the head of the expression, and finds the appropriate
   -- `Action` to invoke:
   --
   -- - if head is an `opdef`, use `invoke.op_invoke`
   -- - if head is a `fndef`, use `invoke.fn_invoke`
   -- - if head is a `builtin`, unwrap it
   --
-  -- then calls `\eval_cell` on the `Action`.
+  -- then calls `Action:eval_cell` on it.
   --
   -- @tparam Scope scope the scope to evaluate in
   -- @treturn Result the evaluation result
@@ -75,20 +88,21 @@ class Cell
   --- quote this Cell, preserving its identity.
   --
   -- Recursively quotes children, but preserves identity (i.e, shares the
-  -- `Tag`). A quoted Cell may only be 'used' once. If you want to `\eval` a
-  -- `Cell` multiple times, use `\clone`.
+  -- `Tag`). A quoted Cell may only be 'used' once. If you want to `eval` a
+  -- `Cell` multiple times, use `clone`.
   --
-  -- @treturn Cell quoted
-  quote: (scope) =>
+  -- @treturn Cell
+  quote: =>
     children = [child\quote scope for child in *@children]
     Cell @tag, children, @white
 
   --- create a clone with its own identity.
   --
   -- creates a clone of this Cell with its own identity by prepending a `parent`
-  -- to `@tag` and cloning all child expressoins recursively.
+  -- to `tag` and cloning all child expressions recursively.
   --
-  -- @treturn Cell clone
+  -- @tparam Tag parent
+  -- @treturn Cell
   clone: (parent) =>
     tag = @tag\clone parent
     children = [child\clone parent for child in *@children]
@@ -138,9 +152,9 @@ class Cell
   -- @tparam[opt] Tag tag
   -- @tparam table parts
   -- @treturn Cell
-  parse: (...) =>
+  @parse: (...) ->
     tag, children, white = parse_args ...
-    @ tag, children, white
+    Cell tag, children, white
 
   --- parse a root Cell (for parsing with Lpeg).
   --
@@ -149,8 +163,9 @@ class Cell
   --
   -- @tparam table parts
   -- @treturn Cell
-  parse_root: (parts) =>
-    RootCell.parse RootCell, (Tag\parse '0'), parts
+  @parse_root: (...) ->
+    tag, children, white = parse_args (Tag\parse '0'), ...
+    RootCell tag, children, white
 
 -- @type RootCell
 class RootCell extends Cell

@@ -16,7 +16,7 @@ class Input
   --- create an instance (optional).
   --
   -- `value` is either a `Value` or a `Result` instance and should be
-  -- unwrapped and assigned to `@stream`.
+  -- unwrapped and assigned to `stream`.
   --
   -- @function new
   -- @tparam Value|Result value
@@ -32,28 +32,29 @@ class Input
 
   --- copy state from old instance (optional).
   --
-  -- called by `Op``\setup` with another `Input` instance or `nil` once this instance is
-  -- registered. Must prepare this instance for `\dirty`.
+  -- called by `Op:setup` with another `Input` instance or `nil` once this instance is
+  -- registered. Must prepare this instance for `dirty`.
   --
-  -- May enter a 'setup state' that is exited using `\finish_setup`.
+  -- May enter a 'setup state' that is exited using `finish_setup`.
   --
   -- @function setup
-  -- @tparam `Input?` prev previous `Input` intance or nil
+  -- @tparam ?Input prev previous `Input` intance or nil
+  -- @see Op\setup
   setup: (prev) =>
 
   --- whether this input requires processing (optional).
   --
   -- must return a boolean indicating whether `Op`s that refer to this instance
-  -- should be notified (via `Op``\tick`). If not overwritten, delegates to
-  -- `@stream\dirty`.
+  -- should be notified (via `Op:tick`). If not overwritten, delegates to
+  -- `stream`:@{Value:dirty|dirty}.
   --
   -- @treturn bool whether processing is necessary
   dirty: => @stream\dirty!
 
   --- leave setup state (optional).
   --
-  -- called after the `Op` has completed (or skipped) its first `Op``\tick` after
-  -- `Op``\setup`. Must prepare this instance for dataflow operation.
+  -- called after the `Op` has completed (or skipped) its first `Op:tick` after
+  -- `Op:setup`. Must prepare this instance for dataflow operation.
   finish_setup: =>
 
   --- unwrap to Lua value (optional).
@@ -64,11 +65,14 @@ class Input
   --- return the type name of this `Input` (optional).
   type: => @stream.type
 
---- methods.
---
--- @section methods
+  --- the current value
+  --
+  -- @tfield Value stream
 
-  --- alias for `\unwrap`.
+--- members
+-- @section members
+
+  --- alias for `unwrap`.
   __call: => @stream\unwrap!
 
   __tostring: => "#{@@__name}:#{@stream}"
@@ -76,41 +80,41 @@ class Input
     cls.__base.__call = @__call
     cls.__base.__tostring = @__tostring
 
---- constructors
--- @section constructors
+--- static functions
+-- @section static
 
-  --- Create a `ColdInput`.
+  --- Create a `cold` `Input`.
   --
   -- Never marked dirty. Use this for input streams that are only read when
   -- another `Input` is dirty.
   --
   -- @tparam Value|Result value
-  cold: (value) -> ColdInput value
+  @cold: (value) -> ColdInput value
 
-  --- Create a `ValueInput`.
+  --- Create a `value` `Input`.
   --
   -- Marked dirty for the eval-tick if old and new `Value` differ. This is the
   -- most common `Input` strategy. Should be used whenever a
   -- value denotes state.
   --
   -- @tparam Value|Result value
-  value: (value) -> ValueInput value
+  @value: (value) -> ValueInput value
 
-  --- Create an `EventInput`.
+  --- Create an `event` `Input`.
   --
   -- Only marked dirty if the `Value` itself is dirty. Should be used whenever
   -- an `Input` denotes a momentary event or impulse.
   --
   -- @tparam Value|Result value
-  event: (value) -> EventInput value
+  @event: (value) -> EventInput value
 
-  --- Create an `IOInput`.
+  --- Create an `IO` `Input`.
   --
   -- Marked dirty only when an `IO` is dirty. Must be used only for `Value`s
-  -- which `\unwrap` to `IO` instances.
+  -- which @{Value:unwrap|unwrap}` to `IO` instances.
   --
   -- @tparam Value|Result value
-  io: (value) -> IOInput value
+  @io: (value) -> IOInput value
 
 class ColdInput extends Input
   dirty: => false

@@ -12,7 +12,7 @@ class IO
 
   --- construct a new instance.
   --
-  -- Must prepare the instance for `\dirty` to be called.
+  -- Must prepare the instance for `dirty` to be called.
   new: =>
 
   --- poll for changes.
@@ -23,8 +23,8 @@ class IO
   --- check whether this adapter requires processing.
   --
   -- Must return a boolean indicating whether `Op`s that refer to this instance
-  -- via `Input``.io` should be notified (via `Op``\tick`). May be called multiple
-  -- times. May be called before `\tick` on the first frame after construction.
+  -- via `Input.io` should be notified (via `Op:tick`). May be called multiple
+  -- times. May be called before `tick` on the first frame after construction.
   --
   -- @treturn bool whether processing is required
   dirty: =>

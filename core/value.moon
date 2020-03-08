@@ -12,13 +12,13 @@ ancestor = (klass) ->
   klass
 
 class Value
---- methods
--- @section methods
+--- members
+-- @section members
 
   --- construct a new Value.
   --
   -- @tparam string type the type name
-  -- @tparam any value the Lua value to be accessed through \unwrap
+  -- @tparam any value the Lua value to be accessed through `unwrap`
   -- @tparam string raw the raw string that resulted in this value. Used by `parsing`.
   new: (@type, @value, @raw) =>
 
@@ -43,7 +43,7 @@ class Value
     assert type == @type, msg or "#{@} is not a #{type}" if type
     @value
 
-  --- alias for `\unwrap`.
+  --- alias for `unwrap`.
   __call: (...) => @unwrap ...
 
   --- compare two values.
@@ -55,6 +55,38 @@ class Value
     value = if 'table' == (type @value) and rawget @value, '__base' then @value.__name else @value
     "<#{@@__name} #{@type}: #{value}>"
 
+  --- the type name of the Value.
+  --
+  -- the following builtin typenames are used:
+  --
+  -- - `str` - strings, `value` is a Lua string
+  -- - `sym` - symbols, `value` is a Lua string
+  -- - `num` - numbers, `value` is a Lua number
+  -- - `bool` - booleans, `value` is a Lua boolean
+  -- - `bang` - trigger signals, `value` is a Lua boolean
+  -- - `opdef` - `value` is an `Op` subclass
+  -- - `builtin` - `value` is an `Action` subclass
+  -- - `fndef` - `value` is a `FnDef` instance
+  -- - `scope` - `value` is a `Scope` instance
+  --
+  -- @tfield string type the type name
+
+  --- the wrapped Lua value.
+  --
+  -- the following builtin typenames are used:
+  --
+  -- - `str` - strings, `value` is a Lua string
+  -- - `sym` - symbols, `value` is a Lua string
+  -- - `num` - numbers, `value` is a Lua number
+  -- - `bool` - booleans, `value` is a Lua boolean
+  -- - `bang` - trigger signals, `value` is a Lua boolean
+  -- - `opdef` - `value` is an `Op` subclass
+  -- - `builtin` - `value` is an `Action` subclass
+  -- - `fndef` - `value` is a `FnDef` instance
+  -- - `scope` - `value` is a `Scope` instance
+  --
+  -- @tfield any value the wrapped value
+
 --- AST interface
 --
 -- `Value` implements the `AST` interface.
@@ -62,7 +94,7 @@ class Value
 
   --- evaluate this literal constant.
   --
-  -- Throws an error if `@type` is not a literal (`num`, `str` or `sym`).
+  -- Throws an error if `type` is not a literal (`num`, `str` or `sym`).
   -- Returns an eval-time const result for `num` and `str`.
   -- Resolves `sym`s in `scope` and returns a reference to them.
   --
@@ -84,7 +116,7 @@ class Value
 
   --- stringify this literal constant.
   --
-  -- Throws an error if `@raw` is not set.
+  -- Throws an error if `raw` is not set.
   --
   -- @treturn string the exact string this Value was parsed from
   stringify: => assert @raw, "stringifying Value that wasn't parsed"
@@ -97,13 +129,24 @@ class Value
 --- static functions
 -- @section static
 
+  unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
+  --- create a capture-function (for parsing with Lpeg).
+  --
+  -- @tparam string type the type name (one of `num`, `sym` or `str`)
+  -- @tparam string sep the seperator char (only for `str`)
+  @parse: (type, sep) =>
+    switch type
+      when 'num' then (match) -> @ 'num', (tonumber match), match
+      when 'sym' then (match) -> @ 'sym', match, match
+      when 'str' then (match) -> @ 'str', (unescape match), sep .. match .. sep
+
   --- wrap a Lua value.
   --
   -- Attempts to guess the type and wrap a Lua value.
   --
   -- @tparam any val the value to wrap
   -- @tparam[opt] string name the name of this value (for error logging)
-  wrap: (val, name='(unknown)') ->
+  @wrap: (val, name='(unknown)') ->
     typ = switch type val
       when 'number' then 'num'
       when 'string' then 'str'
@@ -132,32 +175,21 @@ class Value
 
     Value typ, val
 
-  unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
-  --- create a capture-function (for parsing with Lpeg).
-  --
-  -- @tparam string type the type name (one of `num`, `sym` or `str`)
-  -- @tparam string sep the seperator char (only for `str`)
-  parse: (type, sep) =>
-    switch type
-      when 'num' then (match) -> @ 'num', (tonumber match), match
-      when 'sym' then (match) -> @ 'sym', match, match
-      when 'str' then (match) -> @ 'str', (unescape match), sep .. match .. sep
-
   --- create a constant number.
   -- @tparam number num the number
-  num: (num) -> Value 'num', num, tostring num
+  @num: (num) -> Value 'num', num, tostring num
 
   --- create a constant string.
   -- @tparam string str the string
-  str: (str) -> Value 'str', str, "'#{str}'"
+  @str: (str) -> Value 'str', str, "'#{str}'"
 
   --- create a constant symbol.
   -- @tparam string sym the symbol
-  sym: (sym) -> Value 'sym', sym, sym
+  @sym: (sym) -> Value 'sym', sym, sym
 
   --- create a constant boolean.
   -- @tparam boolean bool the boolean
-  bool: (bool) -> Value 'bool', bool, tostring bool
+  @bool: (bool) -> Value 'bool', bool, tostring bool
 
 {
   :Value

@@ -13,13 +13,14 @@ class Action
 -- methods that have to be implemented by `Action` implementations.
 -- @section interface
 
-  --- create a new instance
-  -- @tparam Value head the (`\eval`d) head of the Cell to evaluate
+  --- create a new instance.
+  --
+  -- @tparam Value head the (`AST:eval`d) `head` of the Cell to evaluate
   -- @tparam Tag tag the Tag of the expression to evaluate
   new: (head, @tag) =>
     @patch head
 
-  --- perform the actual evaluation
+  --- perform the actual evaluation.
   --
   -- Implementations should:
   --
@@ -35,10 +36,10 @@ class Action
   --- free resources
   destroy: =>
 
-  --- attempt to update this instance with a new `@head` prior to `\eval`.
+  --- attempt to update this instance with a new `head` prior to `eval`.
   --
-  -- If `\patch` returns `false`, this instance is `\destroy`ed and recreated.
-  -- Must *not* return `false` when called immediately after `\new`.
+  -- If `patch` returns `false`, this instance is `destroy`ed and recreated.
+  -- Must *not* return `false` when called immediately after `new`.
   -- Only considered if Action types of old and new expression match.
   --
   -- @tparam AST head the new head value
@@ -48,6 +49,14 @@ class Action
       true
 
     @head = head
+
+  --- the last head used to construct this instance
+  --
+  -- @tfield AST head
+
+  --- the identity of the `Cell` this Action was created for.
+  --
+  -- @tfield Tag tag
 
 --- static functions
 -- @section static
@@ -60,10 +69,10 @@ class Action
   --
   -- @tparam Scope scope the active scope
   -- @tparam Tag tag the tag of the `Cell` being evaluated
-  -- @tparam Value head the (`\eval`d) head of the `Cell` being evaluated
-  -- @tparam {Ast,...} tail the raw AST parameters to the `Cell` being evaluated
+  -- @tparam Value head the (`AST:eval`d) head of the `Cell` being evaluated
+  -- @tparam {AST,...} tail the raw AST parameters to the `Cell` being evaluated
   -- @treturn Result the result of evaluation
-  eval_cell: (scope, tag, head, tail) =>
+  @eval_cell: (scope, tag, head, tail) =>
     last = tag\last!
     compatible = last and
                  (last.__class == @) and

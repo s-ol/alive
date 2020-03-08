@@ -24,8 +24,8 @@ class Registry
 
   next_tag: => #@map + 1
 
---- methods
--- @section methods
+--- members
+-- @section members
 
   --- create an instance.
   new: =>

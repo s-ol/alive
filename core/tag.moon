@@ -19,13 +19,13 @@ class DummyReg
 dummy = DummyReg!
 
 class Tag
---- methods
--- @section methods
+--- members
+-- @section members
 
   --- obtain the registered value of the last eval-cycle.
   --
-  -- Obtain the value that was previously registered (using `\keep` or
-  -- `\replace`) for this tag on the last eval-cylce.
+  -- Obtain the value that was previously registered (using `keep` or
+  -- `replace`) for this tag on the last eval-cylce.
   --
   -- @treturn ?any
   last: =>
@@ -91,13 +91,13 @@ class Tag
   --- create a blank `Tag`.
   --
   -- @treturn Tag
-  blank: -> Tag!
+  @blank: -> Tag!
 
   --- parse a `Tag` (for Lpeg parsing).
   --
   -- @tparam string num the number-string
   -- @treturn Tag
-  parse: (num) => @ tonumber num
+  @parse: (num) => @ tonumber num
 
 class ClonedTag extends Tag
   new: (@original, @parent) =>

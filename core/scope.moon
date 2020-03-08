@@ -6,8 +6,8 @@ import Value from require 'core.value'
 import Result from require 'core.result'
 
 class Scope
---- methods
--- @section methods
+--- members
+-- @section members
 
   --- create an instance.
   --
@@ -19,7 +19,7 @@ class Scope
 
   --- set a Lua value in the scope.
   --
-  -- wraps `val` in a `Value` and `Result` before calling `\set`.
+  -- wraps `val` in a `Value` and `Result` before calling `set`.
   --
   -- @tparam string key
   -- @tparam any val
@@ -72,21 +72,6 @@ class Scope
     for k, v in pairs other.values
       @values[k] = v
 
---- static functions
--- @section static
-
-  --- converts a Lua table to a Scope.
-  --
-  -- `tbl` may contain more tables (or `Scope`s).
-  -- Uses `Value``.wrap` on the values recursively.
-  --
-  -- @tparam table tbl the table to convert
-  -- @treturn Scope
-  from_table: (tbl) ->
-    with Scope!
-      for k, v in pairs tbl
-        \set_raw k, v
-
   __tostring: =>
     buf = "<Scope"
 
@@ -105,6 +90,21 @@ class Scope
 
     buf ..= ">"
     buf
+
+--- static functions
+-- @section static
+
+  --- converts a Lua table to a Scope.
+  --
+  -- `tbl` may contain more tables (or `Scope`s).
+  -- Uses `Value.wrap` on the values recursively.
+  --
+  -- @tparam table tbl the table to convert
+  -- @treturn Scope
+  @from_table: (tbl) ->
+    with Scope!
+      for k, v in pairs tbl
+        \set_raw k, v
 
 {
   :Scope
