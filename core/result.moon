@@ -11,25 +11,6 @@ class Result
 --- members
 -- @section members
 
-  --- create a new Result.
-  -- @param params table with optional keys op, value, children. default: {}
-  new: (params={}) =>
-    @value = params.value
-    @op = params.op
-    @children = params.children or {}
-
-    @side_inputs, is_child = {}, {}
-    for child in *@children
-      for s, d in pairs child.side_inputs
-        @side_inputs[s] = d
-      if child.value
-        is_child[child.value] = true
-
-    if @op
-      for input in @op\all_inputs!
-        if input.impure or not is_child[input.stream]
-          @side_inputs[input.stream] = input
-
   --- return whether this Result's value is const.
   is_const: => not next @side_inputs
 
@@ -114,6 +95,30 @@ class Result
   -- `op` that are not the `value` of any child.
   --
   -- @tfield {[Value]=Input,...} side_inputs
+
+--- static functions
+-- @section static
+
+  --- create a new Result.
+  -- @classmethod
+  -- @param params table with optional keys op, value, children. default: {}
+  new: (params={}) =>
+    @value = params.value
+    @op = params.op
+    @children = params.children or {}
+
+    @side_inputs, is_child = {}, {}
+    for child in *@children
+      for s, d in pairs child.side_inputs
+        @side_inputs[s] = d
+      if child.value
+        is_child[child.value] = true
+
+    if @op
+      for input in @op\all_inputs!
+        if input.impure or not is_child[input.stream]
+          @side_inputs[input.stream] = input
+
 
 {
   :Result

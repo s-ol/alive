@@ -13,6 +13,7 @@ class IO
   --- construct a new instance.
   --
   -- Must prepare the instance for `dirty` to be called.
+  -- @classmethod
   new: =>
 
   --- poll for changes.

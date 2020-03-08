@@ -13,12 +13,12 @@ class Input
 -- Methods that have to be implemented by `Input` implementations.
 -- @section interface
 
-  --- create an instance (optional).
+  --- create a new Input.
   --
   -- `value` is either a `Value` or a `Result` instance and should be
   -- unwrapped and assigned to `stream`.
   --
-  -- @function new
+  -- @classmethod
   -- @tparam Value|Result value
   new: (value) =>
     assert value, "nil passed to Input: #{value}"
@@ -37,9 +37,7 @@ class Input
   --
   -- May enter a 'setup state' that is exited using `finish_setup`.
   --
-  -- @function setup
   -- @tparam ?Input prev previous `Input` intance or nil
-  -- @see Op\setup
   setup: (prev) =>
 
   --- whether this input requires processing (optional).
@@ -111,7 +109,7 @@ class Input
   --- Create an `IO` `Input`.
   --
   -- Marked dirty only when an `IO` is dirty. Must be used only for `Value`s
-  -- which @{Value:unwrap|unwrap}` to `IO` instances.
+  -- which @{Value:unwrap|unwrap} to `IO` instances.
   --
   -- @tparam Value|Result value
   @io: (value) -> IOInput value

@@ -13,6 +13,8 @@ body {
 
   font-family: 'Source Sans Pro', sans-serif;
   color: #222222;
+
+  overflow-y: scroll;
 }
 @media (max-width: 699px) {
   body {
@@ -21,7 +23,7 @@ body {
 }
 
 article {
-  padding: 3rem 2em 1em;
+  padding: 4rem 2em 1em;
 }
 
 code {
@@ -30,7 +32,6 @@ code {
   background: #cccccc;
   padding: 0.03em 0.2em;
 }
-
 
 pre {
   white-space: pre-wrap;
@@ -59,9 +60,9 @@ a {
   color: inherit;
 }
 
-ul {
+ul, ol {
   list-style: '- ';
-  margin: 0;
+  margin: 0.5em 0;
   padding-left: 0.6em;
 }
 
@@ -90,6 +91,10 @@ nav a {
 
 nav > a {
   margin-left: 1rem;
+  text-decoration: none;
+}
+nav > a.active {
+  text-decoration: underline;
 }
 
 nav span a {
@@ -140,5 +145,4 @@ a:hover code,
 
 .nest > p {
   margin: 0;
-  white-space: pre-wrap;
 }

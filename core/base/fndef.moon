@@ -7,8 +7,12 @@
 -- @classmod FnDef
 
 class FnDef
+--- static functions
+-- @section static
+
   --- create a new instance
   --
+  -- @classmethod
   -- @tparam {Value,...} params (`AST:quote`d) naming the function parameters
   -- @tparam AST body (`AST:quote`d) expression the function evaluates to
   -- @tparam Scope scope the lexical scope the function was defined in (closure)

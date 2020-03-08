@@ -2,7 +2,7 @@ v = require 'core.version'
 
 -- render an ALV Value to a HTML string
 render = (name, value, prefix=nil) ->
-  import div, label, code, ul, li, i, a, p from require 'extra.dom'
+  import div, label, code, ul, li, i, a, pre from require 'extra.dom'
 
   id = if prefix then "#{prefix}/#{name}" else name
   type = i value.type
@@ -12,7 +12,7 @@ render = (name, value, prefix=nil) ->
       ul for k, result in opairs value!.values
         li render k, result.value, id
     when 'opdef', 'builtin'
-      p value!.doc
+      pre value!.doc
     when 'num', 'str', 'bool'
       code tostring value!
 
@@ -24,11 +24,14 @@ render = (name, value, prefix=nil) ->
 
 -- generate a relative link
 abs = (page) ->
-  assert OUT, "OUT needs to be set"
-  relative = assert (OUT\match '^docs/(.*)'), "unexpected output path"
-  _, depth = relative\gsub '/', '/'
-  up = string.rep '../', depth
-  "#{up}#{page}"
+  if BASE
+    "#{BASE}#{page}"
+  else
+    assert OUT, "OUT needs to be set"
+    relative = assert (OUT\match '^docs/(.*)'), "unexpected output path"
+    _, depth = relative\gsub '/', '/'
+    up = string.rep '../', depth
+    "#{up}#{page}"
 
 -- generate a link to a reference entry
 -- entry is one of
@@ -53,6 +56,12 @@ autoref = (str) ->
   str = str\gsub '%[([^%]]-)%]%[:(.-):%]', r
   str
 
+aopts = (href, pat) ->
+  {
+    href: abs href
+    class: if OUT\match "^docs/#{pat}" then 'active'
+  }
+
 -- layout and write a doc page
 -- opts:
 --  - title
@@ -68,9 +77,10 @@ layout = (opts) ->
       ' documentation'
     }
     div class: 'grow'
-    a 'home', href: abs 'index.html'
-    a 'getting started', href: abs 'guide.html'
-    a 'reference', href: abs 'reference/index.html'
+    a 'home', aopts 'index.html', 'index.html$'
+    a 'getting started', aopts 'guide.html', 'guide.html$'
+    a 'reference', aopts 'reference/index.html', 'reference'
+    a 'internals', aopts 'internals/index.html', 'ldoc'
   }
   body = article opts.body
   title = if opts.title
@@ -84,14 +94,15 @@ layout = (opts) ->
     os.date '!%Y-%m-%d %T'
   }
 
-  "<!DOCTYPE html>
+  "#{opts.preamble or ''}
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset=\"UTF-8\">
     <meta name=\"viewport\" content=\"width=640\">
 
     <title>#{title}</title>
-    <link rel=\"stylesheet\" href=\"#{abs 'style.css'}\">
+    <link rel=\"stylesheet\" href=\"#{opts.style or abs 'style.css'}\">
     #{opts.css or ''}
   </head>
   <body>

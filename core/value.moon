@@ -15,13 +15,6 @@ class Value
 --- members
 -- @section members
 
-  --- construct a new Value.
-  --
-  -- @tparam string type the type name
-  -- @tparam any value the Lua value to be accessed through `unwrap`
-  -- @tparam string raw the raw string that resulted in this value. Used by `parsing`.
-  new: (@type, @value, @raw) =>
-
   --- return whether this Value was changed in the current tick.
   --
   -- @treturn bool
@@ -128,6 +121,15 @@ class Value
 
 --- static functions
 -- @section static
+
+  --- construct a new Value.
+  --
+  -- @classmethod
+  -- @tparam string type the type name
+  -- @tparam any value the Lua value to be accessed through `unwrap`
+  -- @tparam string raw the raw string that resulted in this value. Used by `parsing`.
+  new: (@type, @value, @raw) =>
+
 
   unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
   --- create a capture-function (for parsing with Lpeg).

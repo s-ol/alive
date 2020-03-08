@@ -6,7 +6,7 @@ REV_LONG=`git rev-parse HEAD`
 
 cat <<EOF
 ----
--- \`alive\` source code version information
+-- \`alive\` source code version information.
 --
 -- @module version
 

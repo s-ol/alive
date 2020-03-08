@@ -9,14 +9,6 @@ class Scope
 --- members
 -- @section members
 
-  --- create an instance.
-  --
-  -- @tparam[opt] Scope parent a parent this scope inherits definitions from
-  -- @tparam[opt] Scope dynamic_parent a parent scope that should be checked for
-  -- dynamic definitions
-  new: (@parent, @dynamic_parent) =>
-    @values = {}
-
   --- set a Lua value in the scope.
   --
   -- wraps `val` in a `Value` and `Result` before calling `set`.
@@ -94,7 +86,16 @@ class Scope
 --- static functions
 -- @section static
 
-  --- converts a Lua table to a Scope.
+  --- create a new Scope.
+  --
+  -- @classmethod
+  -- @tparam[opt] Scope parent a parent this scope inherits definitions from
+  -- @tparam[opt] Scope dynamic_parent a parent scope that should be checked for
+  -- dynamic definitions
+  new: (@parent, @dynamic_parent) =>
+    @values = {}
+
+  --- convert a Lua table to a Scope.
   --
   -- `tbl` may contain more tables (or `Scope`s).
   -- Uses `Value.wrap` on the values recursively.

@@ -20,22 +20,14 @@ class Registry
     L\trace "reg: init pending to #{expr}"
     table.insert @pending, { :tag, :expr }
 
-  active: -> assert Registry.active_registry, "no active Registry!"
-
   next_tag: => #@map + 1
 
 --- members
 -- @section members
 
-  --- create an instance.
-  new: =>
-    @map = {}
-    @io = {}
-
-    @tick = 0
-    @kr = Result value: Value.bool true
-
   --- wrap a function with an eval-cycle.
+  --
+  -- Sets the active Registry and destroys unused `Action`s and `Op`s.
   --
   -- @tparam function fn
   -- @treturn function `fn` wrapped with eval-cycle logic
@@ -62,6 +54,8 @@ class Registry
 
   --- wrap a function with a tick.
   --
+  -- Sets the active Registry and increments the global tick count.
+  --
   -- @tparam function fn
   -- @treturn function `fn` wrapped with tick logic
   wrap_tick: (fn) => (...) ->
@@ -82,6 +76,25 @@ class Registry
   release: =>
     assert @ == @@active_registry, "not the active registry!"
     @@active_registry, @prev = @prev, nil
+
+--- static functions
+-- @section static
+
+  --- create a new Registry.
+  -- @classmethod
+  new: =>
+    @map = {}
+    @io = {}
+
+    @tick = 0
+    @kr = Result value: Value.bool true
+
+  --- get the active Registry.
+  --
+  -- Raises an erro when there is no active Regsitry.
+  --
+  -- @treturn Registry
+  @active: -> assert Registry.active_registry, "no active Registry!"
 
 class SimpleRegistry extends Registry
   new: =>

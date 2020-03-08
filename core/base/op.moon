@@ -15,6 +15,7 @@ class Op
   -- The super-constructor can be used to construct a `Value` instance in `out`.
   --
   -- @function new
+  -- @classmethod
 
   --- parse arguments and patch self.
   --
@@ -84,6 +85,7 @@ class Op
   -- it is okay not to use this and create the output stream in :setup() if the
   -- type is not known at this time.
   --
+  -- @classmethod
   -- @tparam[opt] string type the type-name for `out`
   -- @tparam[optchain] any init the initial value for `out`
   new: (type, init) =>

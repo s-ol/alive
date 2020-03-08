@@ -1,5 +1,5 @@
 ----
--- `alive` source code version information
+-- `alive` source code version information.
 --
 -- @module version
 
@@ -10,6 +10,6 @@
 -- @tfield string rev_long the full git revision hash
 {
   tag: "v0.0"
-  rev_short: "891c138"
-  rev_long: "891c138c8a8a4c9269f3eb70f424b5c1ea3898b0"
+  rev_short: "c1bf536"
+  rev_long: "c1bf53627c894e4068aca5576d054803bc574a86"
 }
