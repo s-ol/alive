@@ -145,3 +145,8 @@ describe 'resynthesis', ->
   ) '
     matched = assert.is.truthy verify_parse program, str
     assert.is.equal str, matched\stringify!
+
+  test 'nested tags', ->
+    str = '([2]a ([3]b))'
+    matched = assert.is.truthy verify_parse program, str
+    assert.is.equal str, matched\stringify!

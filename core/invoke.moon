@@ -19,7 +19,7 @@ class op_invoke extends Action
     true
     
   eval: (scope, tail) =>
-    children = L\push -> [L\push expr\eval, scope for expr in *tail]
+    children = [L\push expr\eval, scope for expr in *tail]
     @op\setup [result for result in *children], scope
 
     any_dirty = false

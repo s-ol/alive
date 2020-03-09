@@ -123,7 +123,7 @@ class Cell
       buf ..= '...'
     else
       for i, child in ipairs @children
-        buf ..= child\stringify depth - 1
+        buf ..= child\stringify if depth == -1 then -1 else depth - 1
         buf ..= if depth > 0 then ' ' else @white[i]
 
       if depth > 0

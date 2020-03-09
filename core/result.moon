@@ -5,8 +5,6 @@
 -- between `Op`s.
 --
 -- @classmod Result
-import base from require 'core.cycle'
-
 class Result
 --- members
 -- @section members
@@ -36,7 +34,7 @@ class Result
   -- should be called once per frame on the root, right before tick.
   tick_io: =>
     for stream, input in pairs @side_inputs
-      if input.__class == base.IOInput
+      if input.__class.__name == "IOInput"
         io = input!
         io\tick!
 

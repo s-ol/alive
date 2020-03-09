@@ -21,7 +21,7 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
     i_type = i\type!
     assert i_type == 'bool' or i_type == 'num', "#{@}: i has to be bool or num"
     typ = all_same [v\type! for v in *values]
-    @out = Value typ
+    @out = Value typ if not @out or typ != @out.type
 
     super
       i: Input.value i
@@ -74,7 +74,7 @@ class edge extends Op
 
   setup: (inputs) =>
     { value } = match 'bool', inputs
-    super value: Input.value
+    super value: Input.value value
 
   tick: =>
     now = @inputs.value!

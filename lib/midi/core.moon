@@ -1,4 +1,4 @@
-import IO, Op, Registry, ValueInput, match from require 'core.base'
+import IO, Op, Registry, Input, match from require 'core.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 import band, bor, lshift, rshift from require 'bit32'
 
@@ -68,7 +68,7 @@ class input extends PortOp
 
   setup: (inputs) =>
     { name } = match 'str', inputs
-    super name: ValueInput name
+    super name: Input.value name
 
   tick: => super @inputs.name
 
@@ -77,7 +77,7 @@ class output extends PortOp
 
   setup: (inputs) =>
     { name } = match 'str', inputs
-    super name: ValueInput name
+    super name: Input.value name
 
   tick: => super nil, @inputs.name
 
@@ -87,8 +87,8 @@ class inout extends PortOp
   setup: (inputs) =>
     { inp, out } = match 'str str', inputs
     super
-      inp: ValueInput inp
-      out: ValueInput out
+      inp: Input.value inp
+      out: Input.value out
 
   tick: => super @inputs.inp, @inputs.out
 

@@ -1,5 +1,4 @@
-import Value, Op, ValueInput, EventInput, IOInput, match
-  from require 'core.base'
+import Value, Op, Input, match from require 'core.base'
 import apply_range from require 'lib.midi.core'
 import bor, lshift from require 'bit32'
 
@@ -29,12 +28,12 @@ range can be one of:
       chan, steps, range } = match 'midi/port num num num num? any?', inputs
 
     super
-      port:  IOInput port
-      i:     ValueInput i
-      start: ValueInput start
-      chan:  ValueInput chan
-      steps: ValueInput steps or Value.num 8
-      range: ValueInput range or Value.str 'uni'
+      port:  Input.io port
+      i:     Input.value i
+      start: Input.value start
+      chan:  Input.value chan
+      steps: Input.value steps or Value.num 8
+      range: Input.value range or Value.str 'uni'
 
     if not @out\unwrap!
       @out\set apply_range @inputs.range, 0
@@ -75,11 +74,11 @@ steps defaults to 8."
     { port, i, start, chan, steps } = match 'midi/port num num num num?', inputs
 
     super
-      port:  IOInput port
-      i:     ValueInput i
-      start: ValueInput start
-      chan:  ValueInput chan
-      steps: ValueInput steps or Value.num 8
+      port:  Input.io port
+      i:     Input.value i
+      start: Input.value start
+      chan:  Input.value chan
+      steps: Input.value steps or Value.num 8
 
   light = (set, active) ->
     set = if set then 'S' else ' '
