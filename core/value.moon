@@ -130,7 +130,6 @@ class Value
   -- @tparam string raw the raw string that resulted in this value. Used by `parsing`.
   new: (@type, @value, @raw) =>
 
-
   unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
   --- create a capture-function (for parsing with Lpeg).
   --

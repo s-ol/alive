@@ -97,7 +97,7 @@ class Tag
   --
   -- @tparam string num the number-string
   -- @treturn Tag
-  @parse: (num) => @ tonumber num
+  @parse: (num) -> Tag tonumber num
 
 class ClonedTag extends Tag
   new: (@original, @parent) =>

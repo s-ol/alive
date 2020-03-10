@@ -17,7 +17,7 @@ L or= setmetatable {}, __index: => ->
 import Value from require 'core.value'
 import Result from require 'core.result'
 import Scope from require 'core.scope'
-import Registry from require 'core.registry'
+import Registry, SimpleRegistry from require 'core.registry'
 import Tag from require 'core.tag'
 
 import Cell from require 'core.cell'
@@ -44,7 +44,7 @@ globals = Scope.from_table require 'core.builtin'
   :Cell, :RootCell
   :Scope
 
-  :Registry, :Tag
+  :Registry, :SimpleRegistry, :Tag
 
   :globals
   parse: program\match

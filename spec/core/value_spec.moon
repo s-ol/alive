@@ -122,3 +122,11 @@ describe 'Value', ->
       assert_noop Value.num 2
       assert_noop Value.str 'hello'
       assert_noop Value.sym 'world'
+
+  describe 'clones literals', ->
+    test 'as themselves', ->
+      assert_noop = (val) -> assert.is.equal val, val\clone!
+
+      assert_noop Value.num 2
+      assert_noop Value.str 'hello'
+      assert_noop Value.sym 'world'

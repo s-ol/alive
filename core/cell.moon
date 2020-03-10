@@ -164,7 +164,7 @@ class Cell
   -- @tparam table parts
   -- @treturn Cell
   @parse_root: (...) ->
-    tag, children, white = parse_args (Tag\parse '0'), ...
+    tag, children, white = parse_args (Tag.parse '0'), ...
     RootCell tag, children, white
 
 -- @type RootCell

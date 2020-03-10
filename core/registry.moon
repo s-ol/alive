@@ -71,11 +71,11 @@ class Registry
 
   grab: =>
     assert not @prev, "already have a previous registry? #{@prev}"
-    @prev, @@active_registry = @@active_registry, @
+    @prev, Registry.active_registry = Registry.active_registry, @
 
   release: =>
-    assert @ == @@active_registry, "not the active registry!"
-    @@active_registry, @prev = @prev, nil
+    assert @ == Registry.active_registry, "not the active registry!"
+    Registry.active_registry, @prev = @prev, nil
 
 --- static functions
 -- @section static
@@ -100,12 +100,19 @@ class SimpleRegistry extends Registry
   new: =>
     @cnt = 1
 
+  tick: 0
+
   init: (tag, expr) =>
     tag\set @cnt
     @cnt += 1
 
   last: (index) =>
   replace: (index, expr) =>
+
+  wrap: (fn) => (...) ->
+    @grab!
+    with fn ...
+      @release!
 
 {
   :Registry
