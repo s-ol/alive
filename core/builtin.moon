@@ -1,9 +1,11 @@
 -- builtin special forms
-import Action, FnDef from require 'core.base'
+import Action, Op, FnDef, Input, match from require 'core.base'
 import Value from require 'core.value'
 import Result from require 'core.result'
 import Cell from require 'core.cell'
 import Scope from require 'core.scope'
+import Tag from require 'core.tag'
+import op_invoke from require 'core.invoke'
 
 class doc extends Action
   @doc: "(doc sym) - print documentation in console
@@ -175,18 +177,43 @@ to then-expr, otherwise it is equivalent to else-xpr if given, or nil otherwise.
     elseif xelse
       xelse\eval scope
 
-class trace extends Action
-  @doc: "(trace expr) - print an eval-time constant to the console"
+class trace_ extends Action
+  @doc: "(trace! expr) - print an eval-time constant to the console"
 
   eval: (scope, tail) =>
     L\trace "evaling #{@}"
-    assert #tail == 1, "'trace' takes exactly one parameter"
+    assert #tail == 1, "'trace!' takes exactly one parameter"
 
     with result = L\push tail[1]\eval, scope
-      L\print "trace #{tail[1]}: #{result.value}"
+      L\print "trace! #{tail[1]\stringify!}: #{result.value}"
+
+class trace extends Action
+  @doc: "(trace expr) - print values to the console
+
+prints expr's value whenever it changes."
+
+  class traceOp extends Op
+    setup: (inputs) =>
+      { prefix, value } = match 'str any', inputs
+      super
+        prefix: Input.cold prefix
+        value: Input.value value
+
+    tick: =>
+      L\print "trace #{@inputs.prefix!}: #{@inputs.value.stream}"
+
+  eval: (scope, tail) =>
+    L\trace "evaling #{@}"
+    assert #tail == 1, "'trace!' takes exactly one parameter"
+
+    op = Value 'opdef', traceOp
+    tag = @tag\clone Tag.parse '-1'
+    prefix = Value.str tail[1]\stringify!
+    op_invoke\eval_cell scope, tag, op, { prefix, tail[1] }
 
 {
-  :doc, :trace
+  :doc
+  :trace, 'trace!': trace_
 
   :def, :use
   require: require_

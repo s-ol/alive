@@ -4,6 +4,7 @@ import monotime from require 'system'
 
 class Clock extends IO
   new: (@frametime) =>
+    return unless monotime
     @last = monotime!
     @dt = 0
     @is_dirty = false
@@ -150,4 +151,5 @@ returns true once every period seconds."
   :ramp
   :tick
   :every
+  '*clock*': Value 'clock', Clock 1/60
 }
