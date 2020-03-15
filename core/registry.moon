@@ -99,8 +99,10 @@ class Registry
 class SimpleRegistry extends Registry
   new: =>
     @cnt = 1
+    @tick = 0
 
-  tick: 0
+  next_tick: =>
+    @tick += 1
 
   init: (tag, expr) =>
     tag\set @cnt

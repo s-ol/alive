@@ -119,8 +119,10 @@ class ColdInput extends Input
 
 class ValueInput extends Input
   setup: (old) => @dirty_setup = not old or @stream != old.stream
-  finish_setup: => @dirty_setup = false
-  dirty: => @dirty_setup or @stream\dirty!
+  finish_setup: => @dirty_setup = nil
+  dirty: =>
+    return @dirty_setup if @dirty_setup != nil
+    @stream\dirty!
 
 class EventInput extends Input
 
