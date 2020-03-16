@@ -90,11 +90,12 @@ nav a {
 }
 
 nav > a {
-  margin-left: 1rem;
+  margin-left: 0.6rem;
+  padding: 0.03em 0.2em;
   text-decoration: none;
 }
 nav > a.active {
-  text-decoration: underline;
+  background: #cccccc;
 }
 
 nav span a {

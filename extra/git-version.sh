@@ -15,9 +15,13 @@ cat <<EOF
 -- @tfield string tag the last versions git tag
 -- @tfield string rev_short the short git revision hash
 -- @tfield string rev_long the full git revision hash
+-- @tfield string repo the git repo URL
+-- @tfield string web the repo web URL
 {
   tag: "${TAG}"
   rev_short: "${REV_SHORT}"
   rev_long: "${REV_LONG}"
+  repo: "https://github.com/s-ol/alivecoding.git"
+  web: "https://github.com/s-ol/alivecoding/tree/${TAG}"
 }
 EOF

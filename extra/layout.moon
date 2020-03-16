@@ -89,7 +89,7 @@ layout = (opts) ->
     "alive documentation"
   foot = footer div {
     'alive '
-    a (code v.tag), href: "https://git.s-ol.nu/alivecoding/#{v.tag}"
+    a (code v.tag), href: v.web
     ', generated '
     os.date '!%Y-%m-%d %T'
   }

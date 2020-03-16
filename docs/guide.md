@@ -40,7 +40,7 @@ required.
 After installing the dependencies, you can clone the
 [`alivecoding` repository][git] using git:
 
-    $ git clone https://git.s-ol.nu/alivecoding.git
+    $ git clone https://github.com/s-ol/alivecoding.git
 
 You should now be able to run `alive` from within the repository, but first, you
 will need to create a file for it to run. Create an empty file in the text
@@ -446,5 +446,5 @@ them.
 [max]:           https://cycling74.com/products/max
 [vvvv]:          https://vvvv.org/
 [luarocks]:      https://github.com/luarocks/luarocks/#installing
-[git]:           https://git.s-ol.nu/alivecoding
+[git]:           https://github.com/s-ol/alivecoding
 [reference]:     reference/
