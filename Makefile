@@ -5,8 +5,8 @@ DEPS=core/version.moon extra/docs.moon extra/layout.moon extra/dom.moon
 .PHONY: docs reference internals release clean
 
 docs: docs/index.html docs/guide.html reference internals
-
 reference: $(MODREFS) docs/reference/index.html
+internals: docs/internals/index.html
 
 release:
 	rm -f core/version.moon
@@ -30,7 +30,7 @@ docs/ldoc.css: docs/style.css
 docs/ldoc.ltp: $(DEPS)
 	moon extra/docs.moon $@ ldoc
 
-internals: core/config.ld docs/ldoc.ltp docs/ldoc.css
+docs/internals/index.html: core/config.ld docs/ldoc.ltp docs/ldoc.css
 	ldoc core
 
 clean:
