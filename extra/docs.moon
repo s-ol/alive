@@ -82,6 +82,7 @@ spit OUT, switch command
     layout
       style: '$(ldoc.css)'
       title: '$(ldoc.title)'
+      class: 'ldoc'
       preamble: '
 # local iter = ldoc.modules.iter
 # local M = ldoc.markup
@@ -94,8 +95,12 @@ spit OUT, switch command
 #   if #ls > 1 then return "<li>","</li>" else return "","" end
 # end
 # local base = module and "../../" or "../"'
-      body: '
-# if not module then
+      body: {
+        class: 'ldoc'
+        '
+# if ldoc.body then
+  $(ldoc.body)
+# elseif not module then
 # if ldoc.description then
   <h1>$(M(ldoc.description))</h1>
 # end
@@ -109,8 +114,12 @@ spit OUT, switch command
     <ul>
 #   for m in mods() do
       <li>
+#       if m.summary then
     		<label><a href="$(kind)/$(m.name).html"><code>$(m.name)</code></a>:</label>
     		<span>$(M(m.summary))</span>
+# else
+       	<label><a href="$(kind)/$(m.name).html"><code>$(m.name)</code></a></label>
+# end
     	</tr>
 #   end
     </ul>
@@ -130,123 +139,128 @@ spit OUT, switch command
     </ul>
 # end
 
-  <h2>index</h2>
-# for kind, items in module.kinds() do
-    <h3>$(kind)</h3>
-    <ul>
-#   for item in items() do
-      <li>
-        <a href="#$(item.name)"><code>$(display_name(item))</code></a>
-        &ensp;&ndash;&ensp;$(M(item.summary))
-      </li>
-#   end
-    </ul>
-# end
-
-  <h2>details</h2>
-# for kind, items in module.kinds() do
-  <h3>$(kind)</h3>
-  <ul>
-# for item in items() do
-    <li class="def" id="$(item.name)">
-      <label>
-        <a href="#$(item.name)"><code>$(display_name(item))</code></a>
-      </label>
-      &ensp;&ndash;&ensp;$(M(item.summary))
-      <div class="nest">
-      $(M(item.description))
-
-#     if item.usage then
-#       local li,il = use_li(item.usage)
-        <h4>usage:</h4>
-        <ul>
-#       for usage in iter(item.usage) do
-          $(li)<pre class="example"><code>$(usage)</code></pre>$(il)
-#       end
-        </ul>
+# if module.kinds()() then
+    <h2>index</h2>
+#   for kind, items in module.kinds() do
+#     kind = kind:lower()
+      <h3 class="indent">$(kind)</h3>
+      <ul>
+#     for item in items() do
+        <li>
+          <a href="#$(item.name)"><code>$(display_name(item))</code></a>
+          &ensp;&ndash;&ensp;$(M(item.summary))
+        </li>
 #     end
+      </ul>
+#   end
 
-#     if item.params and #item.params > 0 then
-#       local subnames = module.kinds:type_of(item).subnames
-#       if subnames then
-          <h4>$(subnames:lower()):</h4>
-#       end
-        <ul>
-#       for parm in iter(item.params) do
-#         local param,sublist = item:subparam(parm)
-#         for p in iter(param) do
-#           local name = item:display_name_of(p)
-#           local tp = ldoc.typename(item:type_of_param(p))
-#           local def = item:default_of_param(p)
-#           local desc = item.params.map[p]
-#           local col = desc and desc ~= "" and ":" or ""
-            <li>
-              <label>
-                <code>$(name)</code>
-#               if tp ~= "" then
-                  ($(tp))$(col)
-#               else
-                  $(col)
-#               end
-              </label>
-              $(M(desc,item))
-#           if def == true then
-              (<em>optional</em>)
-#           elseif def then
-              (<em>default</em> $(def))
+    <h2>details</h2>
+#   for kind, items in module.kinds() do
+#     kind = kind:lower()
+      <h3 class="indent">$(kind)</h3>
+      <ul>
+#     for item in items() do
+        <li class="def" id="$(item.name)">
+          <label>
+            <a href="#$(item.name)"><code>$(display_name(item))</code></a>
+          </label>
+          &ensp;&ndash;&ensp;$(M(item.summary))
+          <div class="nest">
+          $(M(item.description))
+
+#         if item.usage then
+#           local li,il = use_li(item.usage)
+            <h4>usage:</h4>
+            <ul>
+#           for usage in iter(item.usage) do
+              $(li)<pre class="example"><code>$(usage)</code></pre>$(il)
 #           end
-            </li>
+            </ul>
 #         end
-#       end
-        </ul>
-#     end
 
-#     if item.retgroups then local groups = item.retgroups
-        <h4>returns:</h4>
-#       for i,group in ldoc.ipairs(groups) do
-          <ol>
-#         for r in group:iter() do
-#           local type, ctypes = item:return_type(r)
-#           local rt = ldoc.typename(type)
-#           local col = r.text and r.text ~= "" and ":" or ""
-            <li>
-#             if rt ~= "" then
-                ($(rt))$(col)
-#             end
-              $(M(r.text,item))
-#             if ctypes then
-                <ul>
-#               for c in ctypes:iter() do
-                  <li><span class="parameter">$(c.name)</span>
-                  <span class="types">$(ldoc.typename(c.type))</span>
-                  $(M(c.comment,item))</li>
+#         if item.params and #item.params > 0 then
+#           local subnames = module.kinds:type_of(item).subnames
+#           if subnames then
+              <h4>$(subnames:lower()):</h4>
+#           end
+            <ul>
+#           for parm in iter(item.params) do
+#             local param,sublist = item:subparam(parm)
+#             for p in iter(param) do
+#               local name = item:display_name_of(p)
+#               local tp = ldoc.typename(item:type_of_param(p))
+#               local def = item:default_of_param(p)
+#               local desc = item.params.map[p]
+#               local col = desc and desc ~= "" and ":" or ""
+                <li>
+                  <label>
+                    <code>$(name)</code>
+#                   if tp ~= "" then
+                      ($(tp))$(col)
+#                   else
+                      $(col)
+#                   end
+                  </label>
+                  $(M(desc,item))
+#               if def == true then
+                  (<em>optional</em>)
+#               elseif def then
+                  (<em>default</em> $(def))
 #               end
-                </ul>
+                </li>
 #             end
-            </li>
+#           end
+            </ul>
 #         end
-          </ol>
-#         if i < #groups then
-           <h4>or</h4>
-#         end
-#       end
-#     end
 
-#     if item.usage then
-#       local li,il = use_li(item.usage)
-        <h4>usage:</h4>
-        <ul>
-#       for usage in iter(item.usage) do
-          $(li)<pre class="example">$(ldoc.prettify(usage))</pre>$(il)
-#       end
-        </ul>
+#         if item.retgroups then local groups = item.retgroups
+            <h4>returns:</h4>
+#           for i,group in ldoc.ipairs(groups) do
+              <ol>
+#             for r in group:iter() do
+#               local type, ctypes = item:return_type(r)
+#               local rt = ldoc.typename(type)
+#               local col = r.text and r.text ~= "" and ":" or ""
+                <li>
+#                 if rt ~= "" then
+                    ($(rt))$(col)
+#                 end
+                  $(M(r.text,item))
+#                 if ctypes then
+                    <ul>
+#                   for c in ctypes:iter() do
+                      <li><span class="parameter">$(c.name)</span>
+                      <span class="types">$(ldoc.typename(c.type))</span>
+                      $(M(c.comment,item))</li>
+#                   end
+                    </ul>
+#                 end
+                </li>
+#             end
+              </ol>
+#             if i < #groups then
+               <h4>or</h4>
+#             end
+#           end
+#         end
+
+#         if item.usage then
+#           local li,il = use_li(item.usage)
+            <h4>usage:</h4>
+            <ul>
+#           for usage in iter(item.usage) do
+              $(li)<pre class="example">$(ldoc.prettify(usage))</pre>$(il)
+#           end
+            </ul>
+#         end
+          </div>
+      </li>
 #     end
-      </div>
-  </li>
+  </ul>
 #   end
-</ul>
 # end
 # end
 '
+      }
   else
     error "unknown command '#{command}'"

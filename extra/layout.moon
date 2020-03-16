@@ -64,8 +64,10 @@ aopts = (href, pat) ->
 
 -- layout and write a doc page
 -- opts:
+--  - preamble
 --  - title
---  - body
+--  - style
+--  - body (str or table)
 layout = (opts) ->
   import header, footer, nav, div, span, b, code, a, article from require 'extra.dom'
 
@@ -103,7 +105,6 @@ layout = (opts) ->
 
     <title>#{title}</title>
     <link rel=\"stylesheet\" href=\"#{opts.style or abs 'style.css'}\">
-    #{opts.css or ''}
   </head>
   <body>
     #{head}

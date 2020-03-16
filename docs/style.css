@@ -147,3 +147,14 @@ a:hover code,
 .nest > p {
   margin: 0;
 }
+
+.ldoc h2 {
+  margin-bottom: 0;
+}
+.ldoc h3.indent {
+  margin: 0;
+  margin-left: 0.6rem;
+}
+.ldoc h3.indent + ul {
+  margin-top: 0;
+}
