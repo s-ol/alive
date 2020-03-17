@@ -40,6 +40,9 @@ link = (ref) ->
   mod, sym = ref\match '^(.+)/(.*)$'
   abs "reference/#{mod or 'index'}.html##{sym or ref}"
 
+escape = (str) ->
+  (str\gsub '([*`])', '\\%1')
+
 -- link to a reference
 r = (text, ref) ->
   import a, code from require 'extra.dom'
@@ -48,7 +51,7 @@ r = (text, ref) ->
     a text, :href
   else
     text = text\gsub '/$', ''
-    a (code text), :href
+    a (code escape text), :href
 
 -- substitute markdown-style reference links
 autoref = (str) ->

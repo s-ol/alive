@@ -75,7 +75,7 @@ spit OUT, switch command
     contents = slurp file
     require 'discount'
 
-    layout compile autoref contents, 'githubtags', 'fencedcode'
+    layout compile (autoref contents), 'githubtags', 'fencedcode'
 
   when 'ldoc'
     BASE = '$(base)'

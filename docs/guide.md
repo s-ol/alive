@@ -74,7 +74,7 @@ As soon as you save the file, you should notice two things happening:
        trace "hello world": <Value str: hello world>
 
    In the first line, it notifies us that the file has changed. In the second
-   line, we can see the output from [trace][]: it lets us know that our input
+   line, you can see the output from [trace][]: it lets you know that
    `"hello world"` evaluated to a `Value` with the type `str` (string) and
    contents `hello world`.
 2. The copilot will make a small modification to your file. Depending on the
@@ -184,8 +184,8 @@ Both [import][] and [import*][] are actually shorthands for other builtins:
 current scope. You can use it to associate a *symbol* (a name, like `hello`,
 `trace`, or `+`) with a value. After a symbol is defined, the name becomes an
 alias that behaves like the value itself. For example, we can use [def][] to
-give the result of our calculation a name, and then refer to it in by that
-symbol in the [trace][] operator:
+give the result of our calculation a name, and then refer to it by that symbol
+in the [trace][] operator:
 
     (import* math)
     
@@ -193,8 +193,8 @@ symbol in the [trace][] operator:
     (trace result)
 
 Symbols need to start with a letter or one of the characters `-_+*/.!?=%`.
-After the first character, numbers are also allowed. There are two formats of
-symbols that are treated differently: symbols containing a slash (`math/+`), and
+After the first character, numbers are also allowed. There are two types of
+symbols that are treated specially: symbols containing a slash (`math/+`), and
 symbols starting and ending with asterisks (`*clock*`):
 
 - Symbols containing slashes (except at beginning and end of the symbol) are
@@ -222,9 +222,9 @@ loaded do not have to be the same, you could call the alias whatever you want:
     (def fancy-math (require "math"))
     (trace (fancy-math/+ 1 2))
 
-In practice, this is rarely useful, which is why the `require` shortcut exists.
-The full version of [import*][] on the other hand defines every symbol from the
-imported module individually. The expanded version is the following:
+In practice, this is rarely useful, which is why the [import][] shortcut exists.
+The full version of [import*][], on the other hand, defines every symbol from
+the imported module individually. The expanded version is the following:
 
     (use (require "math"))
     (trace (+ 1 2))
