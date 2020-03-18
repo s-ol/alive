@@ -13,7 +13,9 @@ import Scope from require 'core.scope'
 class op_invoke extends Action
   --- `Action:patch` implementation.
   patch: (head) =>
-    return true if head == @head
+    if head == @head
+      @op = @op\fork!
+      return true
 
     @op\destroy! if @op
 

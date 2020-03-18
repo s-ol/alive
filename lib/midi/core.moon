@@ -101,7 +101,7 @@ apply_range = (range, val) ->
       when 'rad' then val / 64 * math.pi
       when 'deg' then val / 128 * 360
       else
-        error "unknown range #{@range}"
+        error "unknown range #{range}"
   elseif range.type == 'num'
     val / 128 * range\unwrap!
   else

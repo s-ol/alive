@@ -8,7 +8,7 @@ apply_range = (range, val) ->
       when 'rad' then val * 2 * math.pi
       when 'deg' then val * 360
       else
-        error "unknown range #{@range}"
+        error "unknown range #{range}"
   elseif range.type == 'num'
     val * range\unwrap!
   else
@@ -31,7 +31,7 @@ generates a random value in range on create and trigger.
     super 'num'
     @gen!
 
-  gen: => @val = math.random!
+  gen: => @state = { math.random! }
 
   setup: (inputs) =>
     { trig, range } = match 'bang? any?', inputs
@@ -41,7 +41,7 @@ generates a random value in range on create and trigger.
 
   tick: =>
     @gen! if @inputs.trig and @inputs.trig\dirty!
-    @out\set apply_range @inputs.range, @val
+    @out\set apply_range @inputs.range, @state[1]
 
 vec_ = (n) ->
   class vec extends Op
@@ -54,7 +54,7 @@ each component is in range.
       super "vec#{n}"
       @gen!
 
-    gen: => @val = for i=1,n do math.random!
+    gen: => @state = for i=1,n do math.random!
 
     setup: (inputs) =>
       { trig, range } = match 'bang? any?', inputs
@@ -64,7 +64,7 @@ each component is in range.
 
     tick: =>
       @gen! if @inputs.trig and @inputs.trig\dirty!
-      @out\set [apply_range @inputs.range, v for v in *@val]
+      @out\set [apply_range @inputs.range, v for v in *@state]
 
   vec.__name = "vec#{n}"
   vec

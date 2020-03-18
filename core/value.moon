@@ -36,6 +36,15 @@ class Value
     assert type == @type, msg or "#{@} is not a #{type}" if type
     @value
 
+  --- create a mutable copy of this Value.
+  --
+  -- Used to wrap insulate eval-cycles from each other.
+  --
+  -- @treturn Value
+  fork: =>
+    with Value @type, @value, @raw
+      .updated = @updated
+
   --- alias for `unwrap`.
   __call: (...) => @unwrap ...
 

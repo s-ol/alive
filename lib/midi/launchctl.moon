@@ -19,9 +19,7 @@ range can be one of:
 - 'deg' [ 0 - 360[
 - (num) [ 0 - num["
 
-  new: =>
-    super 'num'
-    @steps = {}
+  new: => super 'num'
 
   setup: (inputs) =>
     { port, i, start,
@@ -42,23 +40,23 @@ range can be one of:
     { :port, :i, :start, :chan, :steps, :range } = @inputs
 
     if steps\dirty!
-      while steps! > #@steps
-        table.insert @steps, 0
-      while steps! < #@steps
-        table.remove @steps
+      while steps! > #@state
+        table.insert @state, 0
+      while steps! < #@state
+        table.remove @state
 
-    curr_i = i! % #@steps
+    curr_i = i! % #@state
     if port\dirty!
       changed = false
       for msg in port!\receive!
         if msg.status == 'control-change' and msg.chan == chan!
           rel_i = msg.a - start!
-          if rel_i >= 0 and rel_i < #@steps
-            @steps[rel_i+1] = msg.b
+          if rel_i >= 0 and rel_i < #@state
+            @state[rel_i+1] = msg.b
             changed = rel_i == curr_i
-      @out\set apply_range range, @steps[curr_i+1] if changed
+      @out\set apply_range range, @state[curr_i+1] if changed
     else
-      @out\set apply_range range, @steps[curr_i+1]
+      @out\set apply_range range, @state[curr_i+1]
 
 class gate_seq extends Op
   @doc: "(launctl/gate-seq port i start chan [steps]) - Gate-Sequencer
@@ -68,7 +66,7 @@ steps defaults to 8."
 
   new: =>
     super 'bool', false
-    @steps = {}
+    @state = {}
 
   setup: (inputs) =>
     { port, i, start, chan, steps } = match 'midi/port num num num num?', inputs
@@ -91,34 +89,34 @@ steps defaults to 8."
 
   display: (i, active) =>
     { :port, :start, :chan } = @unwrap_all!
-    port\send 'note-on', chan, (start + i), light @steps[i+1], active
+    port\send 'note-on', chan, (start + i), light @state[i+1], active
 
   tick: =>
     { :port, :i, :start, :chan, :steps } = @inputs
 
     if steps\dirty!
-      while steps! > #@steps
-        table.insert @steps, false
-      while steps! < #@steps
-        table.remove @steps
+      while steps! > #@state
+        table.insert @state, false
+      while steps! < #@state
+        table.remove @state
 
-    curr_i = i! % #@steps
+    curr_i = i! % #@state
 
     if port\dirty!
       for msg in port!\receive!
         if msg.status == 'note-on' and msg.chan == chan!
           rel_i = msg.a - start!
-          if rel_i >= 0 and rel_i < #@steps
-            @steps[rel_i+1] = not @steps[rel_i+1]
+          if rel_i >= 0 and rel_i < #@state
+            @state[rel_i+1] = not @state[rel_i+1]
             @display rel_i, rel_i == curr_i
 
     if i\dirty!
-      prev_i = (curr_i - 1) % #@steps
+      prev_i = (curr_i - 1) % #@state
 
       @display curr_i, true
       @display prev_i, false
 
-      @out\set @steps[curr_i+1]
+      @out\set @state[curr_i+1]
 
 {
   'gate-seq': gate_seq

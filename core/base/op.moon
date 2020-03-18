@@ -19,6 +19,17 @@ class Op
   -- @treturn iterator iterator over `inputs`
   all_inputs: => coroutine.wrap -> do_yield @inputs
 
+  --- create a mutable copy of this Op.
+  --
+  -- Used to wrap insulate eval-cycles from each other. The copy does not have
+  -- `inputs` set, since it is expected that this is (re)set in `setup`.
+  --
+  -- @treturn Value
+  fork: =>
+    with setmetatable {}, getmetatable @
+      .state = {k,v for k,v in pairs @state} if @state
+      .out = @out\fork! if @out
+
   --- `Value` instance representing this Op's computed output value.
   --
   -- Must be set to a `Value` instance once `setup` finishes. Must not change
@@ -92,6 +103,7 @@ class Op
   -- @tparam[opt] string type the type-name for `out`
   -- @tparam[optchain] any init the initial value for `out`
   new: (type, init) =>
+    @state = {}
     if type
       @out = Value type, init
 

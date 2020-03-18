@@ -47,7 +47,7 @@ wave selects the wave shape from the following:
 
   new: =>
     super 'num'
-    @phase = 0
+    @state.phase or= 0
 
   default_wave = Value.str 'sin'
   setup: (inputs, scope) =>
@@ -62,11 +62,11 @@ wave selects the wave shape from the following:
     if @inputs.clock\dirty!
       { :clock, :freq, :wave } = @unwrap_all!
 
-      @phase += clock.dt * freq
+      @state.phase += clock.dt * freq
       @out\set switch wave
-        when 'sin' then .5 + .5 * math.cos @phase * tau
-        when 'saw' then @phase % 1
-        when 'tri' then math.abs (2*@phase % 2) - 1
+        when 'sin' then .5 + .5 * math.cos @state.phase * tau
+        when 'saw' then @state.phase % 1
+        when 'tri' then math.abs (2*@state.phase % 2) - 1
         else error "unknown wave type"
 
 class ramp extends Op
@@ -76,7 +76,7 @@ ramps from 0 to max (default same as ramp) once every period seconds."
 
   new: =>
     super 'num'
-    @phase = 0
+    @state.phase or= 0
 
   setup: (inputs, scope) =>
     { clock, period, max } = match 'clock? num num?', inputs
@@ -90,21 +90,22 @@ ramps from 0 to max (default same as ramp) once every period seconds."
     if clock_dirty
       { :clock, :period, :max } = @unwrap_all!
       max or= period
-      @phase += clock.dt / period
+      @state.phase += clock.dt / period
 
-      while @phase >= 1
-        @phase -= 1
+      while @state.phase >= 1
+        @state.phase -= 1
 
     if clock_dirty or (@inputs.max and @inputs.max\dirty!)
-      @out\set @phase * max
+      @out\set @state.phase * max
 
 class tick extends Op
   @doc: "(tick [clock] period) - count ticks
 
 counts upwards by one every period seconds and returns the number of completed ticks."
   new: =>
-    @phase, @count = 0, 0
-    super 'num', @count
+    super 'num', 0
+    @state.phase or= 0
+    @state.count or= 0
 
   setup: (inputs, scope) =>
     { clock, period } = match 'clock? num', inputs
@@ -115,12 +116,12 @@ counts upwards by one every period seconds and returns the number of completed t
   tick: =>
     if @inputs.clock\dirty!
       { :clock, :period, :max } = @unwrap_all!
-      @phase += clock.dt / period
+      @state.phase += clock.dt / period
 
-      while @phase >= 1
-        @phase -= 1
-        @count += 1
-        @out\set @count
+      while @state.phase >= 1
+        @state.phase -= 1
+        @state.count += 1
+        @out\set @state.count
 
 class every extends Op
   @doc: "(every [clock] period) - trigger every period seconds
@@ -128,7 +129,7 @@ class every extends Op
 returns true once every period seconds."
   new: =>
     super 'bang'
-    @phase = 0
+    @state.phase or= 0
 
   setup: (inputs, scope) =>
     { clock, period } = match 'clock? num', inputs
@@ -139,10 +140,10 @@ returns true once every period seconds."
   tick: =>
     if @inputs.clock\dirty!
       { :clock, :period, :max } = @unwrap_all!
-      @phase += clock.dt / period
+      @state.phase += clock.dt / period
 
-      while @phase >= 1
-        @phase -= 1
+      while @state.phase >= 1
+        @state.phase -= 1
         @out\set true
 
 {

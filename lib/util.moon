@@ -71,35 +71,6 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
     if active and active\dirty!
       @out\set active!
 
---class switch_pause extends Op
---  @doc: "(switch- i v0 [v1 v2...]) - switch and pause multiple inputs
---
---like (switch ...) except that the unused inputs are paused."
---
---  setup: (@i, ...) =>
---    @choices = { ... }
---
---    typ = @choices[1].type
---    for inp in *@choices[2,]
---      assert inp.type == typ, "not all values have the same type: #{typ} != #{inp.type}"
---
---    @out = Stream typ
---    @out
---
---  tick: =>
---    i = @i\unwrap!
---    active = switch i
---      when true
---        @choices[1]
---      when false
---        @choices[2]
---      else
---        i = 1 + (math.floor i) % #@choices
---        @choices[i]
---
---    @out\set if active
---      active\unwrap!
-
 class edge extends Op
   @doc: "(edge bool) - convert rising edges to bangs"
   new: => super 'bang'
@@ -110,9 +81,9 @@ class edge extends Op
 
   tick: =>
     now = @inputs.value!
-    if now and not @last
+    if now and not @state.last
       @out\set true
-      @last = now
+      @state.last = now
 
 class default extends Op
   @doc: "(default stream default) - provide a default value for an event stream

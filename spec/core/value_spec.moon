@@ -1,4 +1,4 @@
-import Value, Result, Scope from require 'core'
+import Value, Result, Scope, SimpleRegistry from require 'core'
 import Op, Action from require 'core.base'
 import Logger from require 'logger'
 Logger.init 'silent'
@@ -9,57 +9,61 @@ class TestOp extends Op
 class TestAction extends Action
   new: (...) =>
 
+reg = SimpleRegistry!
+setup -> reg\grab!
+teardown -> reg\release!
+
 describe 'Value', ->
-  describe 'wraps', ->
-    test 'numbers', ->
+  describe '.wrap', ->
+    it 'wraps numbers', ->
       got = Value.wrap 3
       assert.is.equal 'num', got.type
       assert.is.equal 3, got.value
 
-    test 'strings', ->
+    it 'wraps strings', ->
       got = Value.wrap "im a happy string"
       assert.is.equal 'str', got.type
       assert.is.equal "im a happy string", got.value
 
-    test 'Values', ->
+    it 'wraps Values', ->
       pi = Value 'num', 3.14
       got = Value.wrap pi
 
       assert.is.equal pi, got
 
-    test 'Opdefs', ->
+    it 'wraps Opdefs', ->
       got = Value.wrap TestOp
 
       assert.is.equal 'opdef', got.type
       assert.is.equal TestOp, got.value
 
-    test 'Bultins', ->
+    it 'wraps Bultins', ->
       got = Value.wrap TestAction
 
       assert.is.equal 'builtin', got.type
       assert.is.equal TestAction, got.value
 
-    test 'Scopes', ->
+    it 'wraps Scopes', ->
       sub = Scope!
       got = Value.wrap sub
 
       assert.is.equal 'scope', got.type
       assert.is.equal sub, got.value
 
-    test 'tables', ->
+    it 'wraps tables', ->
       pi = Value 'num', 3.14
       got = Value.wrap { :pi }
 
       assert.is.equal 'scope', got.type
       assert.is.equal pi, (got.value\get 'pi')\const!
 
-  describe 'unwraps', ->
-    test 'unwrap!', ->
+  describe ':unwrap', ->
+    it 'returns the raw value!', ->
       assert.is.equal 3.14, (Value.num 3.14)\unwrap!
       assert.is.equal 'hi', (Value.str 'hi')\unwrap!
       assert.is.equal 'hi', (Value.sym 'hi')\unwrap!
 
-    test 'with type assert', ->
+    test 'can assert the type', ->
       assert.is.equal 3.14, (Value.num 3.14)\unwrap 'num'
       assert.is.equal 'hi', (Value.str 'hi')\unwrap 'str'
       assert.is.equal 'hi', (Value.sym 'hi')\unwrap 'sym'
@@ -67,7 +71,7 @@ describe 'Value', ->
       assert.has_error -> (Value.str 'hi')\unwrap 'num'
       assert.has_error -> (Value.sym 'hi')\unwrap 'str'
 
-    test 'with __call shorthand', ->
+    test 'has __call shorthand', ->
       assert.is.equal 3.14, (Value.num 3.14)!
       assert.is.equal 'hi', (Value.str 'hi')!
       assert.is.equal 'hi', (Value.sym 'hi')!
@@ -78,8 +82,8 @@ describe 'Value', ->
       assert.has_error -> (Value.str 'hi') 'num'
       assert.has_error -> (Value.sym 'hi') 'str'
 
-  describe 'checks equality', ->
-    test 'using the type', ->
+  describe 'overrides __eq', ->
+    it 'compares the type', ->
       val = Value 'num', 3
       assert.is.equal (Value.num 3), val
       assert.not.equal (Value.str '3'), val
@@ -88,20 +92,36 @@ describe 'Value', ->
       assert.is.equal (Value.str 'hello'), val
       assert.not.equal (Value.sym 'hello'), val
 
-    test 'using the value', ->
+    it 'compares the value', ->
       val = Value 'num', 3
       assert.is.equal (Value.num 3), val
       assert.not.equal (Value.num 4), val
 
-  describe 'evaluates literal', ->
-    test 'numbers to consts', ->
+  describe ':set', ->
+    it 'sets the value', ->
+      val = Value 'num', 3
+      assert.is.equal (Value.num 3), val
+
+      val\set 4
+      assert.is.equal (Value.num 4), val
+      assert.not.equal (Value.num 3), val
+
+    it 'marks the value dirty', ->
+      val = Value 'num', 3
+      assert.is.false val\dirty!
+
+      val\set 4
+      assert.is.true val\dirty!
+
+  describe ':eval', ->
+    it 'turns numbers into consts', ->
       assert_noop = (val) ->
         assert.is.equal val, val\eval!\const!
 
       assert_noop Value.num 2
       assert_noop Value.str 'hello'
 
-    test 'symbols in the scope', ->
+    it 'looks up symbols in the scope', ->
       scope = with Scope!
         \set 'number', Result value: Value.num 3
         \set 'hello', Result value: Value.str "world"
@@ -115,18 +135,56 @@ describe 'Value', ->
       assert_eval 'hello', Value.str "world"
       assert_eval 'goodbye', Value.sym "again"
 
-  describe 'quotes literals', ->
-    test 'as themselves', ->
-      assert_noop = (val) -> assert.is.equal val, val\quote!
+  it ':quote s literals as themselves', ->
+    assert_noop = (val) -> assert.is.equal val, val\quote!
 
-      assert_noop Value.num 2
-      assert_noop Value.str 'hello'
-      assert_noop Value.sym 'world'
+    assert_noop Value.num 2
+    assert_noop Value.str 'hello'
+    assert_noop Value.sym 'world'
 
-  describe 'clones literals', ->
-    test 'as themselves', ->
-      assert_noop = (val) -> assert.is.equal val, val\clone!
+  it ':clone sliterals as themselves', ->
+    assert_noop = (val) -> assert.is.equal val, val\clone!
 
-      assert_noop Value.num 2
-      assert_noop Value.str 'hello'
-      assert_noop Value.sym 'world'
+    assert_noop Value.num 2
+    assert_noop Value.str 'hello'
+    assert_noop Value.sym 'world'
+
+  describe ':fork', ->
+    it 'is equal to the original', ->
+      a = Value.num 2
+      b = Value.str 'asdf'
+      c = with Value 'weird', {}, '(raw)'
+        \set {}
+
+      aa, bb, cc = a\fork!, b\fork!, c\fork!
+      assert.is.equal a, aa
+      assert.is.equal b, bb
+      assert.is.equal c, cc
+
+      assert.is.false aa\dirty!
+      assert.is.false bb\dirty!
+      assert.is.true cc\dirty!
+
+      assert.is.equal c.raw, cc.raw
+
+    it 'isolates the original from the fork', ->
+      a = Value.num 3
+      b = with Value 'weird', {}, '(raw)'
+        \set {}
+
+      aa, bb = a\fork!, b\fork!
+
+      bb\set {false}
+
+      assert.is.same {}, b!
+      assert.is.same {false}, bb!
+      assert.is.true b\dirty!
+      assert.is.true bb\dirty!
+
+      reg\next_tick!
+      aa\set 4
+
+      assert.is.equal 3, a!
+      assert.is.equal 4, aa!
+      assert.is.false a\dirty!
+      assert.is.true aa\dirty!
