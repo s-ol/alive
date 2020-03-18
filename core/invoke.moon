@@ -7,7 +7,11 @@ import Result from require 'core.result'
 import Action from require 'core.base'
 import Scope from require 'core.scope'
 
+--- `Action` implementation that invokes an `Op`.
+--
+-- @type op_invoke
 class op_invoke extends Action
+  --- `Action:patch` implementation.
   patch: (head) =>
     return true if head == @head
 
@@ -17,7 +21,18 @@ class op_invoke extends Action
     @head, @op = head, def!
 
     true
-    
+
+  --- evaluate an `Op` invocation.
+  --
+  -- `AST:eval`s the tail, and passes the result to `op`:@{Op:setup|setup}. Then
+  -- checks if any of `op`:@{Op:all_inputs|all_inputs} are @{Input:dirty|dirty},
+  -- and if so, calls `op`:@{Op:tick|tick}.
+  --
+  -- The `Result` contains `op`, `Op.value` and all the `Result`s from the tail.
+  --
+  -- @tparam Scope scope the active scope
+  -- @tparam {AST,...} tail the arguments to this expression
+  -- @treturn Result
   eval: (scope, tail) =>
     children = [L\push expr\eval, scope for expr in *tail]
     @op\setup [result for result in *children], scope
@@ -36,11 +51,15 @@ class op_invoke extends Action
 
     Result :children, value: @op.out, op: @op
 
-class fn_invoke extends Action
-  -- @TODO:
-  -- need to :patch() the case where the new head is a new fndef
-  -- but corresponds to the last head over time
+  --- The `Op` instance.
+  --
+  -- @tfield Op op
 
+--- `Action` implementation that invokes a `FnDef`.
+--
+-- @type fn_invoke
+class fn_invoke extends Action
+  --- `Action:patch` implementation.
   patch: (head) =>
     return true if head == @head
 
@@ -48,6 +67,21 @@ class fn_invoke extends Action
 
     true
 
+  --- evaluate a user-function invocation.
+  --
+  -- Creates a new `Scope` that inherits from `FnDef.scope` and has
+  -- `outer_scope` as an additional parent for dynamic symbol resolution.
+  -- Then `AST:eval`s the tail in `outer_scope`, and defines the results to the
+  -- names in `FnDef.params` in the newly created scope. Lastly, `AST:clone`s
+  -- `FnDef.body` with the prefix `Action.tag`, and `AST:eval`s it in the newly
+  -- created `Scope`.
+  --
+  -- The `Result` contains the `Value` from the cloned AST, and its children are
+  -- all the `Result`s from evaluating the tail as well as the cloned `AST`s.
+  --
+  -- @tparam Scope outer_scope the active scope
+  -- @tparam {AST,...} tail the arguments to this expression
+  -- @treturn Result the result of this evaluation
   eval: (outer_scope, tail) =>
     { :params, :body, :scope } = @head\unwrap 'fndef', "cant fn-invoke #{@head}"
 

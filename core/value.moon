@@ -1,5 +1,5 @@
 ----
--- `alive` Value(stream), implements the `AST` inteface.
+-- Value(stream), implements the `AST` inteface.
 --
 -- @classmod Value
 import Result from require 'core.result'
@@ -31,7 +31,7 @@ class Value
   --
   -- @tparam[opt] string type the type to check for
   -- @tparam[optchain] string msg message to throw if type don't match
-  -- @treturn @value
+  -- @treturn any `value`
   unwrap: (type, msg) =>
     assert type == @type, msg or "#{@} is not a #{type}" if type
     @value

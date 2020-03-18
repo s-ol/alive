@@ -1,4 +1,10 @@
--- builtin special forms
+----
+-- Builtin `Action`s and `Op`s.
+--
+-- Please see the [reference](../../reference/index.html#builtins) for
+-- documentation.
+--
+-- @module builtin
 import Action, Op, FnDef, Input, match from require 'core.base'
 import Value from require 'core.value'
 import Result from require 'core.result'

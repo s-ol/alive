@@ -1,5 +1,6 @@
 MODULES=$(wildcard lib/*.moon) lib/midi/launchctl.moon
 MODREFS=$(MODULES:lib/%.moon=docs/reference/%.html)
+CORE=$(wildcard core/*.moon core/**/*.moon)
 DEPS=core/version.moon extra/docs.moon extra/layout.moon extra/dom.moon
 
 .PHONY: docs reference internals release clean
@@ -30,7 +31,7 @@ docs/ldoc.css: docs/style.css
 docs/ldoc.ltp: $(DEPS)
 	moon extra/docs.moon $@ ldoc
 
-docs/internals/index.html: core/config.ld docs/ldoc.ltp docs/ldoc.css
+docs/internals/index.html: core/config.ld docs/ldoc.ltp docs/ldoc.css $(CORE)
 	ldoc core
 
 clean:

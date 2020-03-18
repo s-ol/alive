@@ -5,6 +5,40 @@
 import Value from require 'core.value'
 
 class Op
+--- members
+-- @section members
+
+  do_yield = (table) ->
+    for k, v in pairs table
+      if v.__class
+        coroutine.yield v
+      else
+        do_yield v
+  --- yield all `Input`s from the (potentially nested) `inputs` table
+  --
+  -- @treturn iterator iterator over `inputs`
+  all_inputs: => coroutine.wrap -> do_yield @inputs
+
+  --- `Value` instance representing this Op's computed output value.
+  --
+  -- Must be set to a `Value` instance once `setup` finishes. Must not change
+  -- type, be removed or replaced outside of `new` and `setup`. Should have a
+  -- value assigned via `set` or the `Value` constructor once `tick` is
+  -- called the first time. If `out`'s value is not initialized in `new`
+  -- or `setup`, the implementation must make sure `tick``(true)` is called at
+  -- least on the first eval-cycle the Op goes through, e.g. by using an
+  -- `Input.value`.
+  --
+  -- @tfield Value out
+
+  --- table containing `Input`s to this Op.
+  --
+  -- The `inputs` table can be nested with string or integer keys,
+  -- but all leaf-entries must be `Input` instances. It must not contain loops
+  -- or instances of other classes.
+  --
+  -- @tfield {Input,...} inputs
+
 --- Op interface.
 --
 -- methods that have to be implemented by `Op` implementations.
@@ -43,37 +77,6 @@ class Op
 
   --- called when the Op is destroyed (optional).
   destroy: =>
-
-  do_yield = (table) ->
-    for k, v in pairs table
-      if v.__class
-        coroutine.yield v
-      else
-        do_yield v
-  --- yield all `Input`s from the (potentially nested) `inputs` table
-  --
-  -- @treturn iterator iterator over `inputs`
-  all_inputs: => coroutine.wrap -> do_yield @inputs
-
-  --- `Value` instance representing this Op's computed output value.
-  --
-  -- Must be set to a `Value` instance once `setup` finishes. Must not change
-  -- type, be removed or replaced outside of `new` and `setup`. Should have a
-  -- value assigned via `set` or the `Value` constructor once `tick` is
-  -- called the first time. If `out`'s value is not initialized in `new`
-  -- or `setup`, the implementation must make sure `tick``(true)` is called at
-  -- least on the first eval-cycle the Op goes through, e.g. by using an
-  -- `Input.value`.
-  --
-  -- @tfield Value out
-
-  --- table containing `Input`s to this Op.
-  --
-  -- The `inputs` table can be nested with string or integer keys,
-  -- but all leaf-entries must be `Input` instances. It must not contain loops
-  -- or instances of other classes.
-  --
-  -- @tfield {Input,...} inputs
 
 --- implementation utilities.
 --

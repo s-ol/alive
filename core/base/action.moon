@@ -1,5 +1,5 @@
 ----
--- Builtin / Special Form / `Cell`-evaluation Strategy.
+-- Builtin / Special Form evaluation Strategy (`builtin`).
 --
 -- Responsible for quoting/evaluating subexpressions, instantiating and patching
 -- `Op`s, updating the current `Scope`, etc.

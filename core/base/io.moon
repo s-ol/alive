@@ -1,6 +1,8 @@
 ----
--- Incoming side-effect adapter, polled by the main event loop to pump
--- events into the dataflow graph.
+-- Incoming side-effect adapter, creating events for the dataflow graph.
+--
+-- Polled by the main event loop to kick of events that cause the the dataflow
+-- graph to ripple results.
 --
 -- @classmod IO
 
