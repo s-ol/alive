@@ -15,6 +15,9 @@ and whenever you save the file, `alive` will apply your changes to the running
 system seamlessly, without resetting any part of your program (unless you want
 it to).
 
+`alive` will is free and open source software. The code is currently being
+hosted [on github][repo], although no license has been [chosen yet][license].
+
 If you want to learn more or try out `alivecoding` yourself, the
 [getting started][guide] page is a good place to start. On the other hand, if
 you are a curious about the motivations and concepts behind `alivecoding`,
@@ -23,3 +26,5 @@ you can find more in-depth information on these topics in the
 
 [rationale]: https://s-ol.nu/alivecoding
 [guide]: guide.html
+[repo]: https://github.com/s-ol/alivecoding/
+[license]: https://github.com/s-ol/alivecoding/issues/11
