@@ -39,6 +39,38 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
         values[i]
     @out\set active and active!
 
+class route extends Op
+  @doc: "(route i v0 [v1 v2...]) - route between multiple inputs
+
+when i is true, the first value is reproduced.
+when i is false, the second value is reproduced.
+when i is a num, it is (floor)ed and the matching argument (starting from 0) is reproduced."
+
+  setup: (inputs) =>
+    { i, values } = match 'any *any', inputs
+
+    i_type = i\type!
+    assert i_type == 'bool' or i_type == 'num', "#{@}: i has to be bool or num"
+    typ = all_same [v\type! for v in *values]
+    @out = Value typ if not @out or typ != @out.type
+
+    super
+      i: Input.value i
+      values: [Input.value v for v in *values]
+
+  tick: =>
+    { :i, :values } = @inputs
+    active = switch i!
+      when true
+        values[1]
+      when false
+        values[2]
+      else
+        i = 1 + (math.floor i!) % #values
+        values[i]
+    if active and active\dirty!
+      @out\set active!
+
 --class switch_pause extends Op
 --  @doc: "(switch- i v0 [v1 v2...]) - switch and pause multiple inputs
 --
@@ -104,6 +136,7 @@ default defaults to zero."
 
 {
   'switch': switch_
+  :route
   :edge
   :default
 }
