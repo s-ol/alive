@@ -4,6 +4,15 @@
 -- @classmod Op
 import Value from require 'core.value'
 
+ident = (tbl) ->
+  mt = getmetatable tbl
+  setmetatable tbl, nil
+
+  id = tostring tbl
+
+  setmetatable tbl, mt
+  id\sub #'table: 0x'
+
 class Op
 --- members
 -- @section members

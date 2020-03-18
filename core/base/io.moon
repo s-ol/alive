@@ -32,6 +32,9 @@ class IO
   -- @treturn bool whether processing is required
   dirty: =>
 
+  __tostring: => "<IO #{@@__name}>"
+  __inherited: (cls) => cls.__base.__tostring = @__tostring
+
 {
   :IO
 }

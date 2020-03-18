@@ -11,18 +11,21 @@ import Scope from require 'core.scope'
 --
 -- @type op_invoke
 class op_invoke extends Action
-  --- `Action:patch` implementation.
-  patch: (head) =>
-    if head == @head
-      @op = @op\fork!
-      return true
+  --- `Action:setup` implementation.
+  --
+  -- `Op:fork`s the `prev`'s `Op` instance if given. Creates a new instance
+  -- otherwise.
+  setup: (prev) =>
+    if prev
+      @op = prev.op\fork!
+    else
+      def = @head\unwrap 'opdef', "cant op-invoke #{@head}"
+      @op = def!
 
-    @op\destroy! if @op
-
-    def = head\unwrap 'opdef', "cant op-invoke #{@head}"
-    @head, @op = head, def!
-
-    true
+  --- `Action:destroy` implementation.
+  --
+  -- calls `op`:@{Op:destroy|destroy}.
+  destroy: => @op\destroy!
 
   --- evaluate an `Op` invocation.
   --
@@ -61,14 +64,6 @@ class op_invoke extends Action
 --
 -- @type fn_invoke
 class fn_invoke extends Action
-  --- `Action:patch` implementation.
-  patch: (head) =>
-    return true if head == @head
-
-    @head = head
-
-    true
-
   --- evaluate a user-function invocation.
   --
   -- Creates a new `Scope` that inherits from `FnDef.scope` and has

@@ -49,12 +49,14 @@ class Logger
       error unpack res
 
   try: (msg, fn, ...) =>
-    ok, err = xpcall fn, debug.traceback, ...
+    result = { xpcall fn, debug.traceback, ... }
+    ok = table.remove result, 1
 
     if not ok
-      @error msg, err
+      @error msg, unpack result
+      return
 
-    if ok then err
+    unpack result
 
 -- static
   init: (...) ->

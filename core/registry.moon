@@ -6,6 +6,8 @@
 import Value from require 'core.value'
 import Result from require 'core.result'
 
+unpack or= table.unpack
+
 class Registry
 -- methods for Tag
 
@@ -33,24 +35,71 @@ class Registry
   -- @treturn function `fn` wrapped with eval-cycle logic
   wrap_eval: (fn) => (...) ->
     @grab!
-    @last_map, @map, @pending = @map, {}, {}
+    @map, @pending = {}, {}
+    @tick += 1
+    L\log "eval at tick #{@tick}"
 
-    with fn ...
-      for tag, val in pairs @last_map
-        if not @map[tag]
-          val\destroy!
+    results = { pcall fn, ... }
+    ok = table.remove results, 1
 
-      for { :tag, :expr } in *@pending
-        -- tag was solved by another pending registration
-        -- (e.g. first [A] is solved, then [5.A] is solved)
-        continue if tag\index!
-
-        next_tag = @next_tag!
-        L\trace "assigned new tag #{next_tag} to #{tag} #{expr}"
-        tag\set next_tag
-        @map[tag\index!] = expr
-
+    if not ok
+      @tick -= 1
       @release!
+      L\log "rollback to tick #{@tick}"
+      error unpack results
+      error "WHAT?"
+
+    for tag, val in pairs @last_map
+      val\destroy! unless @map[tag]
+
+    for { :tag, :expr } in *@pending
+      -- tag was solved by another pending registration
+      -- (e.g. first [A] is solved, then [5.A] is solved)
+      continue if tag\index!
+
+      next_tag = @next_tag!
+      L\trace "assigned new tag #{next_tag} to #{tag} #{expr}"
+      tag\set next_tag
+      @map[tag\index!] = expr
+
+    @last_map = @map
+    @release!
+    unpack results
+
+  begin_eval: =>
+    @latest_map = @last_map
+    @begin_tick!
+    @map, @pending = {}, {}
+
+  end_eval: =>
+    for tag, val in pairs @last_map
+      val\destroy! unless @map[tag]
+
+    for { :tag, :expr } in *@pending
+      -- tag was solved by another pending registration
+      -- (e.g. first [A] is solved, then [5.A] is solved)
+      continue if tag\index!
+
+      next_tag = @next_tag!
+      L\trace "assigned new tag #{next_tag} to #{tag} #{expr}"
+      tag\set next_tag
+      @map[tag\index!] = expr
+
+    @last_map = @map
+    @end_tick!
+
+  rollback_eval: =>
+    @end_tick!
+
+  next_tick: =>
+    @tick += 1
+
+  begin_tick: =>
+    @grab!
+    @next_tick!
+
+  end_tick: =>
+    @release!
 
   --- wrap a function with a tick.
   --
@@ -61,13 +110,16 @@ class Registry
   wrap_tick: (fn) => (...) ->
     @grab!
     @tick += 1
-    @kr.value\set true
 
-    for io in pairs @io
-      io\tick!
+    results = { pcall fn, ... }
+    ok = table.remove results, 1
 
-    with fn ...
+    if not ok
       @release!
+      error unpack results
+
+    @release!
+    unpack results
 
   grab: =>
     assert not @prev, "already have a previous registry? #{@prev}"
@@ -83,11 +135,8 @@ class Registry
   --- create a new Registry.
   -- @classmethod
   new: =>
-    @map = {}
-    @io = {}
-
+    @last_map, @map = {}, {}
     @tick = 0
-    @kr = Result value: Value.bool true
 
   --- get the active Registry.
   --

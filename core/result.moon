@@ -63,7 +63,7 @@ class Result
           self_dirty = true
           break
 
-      L\trace "#{@op} is #{if self_dirty then 'dirty' else 'clean'}"
+      -- L\trace "#{@op} is #{if self_dirty then 'dirty' else 'clean'}"
       return unless self_dirty
 
       @op\tick!

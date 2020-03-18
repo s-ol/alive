@@ -1,8 +1,8 @@
 ----
 -- Builtin / Special Form evaluation Strategy (`builtin`).
 --
--- Responsible for quoting/evaluating subexpressions, instantiating and patching
--- `Op`s, updating the current `Scope`, etc.
+-- Responsible for quoting/evaluating subexpressions, instantiating and setting
+-- up `Op`s, updating the current `Scope`, etc.
 -- See `builtin` and `invoke` for examples.
 --
 -- @classmod Action
@@ -17,8 +17,7 @@ class Action
   --
   -- @tparam Value head the (`AST:eval`d) `head` of the Cell to evaluate
   -- @tparam Tag tag the Tag of the expression to evaluate
-  new: (head, @tag) =>
-    @patch head
+  new: (@head, @tag) =>
 
   --- perform the actual evaluation.
   --
@@ -36,21 +35,15 @@ class Action
   --- free resources
   destroy: =>
 
-  --- attempt to update this instance with a new `head` prior to `eval`.
+  --- setup or copy state from previous instance of same type.
   --
-  -- If `patch` returns `false`, this instance is `destroy`ed and recreated.
-  -- Must *not* return `false` when called immediately after `new`.
-  -- Only considered if Action types of old and new expression match.
+  -- `prev` is only passed if Action types of prev and current expression match.
+  -- Otherwise, or when no previous expression exists, `nil` is passed.
   --
-  -- @tparam AST head the new head value
-  -- @treturn bool whether patching was successful
-  patch: (head) =>
-    if head == @head
-      true
+  -- @tparam ?Action prev the previous Action instance
+  setup: (prev) =>
 
-    @head = head
-
-  --- the last head used to construct this instance
+  --- the head of the `Cell` this Action was created for.
   --
   -- @tfield AST head
 
@@ -61,11 +54,12 @@ class Action
 --- static functions
 -- @section static
 
-  --- get-or-update an `Action` for a given tag, then evaluate it.
+  --- create and setup an `Action` for a given tag, then evaluate it.
   --
-  -- Find the action for the expression with `Tag` `tag` if it exists,
-  -- and is compatible with the new `head`, otherwise instantiate one.
-  -- Register the `Action` with `tag`, evaluate it and return the `Result`.
+  -- Create a new instance using `tag` and `head` and call `setup` on it.
+  -- If a previous instance with the same `tag` exists and has the same `head`,
+  -- it pass it to `setup`. Register the `Action` with `tag`, evaluate it
+  -- and return the `Result`.
   --
   -- @tparam Scope scope the active scope
   -- @tparam Tag tag the tag of the `Cell` being evaluated
@@ -74,10 +68,7 @@ class Action
   -- @treturn Result the result of evaluation
   @eval_cell: (scope, tag, head, tail) =>
     last = tag\last!
-    compatible = last and
-                 (last.__class == @) and
-                 (last\patch head) and
-                 last
+    compatible = last and (last.__class == @) and last.head == head
 
     L\trace if compatible
       "reusing #{last} for #{tag} <#{@__name} #{head}>"
@@ -86,14 +77,14 @@ class Action
     else
       "initializing #{tag} <#{@__name} #{head}>"
 
-    action = if compatible
-      tag\keep compatible
-      compatible
+    action = @ head, tag
+    if compatible
+      action\setup last
     else
       last\destroy! if last
-      with next = @ head, tag
-        tag\replace next
+      action\setup nil
 
+    tag\replace action
     action\eval scope, tail
 
   __tostring: => "<#{@@__name} #{@head}>"

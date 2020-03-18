@@ -21,28 +21,34 @@ class Copilot
     if mode != 'file'
       error "not a file: #{@file}"
 
-  patch: =>
-    ast = L\try "error parsing:", parse, slurp @file
-    if not ast
-      L\error "error parsing"
-      return
-
-    scope = Scope globals
-    root = L\try "error evaluating:", ast\eval, scope, @registry
-    return unless root
-
-    @root = root if root
-    ast
-
   tick: =>
     @poll!
 
     if @root
-      L\try "error evaluating:", @registry\wrap_tick ->
+      @registry\begin_tick!
+      L\try "error evaluating:", ->
         @root\tick_io!
         @root\tick!
+      @registry\end_tick!
 
-  tb = (msg) -> debug.traceback msg, 2
+  eval: =>
+    @registry\begin_eval!
+    ast = L\try "error parsing:", parse, slurp @file
+    if not ast
+      L\error "error parsing"
+      @registry\rollback_eval!
+      return
+
+    scope = Scope globals
+    root = L\try "error evaluating:", ast\eval, scope, @registry
+    if not root
+      @registry\rollback_eval!
+      return
+
+    @registry\end_eval!
+    @root = root
+    spit @file, ast\stringify!
+
   poll: =>
     { :mode, :modification } = (lfs.attributes @file) or {}
     if mode != 'file'
@@ -50,8 +56,9 @@ class Copilot
 
     if @last_modification < modification
       L\log "#{@file} changed at #{modification}"
-      ast = L\push @registry\wrap_eval @\patch
-      spit @file, ast\stringify! if ast
+      @eval!
       @last_modification = os.time!
 
-:Copilot
+{
+  :Copilot
+}
