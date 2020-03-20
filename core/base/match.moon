@@ -2,6 +2,7 @@
 -- Utilities for matching `Result` types.
 --
 -- @module match
+import Error from require 'core.error'
 unpack or= table.unpack
 
 class Pattern
@@ -39,11 +40,11 @@ class Pattern
       matched = while @matches results[1]
         table.remove results, 1
 
-      assert @opt or #matched > 0, "expected at least one argument for spread"
+      assert @opt or #matched > 0, Error 'argument', "expected at least one argument for spread"
       matched
     else
       matches = @matches results[1]
-      assert @opt or matches, "couldn't match argument #{results[1]} as #{@}"
+      assert @opt or matches, Error 'argument', "argument #{results[1].value} incompatible with expected type #{@}"
       if matches then table.remove results, 1
 
   __tostring: =>
@@ -84,7 +85,7 @@ match = (pattern, inputs) ->
     pattern = rest
     Pattern pat
   values = [p\match inputs for p in *patterns]
-  assert #inputs == 0, "#{#inputs} extra arguments given!"
+  assert #inputs == 0, Error 'argument', "#{#inputs} extra arguments given!"
   values
 
 {

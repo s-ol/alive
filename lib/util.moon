@@ -1,5 +1,4 @@
-import Op, Value, Input, match
-  from require 'core.base'
+import Op, Value, Input, Error, match from require 'core.base'
 
 all_same = (list) ->
   for v in *list[2,]
@@ -19,7 +18,7 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
     { i, values } = match 'any *any', inputs
 
     i_type = i\type!
-    assert i_type == 'bool' or i_type == 'num', "#{@}: i has to be bool or num"
+    assert i_type == 'bool' or i_type == 'num', Error 'argument', "i has to be bool or num"
     typ = all_same [v\type! for v in *values]
     @out = Value typ if not @out or typ != @out.type
 
@@ -50,7 +49,7 @@ when i is a num, it is (floor)ed and the matching argument (starting from 0) is 
     { i, values } = match 'any *any', inputs
 
     i_type = i\type!
-    assert i_type == 'bool' or i_type == 'num', "#{@}: i has to be bool or num"
+    assert i_type == 'bool' or i_type == 'num', Error 'argument', "i has to be bool or num"
     typ = all_same [v\type! for v in *values]
     @out = Value typ if not @out or typ != @out.type
 

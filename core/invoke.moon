@@ -6,6 +6,7 @@ import Value from require 'core.value'
 import Result from require 'core.result'
 import Action from require 'core.base'
 import Scope from require 'core.scope'
+import Error from require 'core.error'
 
 --- `Action` implementation that invokes an `Op`.
 --
@@ -40,7 +41,7 @@ class op_invoke extends Action
   -- @treturn Result
   eval: (scope, tail) =>
     children = [L\push expr\eval, scope for expr in *tail]
-    @op\setup [result for result in *children], scope
+    Error.wrap "invoking #{@op}#{@tag}", @op\setup, [result for result in *children], scope
 
     any_dirty = false
     for input in @op\all_inputs!
@@ -91,8 +92,8 @@ class fn_invoke extends Action
       with L\push tail[i]\eval, outer_scope
         fn_scope\set name, \make_ref!
 
-    body = body\clone @tag
-    result = body\eval fn_scope
+    clone = body\clone @tag
+    result = Error.wrap "invoking function #{body.tag} at #{@tag}", clone\eval, fn_scope
 
     table.insert children, result
     Result :children, value: result.value

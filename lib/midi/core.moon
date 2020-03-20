@@ -1,4 +1,4 @@
-import IO, Op, Registry, Input, match from require 'core.base'
+import IO, Op, Registry, Input, Error, match from require 'core.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 import band, bor, lshift, rshift from require 'bit32'
 
@@ -49,7 +49,7 @@ class MidiPort extends IO
         coroutine.yield msg
 
   send: (status, chan, a, b) =>
-    assert @out, "#{@} is not an output or bidirectional port"
+    assert @out, Error 'type', "#{@} is not an output or bidirectional port"
     if 'string' == type 'status'
       status = bor (lshift rMIDI[status], 4), chan
     @out\sendmessage status, a, b

@@ -17,6 +17,7 @@ L or= setmetatable {}, __index: => ->
 import Value from require 'core.value'
 import Result from require 'core.result'
 import Scope from require 'core.scope'
+import Error from require 'core.error'
 import Registry, SimpleRegistry from require 'core.registry'
 import Tag from require 'core.tag'
 
@@ -35,6 +36,7 @@ globals = Scope.from_table require 'core.builtin'
 -- @tfield Cell Cell
 -- @tfield RootCell RootCell
 -- @tfield Scope Scope
+-- @tfield Error Error
 -- @tfield Registry Registry
 -- @tfield Tag Tag
 -- @tfield Scope globals global definitons
@@ -42,7 +44,7 @@ globals = Scope.from_table require 'core.builtin'
 {
   :Value, :Result
   :Cell, :RootCell
-  :Scope
+  :Scope, :Error
 
   :Registry, :SimpleRegistry, :Tag
 

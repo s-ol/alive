@@ -1,4 +1,4 @@
-import Op, Input, match from require 'core.base'
+import Op, Input, Error, match from require 'core.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -72,7 +72,7 @@ class not_eq extends Op
   new: => super 'bool'
 
   setup: (inputs) =>
-    assert #inputs > 1, "neq need at least two values"
+    assert #inputs > 1, Error 'argument', "need at least two values"
     super [Input.value v for v in *inputs]
 
   tick: =>

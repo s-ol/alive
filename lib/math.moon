@@ -1,4 +1,4 @@
-import Op, Value, Input, match from require 'core.base'
+import Op, Value, Error, Input, match from require 'core.base'
 unpack or= table.unpack
 
 class ReduceOp extends Op
@@ -71,7 +71,9 @@ func_op = (name, arity, func) ->
 
     setup: (inputs) =>
       { params } = match '*num', inputs
-      assert #params == arity, "#{@} needs exactly #{arity} parameters" if arity != '*'
+      if arity != '*'
+        err = Error 'argument', "need exactly #{arity} arguments"
+        assert #params == arity, err
       super [Input.value p for p in *params]
 
     tick: => @out\set func unpack @unwrap_all!

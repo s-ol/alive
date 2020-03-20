@@ -3,6 +3,7 @@
 --
 -- @classmod Value
 import Result from require 'core.result'
+import Error from require 'core.error'
 import scope, base, registry from require 'core.cycle'
 
 ancestor = (klass) ->
@@ -107,7 +108,7 @@ class Value
       when 'num', 'str'
         Result value: @
       when 'sym'
-        assert (scope\get @value), "undefined reference to symbol '#{@value}'"
+        assert (scope\get @value), Error 'reference', "undefined symbol '#{@value}'"
       else
         error "cannot evaluate #{@}"
 

@@ -1,4 +1,4 @@
-import Op, Input, match from require 'core.base'
+import Op, Input, Error, match from require 'core.base'
 import udp from require 'socket'
 
 local conn
@@ -25,7 +25,7 @@ class play extends Op
 
   setup: (inputs) =>
     { trig, args } = match 'bang *any', inputs
-    assert #args < 6, "too many arguments!"
+    assert #args < 6, Error 'argument', "too many arguments!"
     super
       trig: Input.event trig
       args: [Input.cold a for a in *args]
@@ -40,7 +40,7 @@ class play_ extends Op
 
   setup: (inputs) =>
     { chan, octv, note, args } = match 'any any any *any', inputs
-    assert #args < 3, "too many arguments!"
+    assert #args < 3, Error 'argument', "too many arguments!"
     super
       chan: Input.cold chan
       octv: Input.cold octv

@@ -1,5 +1,5 @@
 lfs = require 'lfs'
-import parse, globals, Scope, Registry from require 'core'
+import parse, globals, Scope, Error, Registry from require 'core'
 
 slurp = (file) ->
   file = io.open file, 'r'
@@ -40,8 +40,9 @@ class Copilot
       return
 
     scope = Scope globals
-    root = L\try "error evaluating:", ast\eval, scope, @registry
-    if not root
+    ok, root = Error.try "evaluating '#{@file}'", ast\eval, scope, @registry
+    if not ok
+      print root
       @registry\rollback_eval!
       return
 
