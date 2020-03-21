@@ -1,9 +1,9 @@
 import Value, Op, Input, match from require 'core.base'
-import apply_range from require 'lib.midi.core'
-import bor, lshift from require 'bit32'
+import apply_range, bit from require 'lib.midi.core'
+import bor, lshift from bit
 
 unpack or= table.unpack
-color = (r, g) -> bor 12, r, (lshift g, 4)
+color = (r, g) -> bit.bor 12, r, (bit.lshift g, 4)
 
 class cc_seq extends Op
   @doc: "(launctl/cc-seq port i start chan [steps [range]]) - CC-Sequencer

@@ -1,6 +1,10 @@
 import IO, Op, Registry, Input, Error, match from require 'core.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
-import band, bor, lshift, rshift from require 'bit32'
+
+bit = do
+  ok, bit = pcall require, 'bit32'
+  if ok then bit else require 'bit'
+import band, bor, lshift, rshift from bit
 
 MIDI = {
   [0x9]: 'note-on'
@@ -112,4 +116,5 @@ apply_range = (range, val) ->
   :output
   :inout
   :apply_range
+  :bit
 }

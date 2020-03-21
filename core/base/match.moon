@@ -43,8 +43,9 @@ class Pattern
       assert @opt or #matched > 0, Error 'argument', "expected at least one argument for spread"
       matched
     else
-      matches = @matches results[1]
-      assert @opt or matches, Error 'argument', "argument #{results[1].value} incompatible with expected type #{@}"
+      result = results[1]
+      matches = @matches result
+      assert @opt or matches, Error 'argument', "argument #{result and result\type!} incompatible with expected type #{@}"
       if matches then table.remove results, 1
 
   __tostring: =>
