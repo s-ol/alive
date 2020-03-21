@@ -214,7 +214,7 @@ prints expr's value whenever it changes."
 
     op = Value 'opdef', traceOp
     tag = @tag\clone Tag.parse '-1'
-    prefix = Value.str tail[1]\stringify!
+    prefix = Value.str tostring tail[1]
     op_invoke\eval_cell scope, tag, op, { prefix, tail[1] }
 
 {

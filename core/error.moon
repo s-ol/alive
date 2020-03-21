@@ -2,6 +2,9 @@
 -- Language error and traceback.
 --
 -- @classmod Error
+
+unpack or= table.unpack
+
 class Error
 --- members
 -- @section members
@@ -14,7 +17,13 @@ class Error
   -- @tparam string where
   add_frame: (where) => @trace ..= "\n  while #{where}"
 
-  __tostring: => "#{@kind} error: #{@message}#{@detail}#{@trace}"
+  __tostring: =>
+    str = "#{@kind} error: #{@message}"
+    if @detail
+      str ..= "\n#{@detail}"
+    if @trace
+      str ..= @trace
+    str
 
 --- static functions
 -- @section static
@@ -33,13 +42,13 @@ class Error
   -- @tparam string message
   -- @tparam ?string detail
   new: (@kind, @message, @detail) =>
-    @trace = ""
+    @trace = ''
 
   handler = (err) ->
     if err.__class == Error
       err
     else
-      Error 'implementation', err, debug.traceback 'Lua error below:', 2
+      Error 'implementation', err, debug.traceback "Lua error below:", 2
   --- Wrap function errors in a traceback frame.
   --
   -- Execute `fn(...)`, and turn any error thrown as a result into an
