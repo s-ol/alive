@@ -15,10 +15,11 @@ Before we get to making sound though, we should learn a bit about the `alive`
 programming language, and how to install and use it.
 
 ## installation
-`alive` is written in the Lua programming language, and relies on a number of
-other software projects to run. To manage these dependencies `luarocks` is
-used, follow [this link][luarocks] for instructions on setting it up.
-Once you have luarocks, you can install the dependencies for `alive`:
+`alive` is written in the Lua programming language, and is compatible with both
+Lua 5.3 and luajit. `alive` requires a number of other Lua libraries to run. To
+manage these dependencies `luarocks` is used, follow [this link][luarocks] for
+instructions on setting it up. Once you have luarocks, you can install the
+dependencies for `alive`:
 
     $ luarocks install moonscript
     $ luarocks install luasystem
