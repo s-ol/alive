@@ -8,6 +8,20 @@ import Action from require 'core.base'
 import Scope from require 'core.scope'
 import Error from require 'core.error'
 
+get_name = (value, raw) ->
+  meta = if value.meta then value.meta.name
+  locl = if raw and raw.type == 'sym' then raw!
+
+  if locl
+    if meta and meta != locl
+      "'#{meta}' (local '#{locl}')"
+    else
+      "'#{locl}'"
+  else if meta
+    "'#{meta}'"
+  else
+    "(unnamed)"
+
 --- `Action` implementation that invokes an `Op`.
 --
 -- @type op_invoke
@@ -41,7 +55,9 @@ class op_invoke extends Action
   -- @treturn Result
   eval: (scope, tail) =>
     children = [L\push expr\eval, scope for expr in *tail]
-    Error.wrap "invoking #{@op}#{@tag}", @op\setup, [result for result in *children], scope
+
+    frame = "invoking op #{get_name @head, @cell\head!} at [#{@tag}]"
+    Error.wrap frame, @op\setup, [result for result in *children], scope
 
     any_dirty = false
     for input in @op\all_inputs!
@@ -81,9 +97,13 @@ class fn_invoke extends Action
   -- @tparam {AST,...} tail the arguments to this expression
   -- @treturn Result the result of this evaluation
   eval: (outer_scope, tail) =>
-    { :params, :body, :scope } = @head\unwrap 'fndef', "cant fn-invoke #{@head}"
+    name = get_name @head, @cell\head!
+    frame = "invoking function #{name} at [#{@tag}]"
 
-    assert #params == #tail, "argument count mismatch in #{@head}"
+    { :params, :body, :scope } = @head\unwrap 'fndef', "cant fn-invoke #{@head}"
+    if #params != #tail
+      error with Error 'argument', "expected #{#params} arguments, found #{#tail}"
+        \add_frame frame
 
     fn_scope = Scope scope, outer_scope
 
@@ -93,7 +113,7 @@ class fn_invoke extends Action
         fn_scope\set name, \make_ref!
 
     clone = body\clone @tag
-    result = Error.wrap "invoking function #{body.tag} at #{@tag}", clone\eval, fn_scope
+    result = Error.wrap frame, clone\eval, fn_scope
 
     table.insert children, result
     Result :children, value: result.value

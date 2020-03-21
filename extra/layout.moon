@@ -1,26 +1,48 @@
-v = require 'core.version'
+version = require 'core.version'
+import compile from require 'discount'
+
+render_meta = (meta) ->
+  import p, code from require 'extra.dom'
+  contents = {}
+  if meta.examples
+    -- table.insert contents, h4 'signature'
+    examples = p table.concat [code e for e in *meta.examples], ' '
+    table.insert contents, examples
+  if meta.description
+    description = compile meta.description\match '^\n*(.+)\n*$'
+    table.insert contents, description.body
+
+  contents
 
 -- render an ALV Value to a HTML string
-render = (name, value, prefix=nil) ->
+render = (name, value, prefix=nil, index=false) ->
   import div, label, code, ul, li, i, a, pre from require 'extra.dom'
 
   id = if prefix then "#{prefix}/#{name}" else name
   type = i value.type
+  assert value.meta, "#{id} doesn't have any metadata!"
+  summary = assert value.meta.summary, "#{id} doesn't have a summary!"
 
-  content = switch value.type
-    when 'scope'
-      ul for k, result in opairs value!.values
-        li render k, result.value, id
-    when 'opdef', 'builtin'
-      pre value!.doc
-    when 'num', 'str', 'bool'
-      code tostring value!
+  if index
+    div {
+      label (a (code name), href: "##{id}"), ' (', type, '): &ensp;&ndash;&ensp;'
+      summary
+    }
+  else
+    content = switch value.type
+      when 'scope'
+        ul for k, result in opairs value!.values
+          li render k, result.value, id
+      else
+        render_meta value.meta
 
-  div {
-    :id, class: 'def'
-    label (a (code name), href: "##{id}"), ' (', type, '):'
-    div content, class: 'nest'
-  }
+    content.class = 'nest'
+    div {
+      :id, class: 'def'
+      label (a (code name), href: "##{id}"), ' (', type, '): &ensp;&ndash;&ensp;'
+      summary
+      div content
+    }
 
 -- generate a relative link
 abs = (page) ->
@@ -78,7 +100,7 @@ layout = (opts) ->
     span {
       a 'alive', href: abs 'index.html'
       ' '
-      code v.tag
+      code version.tag
       ' documentation'
     }
     div class: 'grow'
@@ -94,7 +116,7 @@ layout = (opts) ->
     "alive documentation"
   foot = footer div {
     'alive '
-    a (code v.tag), href: v.web
+    a (code version.tag), href: version.web
     ', generated '
     os.date '!%Y-%m-%d %T'
   }

@@ -15,9 +15,11 @@ class Action
 
   --- create a new instance.
   --
+  -- @tparam Cell cell the Cell to evaluate
   -- @tparam Value head the (`AST:eval`d) `head` of the Cell to evaluate
-  -- @tparam Tag tag the Tag of the expression to evaluate
-  new: (@head, @tag) =>
+  new: (@cell, @head) =>
+    @tag = @cell.tag
+    @tag\replace @
 
   --- perform the actual evaluation.
   --
@@ -43,12 +45,13 @@ class Action
   -- @tparam ?Action prev the previous Action instance
   setup: (prev) =>
 
-  --- the head of the `Cell` this Action was created for.
-  --
+  --- the `Cell` this Action was created for.
+  -- @tfield Cell cell
+
+  --- the evaluated head of `cell`.
   -- @tfield AST head
 
-  --- the identity of the `Cell` this Action was created for.
-  --
+  --- the identity of `cell`.
   -- @tfield Tag tag
 
 --- static functions
@@ -61,31 +64,29 @@ class Action
   -- it pass it to `setup`. Register the `Action` with `tag`, evaluate it
   -- and return the `Result`.
   --
+  -- @tparam Cell cell the `Cell` being evaluated
   -- @tparam Scope scope the active scope
-  -- @tparam Tag tag the tag of the `Cell` being evaluated
   -- @tparam Value head the (`AST:eval`d) head of the `Cell` being evaluated
-  -- @tparam {AST,...} tail the raw AST parameters to the `Cell` being evaluated
   -- @treturn Result the result of evaluation
-  @eval_cell: (scope, tag, head, tail) =>
-    last = tag\last!
+  @eval_cell: (cell, scope, head) =>
+    last = cell.tag\last!
     compatible = last and (last.__class == @) and last.head == head
 
     L\trace if compatible
-      "reusing #{last} for #{tag} <#{@__name} #{head}>"
+      "reusing #{last} for #{cell.tag} <#{@__name} #{head}>"
     else if last
-      "replacing #{last} with new #{tag} <#{@__name} #{head}>"
+      "replacing #{last} with new #{cell.tag} <#{@__name} #{head}>"
     else
-      "initializing #{tag} <#{@__name} #{head}>"
+      "initializing #{cell.tag} <#{@__name} #{head}>"
 
-    action = @ head, tag
+    action = @ cell, head
     if compatible
       action\setup last
     else
       last\destroy! if last
       action\setup nil
 
-    tag\replace action
-    action\eval scope, tail
+    action\eval scope, cell\tail!
 
   __tostring: => "<#{@@__name} #{@head}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring

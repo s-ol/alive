@@ -1,4 +1,4 @@
-import Op, Input, Error, match from require 'core.base'
+import Op, Value, Input, Error, match from require 'core.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -31,77 +31,98 @@ class ReduceOp extends Op
 
     @out\set accum
 
-class eq extends Op
-  @doc: "(eq a b [c]...)
-(== a b [c]...) - check for equality
+eq = Value.meta
+  meta:
+    name: 'eq'
+    summary: "Check for equality."
+    examples: { '(== a b [c]...)', '(eq a b [c]...)' }
+    description: "`true` if the types and values of all arguments are equal."
 
-If the value types dont match, the result is an eval-time constant 'false'."
+  value: class extends Op
+    new: => super 'bool', false
 
-  new: => super 'bool', false
+    setup: (inputs) =>
+      { first, rest } = match "any *any", inputs
+      same = all_same first\type!, [i\type! for i in *rest]
 
-  setup: (inputs) =>
-    { first, rest } = match "any *any", inputs
-    same = all_same first\type!, [i\type! for i in *rest]
+      super if same
+        {
+          first: Input.value first
+          rest: [Input.value v for v in *rest]
+        }
+      else
+        {}
 
-    super if same
-      {
-        first: Input.value first
-        rest: [Input.value v for v in *rest]
-      }
-    else
-      {}
+    tick: =>
+      if not @inputs.first
+        @out\set false
+        return
 
-  tick: =>
-    if not @inputs.first
-      @out\set false
-      return
+      { :first, :rest } = @unwrap_all!
 
-    { :first, :rest } = @unwrap_all!
-
-    equal = true
-    for other in *rest
-      if first != other
-        equal = false
-        break
-
-    @out\set equal
-
-class not_eq extends Op
-  @doc: "(not-eq a b [c]...)
-(!= a b [c]...) - check for inequality"
-  new: => super 'bool'
-
-  setup: (inputs) =>
-    assert #inputs > 1, Error 'argument', "need at least two values"
-    super [Input.value v for v in *inputs]
-
-  tick: =>
-    if not @inputs[1]
-      @out\set true
-      return
-
-    diff = true
-    for a=1, #@inputs-1
-      for b=a+1, #@inputs
-        if @inputs[a].stream == @inputs[b].stream
-          diff = false
+      equal = true
+      for other in *rest
+        if first != other
+          equal = false
           break
 
-      break unless diff
+      @out\set equal
 
-    @out\set diff
 
-class and_ extends ReduceOp
-  @doc: "(and a b [c]...) - AND values"
-  fn: (a, b) -> a and b
+not_eq = Value.meta
+  meta:
+    name: 'not-eq'
+    summary: "Check for inequality."
+    examples: { '(!= a b [c]...)', '(not-eq a b [c]...)' }
+    description: "`true` if types or values of any two arguments are different."
 
-class or_ extends ReduceOp
-  @doc: "(or a b [c]...) - OR values"
-  fn: (a, b) -> a or b
+  value: class extends Op
+    new: => super 'bool'
 
-class not_ extends Op
-  @doc: "(not a) - boolean opposite"
-  new: => super 'bool'
+    setup: (inputs) =>
+      assert #inputs > 1, Error 'argument', "need at least two values"
+      super [Input.value v for v in *inputs]
+
+    tick: =>
+      if not @inputs[1]
+        @out\set true
+        return
+
+      diff = true
+      for a=1, #@inputs-1
+        for b=a+1, #@inputs
+          if @inputs[a].stream == @inputs[b].stream
+            diff = false
+            break
+
+        break unless diff
+
+      @out\set diff
+
+and_ = Value.meta
+  meta:
+    name: 'and'
+    summary: "Logical AND."
+    examples: { '(and a b [c…])' }
+  value: class extends ReduceOp
+    fn: (a, b) -> a and b
+
+or_ = Value.meta
+  meta:
+    name: 'or'
+    summary: "Logical OR."
+    examples: { '(or a b [c…])' }
+  value: class extends ReduceOp
+    fn: (a, b) -> a or b
+
+not_ = Value.meta
+  meta:
+    name: 'not'
+    summary: "Logical NOT."
+    examples: { '(not a)' }
+
+  value: class extends Op
+    new: => super 'bool'
 
   setup: (inputs) =>
     { value } = match 'any', inputs
@@ -109,15 +130,21 @@ class not_ extends Op
 
   tick: => @out\set not tobool @inputs.value!
 
-class bool extends Op
-  @doc: "(bool a) - convert to bool"
-  new: => super 'bool'
+bool = Value.meta
+  meta:
+    name: 'bool'
+    summary: "Cast value to bool."
+    examples: { '(bool a)' }
+    description: "`false` if a is `false`, `nil` or `0`, `true` otherwise."
 
-  setup: (inputs) =>
-    { value } = match 'any', inputs
-    super value: Input.value value
+  value: class extends Op
+    new: => super 'bool'
 
-  tick: => @out\set tobool @inputs\value!
+    setup: (inputs) =>
+      { value } = match 'any', inputs
+      super value: Input.value value
+
+    tick: => @out\set tobool @inputs\value!
 
 {
   :eq, '==': eq

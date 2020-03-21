@@ -1,4 +1,4 @@
-import IO, Op, Registry, Input, Error, match from require 'core.base'
+import Value, IO, Op, Registry, Input, Error, match from require 'core.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 
 bit = do
@@ -67,34 +67,46 @@ class PortOp extends Op
       out = out and find_port RtMidiOut, out!
       @out\set MidiPort inp, out
 
-class input extends PortOp
-  @doc: "(midi/input name) - create a MIDI input port"
+input = Value.meta
+  meta:
+    name: 'input'
+    summary: "Create a MIDI input port."
+    examples: { '(midi/input name)' }
 
-  setup: (inputs) =>
-    { name } = match 'str', inputs
-    super name: Input.value name
+  value: class extends PortOp
+    setup: (inputs) =>
+      { name } = match 'str', inputs
+      super name: Input.value name
 
-  tick: => super @inputs.name
+    tick: => super @inputs.name
 
-class output extends PortOp
-  @doc: "(midi/output name) - create a MIDI output port"
+output = Value.meta
+  meta:
+    name: 'output'
+    summary: "Create a MIDI output port."
+    examples: { '(midi/output name)' }
 
-  setup: (inputs) =>
-    { name } = match 'str', inputs
-    super name: Input.value name
+  value: class extends PortOp
+    setup: (inputs) =>
+      { name } = match 'str', inputs
+      super name: Input.value name
 
-  tick: => super nil, @inputs.name
+    tick: => super nil, @inputs.name
 
-class inout extends PortOp
-  @doc: "(midi/inout inname outname) - create a bidirectional MIDI port"
+inout = Value.meta
+  meta:
+    name: 'inout'
+    summary: "Create a bidirectional MIDI port."
+    examples: { '(midi/inout name)' }
 
-  setup: (inputs) =>
-    { inp, out } = match 'str str', inputs
-    super
-      inp: Input.value inp
-      out: Input.value out
+  value: class extends PortOp
+    setup: (inputs) =>
+      { inp, out } = match 'str str', inputs
+      super
+        inp: Input.value inp
+        out: Input.value out
 
-  tick: => super @inputs.inp, @inputs.out
+    tick: => super @inputs.inp, @inputs.out
 
 apply_range = (range, val) ->
   if range\type! == 'str'

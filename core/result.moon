@@ -61,9 +61,7 @@ class Result
       for stream in @op\all_inputs!
         if stream\dirty!
           self_dirty = true
-          break
 
-      -- L\trace "#{@op} is #{if self_dirty then 'dirty' else 'clean'}"
       return unless self_dirty
 
       @op\tick!

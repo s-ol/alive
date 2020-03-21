@@ -1,12 +1,15 @@
-import Op, Input from require 'core.base'
+import Op, Value, Input from require 'core.base'
 
-class str extends Op
-  @doc: "(str v1 [v2]...)
-(.. v1 [v2]...) - concatenate/stringify values"
-  new: => super 'str'
+str = Value.meta
+  meta:
+    name: 'str'
+    summary: "Concatenate/stringify values."
+    examples: { '(.. v1 [v2…])', '(str v1 [v2…])' }
+  value: class extends Op
+    new: => super 'str'
 
-  setup: (inputs) => super [Input.value v for v in *inputs]
-  tick: => @out\set table.concat [tostring v! for v in *@inputs]
+    setup: (inputs) => super [Input.value v for v in *inputs]
+    tick: => @out\set table.concat [tostring v! for v in *@inputs]
 
 {
   :str, '..': str

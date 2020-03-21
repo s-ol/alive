@@ -26,16 +26,18 @@ class Copilot
 
     if @root
       @registry\begin_tick!
-      L\try "error evaluating:", ->
+      ok, error = Error.try "updating", ->
         @root\tick_io!
         @root\tick!
+      if not ok
+        print error
       @registry\end_tick!
 
   eval: =>
     @registry\begin_eval!
-    ast = L\try "error parsing:", parse, slurp @file
-    if not ast
-      L\error "error parsing"
+    ok, ast = Error.try "parsing '#{@file}'", parse, slurp @file
+    if not ok
+      print ast
       @registry\rollback_eval!
       return
 

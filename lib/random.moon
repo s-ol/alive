@@ -23,38 +23,20 @@ range can be one of:
 - (num) [ 0 - num["
 
 class num extends Op
-  @doc: "(random/num [trigger] [range]) - create a random number
-
-generates a random value in range on create and trigger.
+num = Value.meta
+  meta:
+    name: 'num'
+    summary: 'Generate a random number.'
+    examples: { '(random/num [trigger] [range]))' }
+    description: "generate a random value in `range` when created and on `trig`.
 #{range_doc}"
-  new: =>
-    super 'num'
-    @gen!
 
-  gen: => @state = { math.random! }
-
-  setup: (inputs) =>
-    { trig, range } = match 'bang? any?', inputs
-    super
-      trig: trig and Input.event trig
-      range: Input.value range or Value.str 'uni'
-
-  tick: =>
-    @gen! if @inputs.trig and @inputs.trig\dirty!
-    @out\set apply_range @inputs.range, @state[1]
-
-vec_ = (n) ->
-  class vec extends Op
-    @doc: "(random/vec#{n} [trigger] [range]) - create a random number
-
-generates a random vec#{n} on create and trigger.
-each component is in range.
-#{range_doc}"
+  value: class extends Op
     new: =>
-      super "vec#{n}"
+      super 'num'
       @gen!
 
-    gen: => @state = for i=1,n do math.random!
+    gen: => @state = { math.random! }
 
     setup: (inputs) =>
       { trig, range } = match 'bang? any?', inputs
@@ -64,10 +46,33 @@ each component is in range.
 
     tick: =>
       @gen! if @inputs.trig and @inputs.trig\dirty!
-      @out\set [apply_range @inputs.range, v for v in *@state]
+      @out\set apply_range @inputs.range, @state[1]
 
-  vec.__name = "vec#{n}"
-  vec
+vec_ = (n) ->
+  Value.meta
+    meta:
+      name: "vec#{n}"
+      summary: 'Generate a random vector.'
+      examples: { '(random/vec#{n} [trigger] [range]))' }
+      description: "generate a random vec#{n} in `range` when created and on `trig`.
+#{range_doc}"
+
+    value: class extends Op
+      new: =>
+        super "vec#{n}"
+        @gen!
+
+      gen: => @state = for i=1,n do math.random!
+
+      setup: (inputs) =>
+        { trig, range } = match 'bang? any?', inputs
+        super
+          trig: trig and Input.event trig
+          range: Input.value range or Value.str 'uni'
+
+      tick: =>
+        @gen! if @inputs.trig and @inputs.trig\dirty!
+        @out\set [apply_range @inputs.range, v for v in *@state]
 
 {
   :num

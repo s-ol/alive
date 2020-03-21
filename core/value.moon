@@ -72,23 +72,22 @@ class Value
   -- - `fndef` - `value` is a `FnDef` instance
   -- - `scope` - `value` is a `Scope` instance
   --
-  -- @tfield string type the type name
+  -- @tfield string type
 
   --- the wrapped Lua value.
+  -- @tfield any value
+
+  --- documentation metadata.
   --
-  -- the following builtin typenames are used:
+  -- an optional table containing metadata for error messages and
+  -- documentation. The following keys are recognized:
   --
-  -- - `str` - strings, `value` is a Lua string
-  -- - `sym` - symbols, `value` is a Lua string
-  -- - `num` - numbers, `value` is a Lua number
-  -- - `bool` - booleans, `value` is a Lua boolean
-  -- - `bang` - trigger signals, `value` is a Lua boolean
-  -- - `opdef` - `value` is an `Op` subclass
-  -- - `builtin` - `value` is an `Action` subclass
-  -- - `fndef` - `value` is a `FnDef` instance
-  -- - `scope` - `value` is a `Scope` instance
+  -- - `name`: optional name
+  -- - `summary`: single-line description (markdown)
+  -- - `examples`: optional list of single-line code examples
+  -- - `description`: optional full-text description (markdown)
   --
-  -- @tfield any value the wrapped value
+  -- @tfield ?table meta
 
 --- AST interface
 --
@@ -139,6 +138,7 @@ class Value
   -- @tparam any value the Lua value to be accessed through `unwrap`
   -- @tparam string raw the raw string that resulted in this value. Used by `parsing`.
   new: (@type, @value, @raw) =>
+    @meta = {}
 
   unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
   --- create a capture-function (for parsing with Lpeg).
@@ -157,6 +157,7 @@ class Value
   --
   -- @tparam any val the value to wrap
   -- @tparam[opt] string name the name of this value (for error logging)
+  -- @treturn Value
   @wrap: (val, name='(unknown)') ->
     typ = switch type val
       when 'number' then 'num'
@@ -188,21 +189,39 @@ class Value
 
   --- create a constant number.
   -- @tparam number num the number
+  -- @treturn Value
   @num: (num) -> Value 'num', num, tostring num
 
   --- create a constant string.
   -- @tparam string str the string
+  -- @treturn Value
   @str: (str) -> Value 'str', str, "'#{str}'"
 
   --- create a constant symbol.
   -- @tparam string sym the symbol
+  -- @treturn Value
   @sym: (sym) -> Value 'sym', sym, sym
 
   --- create a constant boolean.
   -- @tparam boolean bool the boolean
+  -- @treturn Value
   @bool: (bool) -> Value 'bool', bool, tostring bool
+
+  --- wrap and document a value.
+  --
+  -- wraps `args.value` using `wrap`, then assigns `meta`.
+  --
+  -- @tparam table args table with keys `value` and `meta`
+  -- @treturn Value
+  @meta: (args) ->
+    with Value.wrap args.value
+      .meta = args.meta if args.meta
+
+class LiteralValue extends Value
+  eval: => Result value: @
 
 {
   :Value
+  :LiteralValue
   :load_
 }

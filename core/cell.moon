@@ -83,7 +83,7 @@ class Cell
       else
         error "cannot evaluate expr with head #{head}"
 
-    Action\eval_cell scope, @tag, head, @tail!
+    Action\eval_cell @, scope, head
 
   --- quote this Cell, preserving its identity.
   --

@@ -49,7 +49,10 @@ globals = Scope.from_table require 'core.builtin'
   :Registry, :SimpleRegistry, :Tag
 
   :globals
-  parse: program\match
+
+  parse: (str) ->
+    assert (program\match str), Error 'syntax', "failed to parse"
+
   eval: (str, inject) ->
       scope = Scope nil, globals
       scope\use inject if inject

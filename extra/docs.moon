@@ -1,6 +1,6 @@
 import Value, Scope from require 'core'
 import render, layout, autoref from require 'extra.layout'
-import section, h1, h2, p, ul, li, a, code, r from require 'extra.dom'
+import section, h1, h2, h3, p, ul, li, a, code, r from require 'extra.dom'
 
 export OUT, BASE, require
 { OUT, command } = arg
@@ -33,6 +33,10 @@ spit OUT, switch command
       title: "#{name} reference"
       body: section {
         h2 (code name), ' module reference'
+        h3 'index'
+        ul for key, res in opairs module.values
+          li render key, res.value, nil, true
+        h3 'details'
         ul for key, res in opairs module.values
           li render key, res.value
       }
