@@ -3,7 +3,7 @@
 % -
 # getting started with alive
 `alive` is a language for creating and changing realtime programs while they
-are running continuously. `alive` can be used to create music, visuals or
+are running continuously. It can be used to create music, visuals or
 installations, but by itself creates neither sound nor video. Rather, `alive` is
 used together with other tools and synthesizers (for example
 [SuperCollider][supercollider] or [Pilot][pilot]). In such an ensemble of
@@ -99,6 +99,27 @@ change the tags to be unique, or simply delete the whole tag (including the
 square brackets) and let the copilot generate a new one for you the next time
 you save the file.
 
+## syntax
+As we just saw, *expressions* in alive take the form of parenthesized lists.
+Elements of an expression have to be separated by whitespace, but any type of
+and amount of whitespace is valid: feel free to use spaces, tabs, and newlines
+to format code to your liking. The following are all equal and valid examples:
+
+    (trace "hello world")
+
+    (+ 1
+       2
+       3)
+
+    (trace
+    	"hello world")
+
+      ( trace "hello world" )
+
+It is however recommended to follow the [clojure style guide][clojure-style] as
+much as it does apply to alive. All further examples in this guide will respect
+this guideline.
+
 ### basic types
 Strings can be written in two ways: using double quotes (`"`), as we did above,
 or using single quotes (`'`). In both types of strings, you can escape a quote
@@ -142,7 +163,7 @@ To annotate your code, you can use comments. In `alive`, comments begin with
 expression simply by adding a `#` character in front.
 
     #(this is a comment)
-    
+
     #(this is a long,
       multi-line comment,
       (and it also has nested parentheses).
@@ -180,16 +201,24 @@ it with a prefix. This is what the [import][] builtin is for:
     (trace (math/+ 1 2))
 
 ### defining symbols
-Both [import][] and [import*][] are actually shorthands for other builtins:
-[def][] and [use][]. [def][] is used to *define a symbol* in the
-current scope. You can use it to associate a *symbol* (a name, like `hello`,
-`trace`, or `+`) with a value. After a symbol is defined, the name becomes an
-alias that behaves like the value itself. For example, we can use [def][] to
-give the result of our calculation a name, and then refer to it by that symbol
-in the [trace][] operator:
+Another element of code in `alive` that we haven't discussed in detail yet are
+*symbols*. *Symbols* (like `trace`, `import*` or `math/+`) are names that serve
+as placeholders for previously *defined* values. When code is evaluated, symbols
+are looked up in the current *scope* and replaced with the corresponding value
+found there.
+
+When an `alive` file starts running, a number of symbols are defined in the
+default scope: These are the *builtins* mentioned above, and of which we have
+already been using [trace][], [import][], and [import*][].
+
+To *define a symbol* yourself, the [def][] builtin is used. It takes the symbol
+as its first, and the value to associate as its second parameter. After a symbol
+is defined, the name becomes an alias that behaves like the value itself. For
+example, we can use [def][] to associate the result of our calculation with the
+symbol `result`, and then refer to it by that symbol in the [trace][] operator:
 
     (import* math)
-    
+
     (def result (+ 1 2))
     (trace result)
 
@@ -210,8 +239,15 @@ symbols starting and ending with asterisks (`*clock*`):
   `alive` will look for the symbol `world` within the scope found by dynamically
   resolving `*hello*`.
 
-The [import][] builtin is actually a shorthand for the following expression:
+Both [import][] and [import*][] are actually shorthands and what they
+accomplish can be done using the lower-level builtins [def][], [use][] and
+[require][]. Here is how you could replace [import][]:
 
+    #(with import:)
+    (import math)
+    (trace (math/+ 1 2))
+
+    #(with def and require:)
     (def math (require "math"))
     (trace (math/+ 1 2))
 
@@ -220,12 +256,14 @@ Then `math/+` is resolved by looking for `+` in this nested scope. Note that
 the symbol that the scope is defined as and the name of the module that is
 loaded do not have to be the same, you could call the alias whatever you want:
 
+    #(this not possible with import!)
     (def fancy-math (require "math"))
     (trace (fancy-math/+ 1 2))
 
-In practice, this is rarely useful, which is why the [import][] shortcut exists.
-The full version of [import*][], on the other hand, defines every symbol from
-the imported module individually. The expanded version is the following:
+Most of the time the name of the module makes a handy prefix already, so
+[import][] can be used to save a bit of typing and make the code look a bit
+cleaner. [import*][], on the other hand, defines every symbol from the imported
+module individually. It could be implemented with [use][] like this:
 
     (use (require "math"))
     (trace (+ 1 2))
@@ -236,11 +274,11 @@ current scope.
 Note that [import][], [import*][], [def][], and [use][] all can take multiple
 arguments:
 
+    #(using the shorthands:)
     (import* math logic)
     (import midi osc)
 
-is the same as
-
+    #(using require, use and def:)
     (use (require "math") (require "logic"))
     (def midi (require "midi")
          osc  (require "osc"))
@@ -263,10 +301,10 @@ in the whole `alive` program. The [do][] builtin can be used to create a new
 scope and evaluate some expressions in it:
 
     (import string)
-    
+
     (def a 1
          b 2)
-    
+
     (trace (.. "first: " a " " b))
     (do
       (def a 3)
@@ -290,7 +328,7 @@ create a *user-defined function*, which can be used to simplify repetitive
 code, amongst other things:
 
     (import* math)
-    
+
     (def add-and-trace
       (fn
         (a b)
@@ -310,7 +348,7 @@ given in the definition, and then the function body is executed. The previous
 example is equivalent to the following:
 
     (import* math)
-    
+
     (def add-and-trace
       (fn
         (a b)
@@ -320,7 +358,7 @@ example is equivalent to the following:
       (let a 1
            b 2)
       (trace (+ a b)))
-      
+
     (do
       (let a 3
            b 4)
@@ -443,9 +481,10 @@ them.
 
 [supercollider]: https://supercollider.github.io/
 [pilot]:         https://github.com/hundredrabbits/Pilot
-[pd]:            http://puredata.info/
-[max]:           https://cycling74.com/products/max
-[vvvv]:          https://vvvv.org/
+[clojure-style]: https://github.com/bbatsov/clojure-style-guide
 [luarocks]:      https://github.com/luarocks/luarocks/#installing
 [git]:           https://github.com/s-ol/alivecoding
 [reference]:     reference/
+[pd]:            http://puredata.info/
+[max]:           https://cycling74.com/products/max
+[vvvv]:          https://vvvv.org/
