@@ -19,7 +19,7 @@ class Action
   -- @tparam Value head the (`AST:eval`d) `head` of the Cell to evaluate
   new: (@cell, @head) =>
     @tag = @cell.tag
-    @tag\replace @
+    @tag\register @
 
   --- perform the actual evaluation.
   --

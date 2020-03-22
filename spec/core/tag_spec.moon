@@ -3,15 +3,9 @@ import Registry from require 'core.registry'
 import Logger from require 'logger'
 Logger.init 'silent'
 
-with_reg = (fn) ->
-  registry = Registry!
-  fn = registry\wrap_eval fn
-  fn, registry
-
-do_reg = (fn) ->
-  fn, reg = with_reg fn
-  fn!
-  reg
+reg = Registry!
+setup -> reg\begin_eval!
+teardown -> reg\end_eval!
 
 describe 'Tag', ->
   describe 'should be constructable', ->
@@ -36,32 +30,32 @@ describe 'Tag', ->
       assert.is.equal expect, tostring tag
       assert.has.error tag\stringify
 
-    it 'from parsed tags', with_reg ->
+    it 'from parsed tags', ->
       parent = Tag.parse '1'
       original = Tag.parse '2'
       tag = original\clone parent
       do_asserts tag, '1.2'
 
-    it 'but not from blank tags', with_reg ->
+    it 'but not from blank tags', ->
       parent = Tag.parse '1'
       original = Tag.blank!
       tag = original\clone parent
       do_asserts tag, '1.?'
 
-    it 'with blank parent', with_reg ->
+    it 'with blank parent', ->
       parent = Tag.blank!
       original = Tag.parse '2'
       tag = original\clone parent
       do_asserts tag, '?.2'
 
-    it 'completely blank', with_reg ->
+    it 'completely blank', ->
       parent = Tag.blank!
       original = Tag.blank!
       tag = original\clone parent
       do_asserts tag, '?.?'
 
   describe 'should be set-able', ->
-    it 'only if blank', with_reg ->
+    it 'only if blank',  ->
       tag = Tag.parse '42'
       assert.has.error -> tag\set 43
 
@@ -71,13 +65,13 @@ describe 'Tag', ->
       clone = tag\clone Tag.blank!
       assert.has.error -> clone\set 42
 
-    it 'and stores the value', with_reg ->
+    it 'and stores the value', ->
       blank = Tag.blank!
       blank\set 12
 
       assert.is.equal blank.value, 12
 
-    it 'sets the original if cloned', with_reg ->
+    it 'sets the original if cloned', ->
       original = Tag.blank!
       parent = Tag.parse '7'
 
@@ -92,7 +86,7 @@ describe 'Tag', ->
 
       assert.is.equal original.value, 11
  
-    it 'requires the parent to be registered if cloned', with_reg ->
+    it 'requires the parent to be registered if cloned', ->
       original = Tag.blank!
       parent = Tag.blank!
 

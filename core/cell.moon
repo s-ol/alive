@@ -6,6 +6,7 @@
 --
 -- @classmod Cell
 import Value from require 'core.value'
+import Error from require 'core.error'
 import op_invoke, fn_invoke from require 'core.invoke'
 import Tag from require 'core.tag'
 
@@ -69,7 +70,7 @@ class Cell
   -- @tparam Scope scope the scope to evaluate in
   -- @treturn Result the evaluation result
   eval: (scope) =>
-    head = assert @head!, "cannot evaluate expr without head"
+    head = assert @head!, Error 'syntax', "cannot evaluate empty expr"
     head = (head\eval scope)\const!
     Action = switch head.type
       when 'opdef'
@@ -81,7 +82,7 @@ class Cell
       when 'builtin'
         head\unwrap!
       else
-        error "cannot evaluate expr with head #{head}"
+        error Error 'type', "#{head} is not an opdef, fndef or builtin"
 
     Action\eval_cell @, scope, head
 

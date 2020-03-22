@@ -24,33 +24,22 @@ class Tag
 
   --- obtain the registered value of the last eval-cycle.
   --
-  -- Obtain the value that was previously registered (using `keep` or
-  -- `replace`) for this tag on the last eval-cylce.
+  -- Obtain the value that was previously registered  for this tag on the last
+  -- eval-cylce.
   --
   -- @treturn ?any
   last: =>
     if index = @index!
       Registry.active!\last index
 
-  --- keep using a the value from the last eval-cycle.
-  --
-  -- Assert that `expr` is the value that was previously registered for this
-  -- tag, and keep it for the current eval cycle. Fails for blank tags.
-  --
-  -- @tparam any expr the value to register
-  keep: (expr) =>
-    index = assert @index!
-    assert expr == Registry.active!\last index
-    Registry.active!\replace index, expr
-
   --- register `expr` for this tag for the current eval cycle.
   --
   -- Will mark blank tags for auto-assignment at the end of the eval cycle.
   --
   -- @tparam any expr the value to register
-  replace: (expr) =>
+  register: (expr) =>
     if index = @index!
-      Registry.active!\replace index, expr
+      Registry.active!\register index, expr
     else
       Registry.active!\init @, expr
 
@@ -64,7 +53,7 @@ class Tag
     -- ensure this tag is registered for the current eval cycle,
     -- even if it is blank and has no associated value
     if index = @index!
-      Registry.active!\replace index, dummy, true
+      Registry.active!\register index, dummy, true
     else
       Registry.active!\init @, dummy
 
@@ -74,13 +63,21 @@ class Tag
   stringify: => if @value then "[#{@value}]" else ''
   __tostring: => if @value then "#{@value}" else '?'
 
--- internal
+--- internals for `Registry`
+-- @section internals
+
   new: (@value) =>
 
+  --- get a unique index value for this Tag.
+  --
+  -- The index is equal to `value` for simple tags and a path-like string for
+  -- cloned tags.
+  --
+  -- @treturn ?number|string
   index: => @value
 
-  -- callback from `Registry` when the eval cycle is ending and a tag value has
-  -- been generated
+  --- callback to set value for blank tags.
+  -- @tparam number value
   set: (value) =>
     assert not @value, "#{@} is not blank"
     @value = value
