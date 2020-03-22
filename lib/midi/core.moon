@@ -110,18 +110,18 @@ inout = Value.meta
 
 apply_range = (range, val) ->
   if range\type! == 'str'
-    switch range\unwrap!
+    switch range!
       when 'raw' then val
       when 'uni' then val / 128
       when 'bip' then val / 64 - 1
       when 'rad' then val / 64 * math.pi
       when 'deg' then val / 128 * 360
       else
-        error "unknown range #{range}"
+        error Error 'argument', "unknown range '#{range!}'"
   elseif range.type == 'num'
-    val / 128 * range\unwrap!
+    val / 128 * range!
   else
-    error "range has to be a string or number"
+    error Error 'argument', "range has to be a string or number"
 
 {
   :input

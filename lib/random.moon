@@ -1,18 +1,18 @@
-import Op, Value, Input, match from require 'core.base'
+import Value, Error, Op, Input, match from require 'core.base'
 
 apply_range = (range, val) ->
   if range\type! == 'str'
-    switch range\unwrap!
-      when 'uni' then val
-      when 'bip' then val * 2 - 1
-      when 'rad' then val * 2 * math.pi
-      when 'deg' then val * 360
+    switch range!
+      when 'uni' then val / 128
+      when 'bip' then val / 64 - 1
+      when 'rad' then val / 64 * math.pi
+      when 'deg' then val / 128 * 360
       else
-        error "unknown range #{range}"
+        error Error 'argument', "unknown range '#{range!}'"
   elseif range.type == 'num'
-    val * range\unwrap!
+    val / 128 * range!
   else
-    error "range has to be a string or number"
+    error Error 'argument', "range has to be a string or number"
 
 range_doc = "
 range can be one of:
@@ -28,7 +28,7 @@ num = Value.meta
     name: 'num'
     summary: 'Generate a random number.'
     examples: { '(random/num [trigger] [range]))' }
-    description: "generate a random value in `range` when created and on `trig`.
+    description: "Generate a random value in `range` when created and on `trig`.
 #{range_doc}"
 
   value: class extends Op
@@ -54,7 +54,7 @@ vec_ = (n) ->
       name: "vec#{n}"
       summary: 'Generate a random vector.'
       examples: { '(random/vec#{n} [trigger] [range]))' }
-      description: "generate a random vec#{n} in `range` when created and on `trig`.
+      description: "Generate a random vec#{n} in `range` when created and on `trig`.
 #{range_doc}"
 
     value: class extends Op

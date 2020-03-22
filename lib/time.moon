@@ -1,4 +1,4 @@
-import Registry, Value, IO, Op, Input, match from require 'core.base'
+import Value, Error, IO, Op, Input, match from require 'core.base'
 import monotime from require 'system'
 
 class Clock extends IO
@@ -72,7 +72,7 @@ wave selects the wave shape from the following:
           when 'sin' then .5 + .5 * math.cos @state.phase * tau
           when 'saw' then @state.phase % 1
           when 'tri' then math.abs (2*@state.phase % 2) - 1
-          else error "unknown wave type"
+          else error Error 'argument', "unknown wave type '#{wave}'"
 
 ramp = Value.meta
   meta:
