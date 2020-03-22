@@ -107,7 +107,7 @@ class Value
       when 'num', 'str'
         Result value: @
       when 'sym'
-        assert (scope\get @value), Error 'reference', "undefined symbol '#{@value}'"
+        Error.wrap "resolving symbol '#{@value}'", scope\get, @value
       else
         error "cannot evaluate #{@}"
 

@@ -57,7 +57,7 @@ globals = Scope.from_table require 'core.builtin'
       scope = Scope nil, globals
       scope\use inject if inject
 
-      ast = assert (cell\match str), "failed to parse: #{str}"
+      ast = assert (program\match str), "failed to parse"
       result = ast\eval scope
       result\const!
 }

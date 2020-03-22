@@ -4,6 +4,7 @@
 -- @classmod Scope
 import Value from require 'core.value'
 import Result from require 'core.result'
+import Error from require 'core.error'
 
 class Scope
 --- members
@@ -26,33 +27,38 @@ class Scope
   set: (key, val) =>
     L\trace "setting #{key} = #{val} in #{@}"
     assert val.__class == Result, "expected #{key}=#{val} to be Result"
-    assert not @values[key], "cannot redefine symbol #{key}!"
+    assert val.value, Error 'type', "cannot define symbol to nil"
+    assert not @values[key], Error 'type', "cannot redefine symbol '#{key}'!"
     @values[key] = val
 
   recurse: (key) =>
     parent = if key\match '^%*.*%*$' then @dynamic_parent else @parent
     parent or= @parent
-    return parent and L\push parent\get, key
+    if parent
+      L\push parent\get, key
+    else
+      error Error 'reference', "undefined symbol '#{key}'"
 
   --- resolve a key in this Scope.
   --
   -- @tparam string key the key to resolve
-  -- @tparam[opt] string prefix a prefix (for internal use with nested scopes)
   -- @treturn ?Result the value of the definition that was found, or `nil`
-  get: (key, prefix='') =>
+  get: (key) =>
     L\debug "checking for #{key} in #{@}"
     if val = @values[key]
       L\trace "found #{val} in #{@}"
       return val
 
     start, rest = key\match '^(.-)/(.+)'
-
     if not start
       return @recurse key
 
     child = @get start
-    assert child and child.value.type == 'scope', "#{start} is not a scope (looking for #{key})"
-    child.value\unwrap!\get rest, "#{prefix}#{start}/"
+    if not child
+      error Error 'reference', "undefined symbol '#{start}'"
+    if child\type! != 'scope'
+      error Error 'reference', "'#{start}' is not a scope"
+    child.value!\get rest, while_msg
 
   --- copy definitions from another scope.
   --

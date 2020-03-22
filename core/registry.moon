@@ -5,6 +5,7 @@
 
 import Value from require 'core.value'
 import Result from require 'core.result'
+import Error from require 'core.error'
 
 unpack or= table.unpack
 
@@ -25,7 +26,8 @@ class Registry
   -- @tparam[default=false] boolean ignore_dup ignore duplicate registrations
   register: (index, expr, ignore_dup=false) =>
     L\trace "reg: setting #{index} to #{expr}"
-    assert not @map[index] or ignore_dup, "duplicate tags with index #{index}!"
+    if not ignore_dup and @map[index]
+      error Error 'tag', "duplicate tags [#{index}]!"
     @map[index] = expr
 
   --- request identity and registration for blank tag.
