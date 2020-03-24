@@ -1,6 +1,6 @@
 import space, atom, expr, explist, cell, program, comment
   from require 'core.parsing'
-import Value from require 'core'
+import ValueStream from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 
@@ -66,9 +66,9 @@ describe 'Cell', ->
                                 "friend" )'
 
     assert.is.equal 3, #node.children
-    assert.is.equal (Value.num 3), node.children[1]
-    assert.is.equal (Value.sym 'ok-yes'), node.children[2]
-    assert.is.equal (Value.str 'friend'), node.children[3]
+    assert.is.equal (ValueStream.num 3), node.children[1]
+    assert.is.equal (ValueStream.sym 'ok-yes'), node.children[2]
+    assert.is.equal (ValueStream.str 'friend'), node.children[3]
 
   test 'tag parsing', ->
     node = verify_parse cell, '([42]tagged 2)'
@@ -89,8 +89,8 @@ describe 'RootCell parsing', ->
       node = verify_parse program, str
 
       assert.is.equal 2, #node.children
-      assert.is.equal (Value.num 3), node.children[1]
-      assert.is.equal (Value.sym 'ok-yes'), node.children[2]
+      assert.is.equal (ValueStream.num 3), node.children[1]
+      assert.is.equal (ValueStream.sym 'ok-yes'), node.children[2]
 
     it 'at the front of the string', ->
       verify ' 3\tok-yes'

@@ -2,7 +2,6 @@
 -- Builtins for invoking `Op`s and `FnDef`s.
 --
 -- @module invoke
-import Value from require 'core.value'
 import Result from require 'core.result'
 import Action from require 'core.base'
 import Scope from require 'core.scope'
@@ -90,8 +89,9 @@ class fn_invoke extends Action
   -- `FnDef.body` with the prefix `Action.tag`, and `AST:eval`s it in the newly
   -- created `Scope`.
   --
-  -- The `Result` contains the `Value` from the cloned AST, and its children are
-  -- all the `Result`s from evaluating the tail as well as the cloned `AST`s.
+  -- The `Result` contains the `Stream` from the cloned AST, and its children
+  -- are all the `Result`s from evaluating the tail as well as the cloned
+  -- `AST`s.
   --
   -- @tparam Scope outer_scope the active scope
   -- @tparam {AST,...} tail the arguments to this expression

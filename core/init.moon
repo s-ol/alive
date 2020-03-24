@@ -1,20 +1,10 @@
 ----
 -- `alive` public API.
 --
--- @see Value
--- @see Result
--- @see Cell
--- @see Scope
--- @see Registry
--- @see Tag
--- @field globals
--- @field parse
--- @field eval
---
 -- @module init
 L or= setmetatable {}, __index: => ->
 
-import Value from require 'core.value'
+import ValueStream, EventStream, IOStream from require 'core.stream'
 import Result from require 'core.result'
 import Scope from require 'core.scope'
 import Error from require 'core.error'
@@ -31,7 +21,9 @@ globals = Scope.from_table require 'core.builtin'
 
 --- exports
 -- @table exports
--- @tfield Value Value
+-- @tfield ValueStream ValueStream
+-- @tfield EventStream EventStream
+-- @tfield IOStream IOStream
 -- @tfield Result Result
 -- @tfield Cell Cell
 -- @tfield RootCell RootCell
@@ -42,9 +34,9 @@ globals = Scope.from_table require 'core.builtin'
 -- @tfield Scope globals global definitons
 -- @tfield parse function to turn a `string` into a root `Cell`
 {
-  :Value, :Result
+  :ValueStream, :EventStream, :IOStream
   :Cell, :RootCell
-  :Scope, :Error
+  :Result, :Scope, :Error
 
   :Registry, :SimpleRegistry, :Tag
 

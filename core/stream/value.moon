@@ -1,7 +1,10 @@
 ----
--- Value(stream), implements the `AST` inteface.
+-- Continuous stream of values.
 --
--- @classmod Value
+-- Implements the `Stream` and `AST` intefaces.
+--
+-- @classmod ValueStream
+import Stream from require 'core.stream.base'
 import Result from require 'core.result'
 import Error from require 'core.error'
 import scope, base, registry from require 'core.cycle'
@@ -12,18 +15,18 @@ ancestor = (klass) ->
     klass = klass.__parent
   klass
 
-class Value
+class ValueStream extends Stream
 --- members
 -- @section members
 
-  --- return whether this Value was changed in the current tick.
+  --- return whether this stream was changed in the current tick.
   --
   -- @treturn bool
   dirty: => @updated == registry.Registry.active!.tick
 
-  --- update this Value.
+  --- update this stream's value.
   --
-  -- Marks this Value as dirty for the remainder of the current tick.
+  -- Marks this stream as dirty for the remainder of the current tick.
   set: (@value) => @updated = registry.Registry.active!.tick
 
   --- unwrap to the Lua type.
@@ -37,13 +40,13 @@ class Value
     assert type == @type, msg or "#{@} is not a #{type}" if type
     @value
 
-  --- create a mutable copy of this Value.
+  --- create a mutable copy of this stream.
   --
-  -- Used to wrap insulate eval-cycles from each other.
+  -- Used to insulate eval-cycles from each other.
   --
-  -- @treturn Value
+  -- @treturn ValueStream
   fork: =>
-    with Value @type, @value, @raw
+    with ValueStream @type, @value, @raw
       .updated = @updated
 
   --- alias for `unwrap`.
@@ -51,14 +54,10 @@ class Value
 
   --- compare two values.
   --
-  -- Compares two `Value`s by comparing their types and their Lua values.
+  -- Compares two `ValueStream`s by comparing their types and their Lua values.
   __eq: (other) => other.type == @type and other.value == @value
 
-  __tostring: =>
-    value = if 'table' == (type @value) and rawget @value, '__base' then @value.__name else @value
-    "<#{@@__name} #{@type}: #{value}>"
-
-  --- the type name of the Value.
+  --- the type name of this stream.
   --
   -- the following builtin typenames are used:
   --
@@ -91,7 +90,7 @@ class Value
 
 --- AST interface
 --
--- `Value` implements the `AST` interface.
+-- `ValueStream` implements the `AST` interface.
 -- @section ast
 
   --- evaluate this literal constant.
@@ -113,32 +112,31 @@ class Value
 
   --- quote this literal constant.
   --
-  -- @treturn Value self
+  -- @treturn ValueStream self
   quote: => @
 
   --- stringify this literal constant.
   --
   -- Throws an error if `raw` is not set.
   --
-  -- @treturn string the exact string this Value was parsed from
-  stringify: => assert @raw, "stringifying Value that wasn't parsed"
+  -- @treturn string the exact string this stream was parsed from
+  stringify: => assert @raw, "stringifying ValueStream that wasn't parsed"
 
   --- clone this literal constant.
   --
-  -- @treturn Value self
+  -- @treturn ValueStream self
   clone: (prefix) => @
 
 --- static functions
 -- @section static
 
-  --- construct a new Value.
+  --- construct a new ValueStream.
   --
   -- @classmethod
   -- @tparam string type the type name
   -- @tparam any value the Lua value to be accessed through `unwrap`
   -- @tparam string raw the raw string that resulted in this value. Used by `parsing`.
-  new: (@type, @value, @raw) =>
-    @meta = {}
+  new: (type, @value, @raw) => super type
 
   unescape = (str) -> str\gsub '\\([\'"\\])', '%1'
   --- create a capture-function (for parsing with Lpeg).
@@ -157,7 +155,7 @@ class Value
   --
   -- @tparam any val the value to wrap
   -- @tparam[opt] string name the name of this value (for error logging)
-  -- @treturn Value
+  -- @treturn ValueStream
   @wrap: (val, name='(unknown)') ->
     typ = switch type val
       when 'number' then 'num'
@@ -175,53 +173,51 @@ class Value
           switch ancestor val.__class
             when scope.Scope then 'scope'
             when base.FnDef then 'fndef'
-            when Value
-              return val
+            when Stream then return val
             else
               error "#{name}: cannot wrap '#{val.__class.__name}' instance"
         else
           -- plain table
-          return Value 'scope', scope.Scope.from_table val
+          return ValueStream 'scope', scope.Scope.from_table val
       else
         error "#{name}: cannot wrap Lua type '#{type val}'"
 
-    Value typ, val
+    ValueStream typ, val
 
   --- create a constant number.
   -- @tparam number num the number
-  -- @treturn Value
-  @num: (num) -> Value 'num', num, tostring num
+  -- @treturn ValueStream
+  @num: (num) -> ValueStream 'num', num, tostring num
 
   --- create a constant string.
   -- @tparam string str the string
-  -- @treturn Value
-  @str: (str) -> Value 'str', str, "'#{str}'"
+  -- @treturn ValueStream
+  @str: (str) -> ValueStream 'str', str, "'#{str}'"
 
   --- create a constant symbol.
   -- @tparam string sym the symbol
-  -- @treturn Value
-  @sym: (sym) -> Value 'sym', sym, sym
+  -- @treturn ValueStream
+  @sym: (sym) -> ValueStream 'sym', sym, sym
 
   --- create a constant boolean.
   -- @tparam boolean bool the boolean
-  -- @treturn Value
-  @bool: (bool) -> Value 'bool', bool, tostring bool
+  -- @treturn ValueStream
+  @bool: (bool) -> ValueStream 'bool', bool, tostring bool
 
   --- wrap and document a value.
   --
   -- wraps `args.value` using `wrap`, then assigns `meta`.
   --
   -- @tparam table args table with keys `value` and `meta`
-  -- @treturn Value
+  -- @treturn ValueStream
   @meta: (args) ->
-    with Value.wrap args.value
+    with ValueStream.wrap args.value
       .meta = args.meta if args.meta
 
-class LiteralValue extends Value
+class LiteralValue extends ValueStream
   eval: => Result value: @
 
 {
-  :Value
+  :ValueStream
   :LiteralValue
-  :load_
 }

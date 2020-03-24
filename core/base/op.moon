@@ -2,16 +2,16 @@
 -- Persistent expression Operator.
 --
 -- @classmod Op
-import Value from require 'core.value'
 
-ident = (tbl) ->
-  mt = getmetatable tbl
-  setmetatable tbl, nil
-
-  id = tostring tbl
-
-  setmetatable tbl, mt
-  id\sub #'table: 0x'
+deepcopy = (val) ->
+  switch type val
+    when 'number', 'string', 'boolean'
+      val
+    when 'table'
+      assert (not getmetatable {}), "state should only contain simple tables!"
+      {(deepcopy k), (deepcopy v) for k,v in pairs val}
+    else
+      error "state cannot contain values of type '#{type val}'"
 
 class Op
 --- members
@@ -33,23 +33,30 @@ class Op
   -- Used to wrap insulate eval-cycles from each other. The copy does not have
   -- `inputs` set, since it is expected that this is (re)set in `setup`.
   --
-  -- @treturn Value
+  -- @treturn Op
   fork: =>
-    with setmetatable {}, getmetatable @
-      .state = {k,v for k,v in pairs @state} if @state
-      .out = @out\fork! if @out
+    out = if @out then @out\fork
+    state = if @state then deepcopy state
+    @@ out, state
 
-  --- `Value` instance representing this Op's computed output value.
+  --- internal state of this Op.
   --
-  -- Must be set to a `Value` instance once `setup` finishes. Must not change
-  -- type, be removed or replaced outside of `new` and `setup`. Should have a
-  -- value assigned via `set` or the `Value` constructor once `tick` is
-  -- called the first time. If `out`'s value is not initialized in `new`
-  -- or `setup`, the implementation must make sure `tick``(true)` is called at
-  -- least on the first eval-cycle the Op goes through, e.g. by using an
-  -- `Input.value`.
+  -- This may be any simple Lua value, including Lua tables, as long as it has
+  -- no metatables, multiple references/loops, userdata etc.
   --
-  -- @tfield Value out
+  -- @tfield table state
+
+  --- `Stream` instance representing this Op's computed output value.
+  --
+  -- Must be set to a `Stream` instance once `setup` finishes. Must not change
+  -- type, be removed or replaced outside of `new` and `setup`. If it is a
+  -- `ValueStream`, it should have a value assigned via `set` or the
+  -- constructor once `tick` is called the first time. If `out`'s value is not
+  -- initialized in `new` or `setup`, the implementation must make sure
+  -- `tick``(true)` is called at -- least on the first eval-cycle the Op goes
+  -- through, e.g. by using an `Input.value`.
+  --
+  -- @tfield Stream out
 
   --- table containing `Input`s to this Op.
   --
@@ -66,10 +73,14 @@ class Op
 
   --- construct a new instance.
   --
-  -- The super-constructor can be used to construct a `Value` instance in `out`.
+  -- The optional parameters `out` and `state` are used by `fork` to duplicate
+  -- an instance. If the constructor is overriden, these parameters must be
+  -- forwarded to the superconstructor unchanged.
   --
   -- @function new
   -- @classmethod
+  -- @tparam ?Stream out `out`
+  -- @tparam ?table state `state`
 
   --- parse arguments and patch self.
   --
@@ -109,12 +120,9 @@ class Op
   -- type is not known at this time.
   --
   -- @classmethod
-  -- @tparam[opt] string type the type-name for `out`
-  -- @tparam[optchain] any init the initial value for `out`
-  new: (type, init) =>
-    @state = {}
-    if type
-      @out = Value type, init
+  -- @tparam ?Stream out `out`
+  -- @tparam ?table state `state`
+  new: (@out, @state) =>
 
   do_setup = (old, cur) ->
     for k, cur_val in pairs cur

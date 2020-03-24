@@ -5,7 +5,6 @@
 --
 -- @classmod AST
 
-
 --- members
 -- @section members
 
@@ -13,8 +12,7 @@
   --
   -- Evaluate this node and return a `Result`.
   --
-  -- @class function
-  -- @name eval
+  -- @function eval
   -- @tparam Scope scope the scope to evaluate in
   -- @treturn Result the evaluation result
 
@@ -22,8 +20,7 @@
   --
   --- Returns a mutable copy of this Node that shares its identity.
   --
-  -- @class function
-  -- @name quote
+  -- @function quote
   -- @treturn AST
 
   --- create a clone with its own identity.
@@ -31,8 +28,7 @@
   -- creates a clone of this Cell with its own identity by prepending a `parent`
   -- Tag (and cloning all child expressions recursively).
   --
-  -- @class function
-  -- @name clone
+  -- @function clone
   -- @tparam Tag parent
   -- @treturn AST
 
@@ -40,6 +36,5 @@
   --
   -- Should return the exact string this node was parsed from (if it was parsed).
   --
-  -- @class function
-  -- @name stringify
+  -- @function stringify
   -- @treturn string the exact string this Node was parsed from

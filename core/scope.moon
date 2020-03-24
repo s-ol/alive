@@ -2,7 +2,7 @@
 -- Mapping from `sym`s to `Result`s.
 --
 -- @classmod Scope
-import Value from require 'core.value'
+import ValueStream from require 'core.stream'
 import Result from require 'core.result'
 import Error from require 'core.error'
 
@@ -12,12 +12,12 @@ class Scope
 
   --- set a Lua value in the scope.
   --
-  -- wraps `val` in a `Value` and `Result` before calling `set`.
+  -- wraps `val` in a `ValueStream` and `Result` before calling `set`.
   --
   -- @tparam string key
   -- @tparam any val
   set_raw: (key, val) =>
-    value = Value.wrap val, key
+    value = ValueStream.wrap val, key
     @values[key] = Result :value
 
   --- set a symbol to a `Result`.
@@ -104,7 +104,7 @@ class Scope
   --- convert a Lua table to a Scope.
   --
   -- `tbl` may contain more tables (or `Scope`s).
-  -- Uses `Value.wrap` on the values recursively.
+  -- Uses `ValueStream.wrap` on the values recursively.
   --
   -- @tparam table tbl the table to convert
   -- @treturn Scope

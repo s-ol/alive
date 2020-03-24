@@ -30,13 +30,11 @@ class Result
     with Result value: @value
       .side_inputs = @side_inputs
 
-  --- tick all IO instances that are effecting this (sub)tree.
+  --- tick all IOStream instances that are effecting this (sub)tree.
   -- should be called once per frame on the root, right before tick.
   tick_io: =>
     for stream, input in pairs @side_inputs
-      if input.__class.__name == "IOInput"
-        io = input!
-        io\tick!
+      stream\tick! if input.io
 
   --- in depth-first order, tick all Ops which have dirty Inputs.
   --
@@ -73,9 +71,9 @@ class Result
     buf ..= ">"
     buf
 
-  --- the `Value` result
+  --- the `Stream` result
   --
-  -- @tfield ?Value value
+  -- @tfield ?Stream value
 
   --- an Op
   --
@@ -85,12 +83,12 @@ class Result
   --
   -- @tfield {}|{Result,...} children
 
-  --- cached mapping of all `Value`/`Input` pairs affecting this Result.
+  --- cached mapping of all `Stream`/`Input` pairs affecting this Result.
   --
   -- This is the union of all `children`s `side_inputs` and all `Input`s from
   -- `op` that are not the `value` of any child.
   --
-  -- @tfield {[Value]=Input,...} side_inputs
+  -- @tfield {[Stream]=Input,...} side_inputs
 
 --- static functions
 -- @section static
@@ -105,16 +103,15 @@ class Result
 
     @side_inputs, is_child = {}, {}
     for child in *@children
-      for s, d in pairs child.side_inputs
-        @side_inputs[s] = d
+      for stream, input in pairs child.side_inputs
+        @side_inputs[stream] = input
       if child.value
         is_child[child.value] = true
 
     if @op
       for input in @op\all_inputs!
-        if input.impure or not is_child[input.stream]
+        if input.io or not is_child[input.stream]
           @side_inputs[input.stream] = input
-
 
 {
   :Result

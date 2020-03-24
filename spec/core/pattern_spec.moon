@@ -1,5 +1,5 @@
 import Pattern, match from require 'core.base.match'
-import Result, Value from require 'core'
+import Result, ValueStream from require 'core'
 
 -- wrap in non-const result
 wrap = (value) ->
@@ -10,11 +10,11 @@ wrap = (value) ->
 wrap_const = (value) -> Result :value
 
 describe 'Type Pattern', ->
-  num = wrap Value.num 1
-  str = wrap Value.str 'hello'
-  special = wrap Value 'midi/sysex-message'
-  c_num = wrap_const Value.num 1
-  c_str = wrap_const Value.str 'hello'
+  num = wrap ValueStream.num 1
+  str = wrap ValueStream.str 'hello'
+  special = wrap ValueStream 'midi/sysex-message'
+  c_num = wrap_const ValueStream.num 1
+  c_str = wrap_const ValueStream.str 'hello'
 
   describe 'simple types', ->
     it 'matches self type', ->
@@ -151,10 +151,10 @@ describe 'Type Pattern', ->
         assert.is.same {str}, stream
 
 describe 'match', ->
-  num = wrap Value.num 1
-  str = wrap Value.str 'hello'
-  c_num = wrap_const Value.num 1
-  c_str = wrap_const Value.str 'hello'
+  num = wrap ValueStream.num 1
+  str = wrap ValueStream.str 'hello'
+  c_num = wrap_const ValueStream.num 1
+  c_str = wrap_const ValueStream.str 'hello'
 
   it 'matches lists', ->
     assert.is.same {num, num, str}, match 'num num str', {num, num, str}

@@ -5,7 +5,7 @@
 -- nodes), a `Tag`, and optionally the internal whitespace as parsed.
 --
 -- @classmod Cell
-import Value from require 'core.value'
+import ValueStream from require 'core.stream'
 import Error from require 'core.error'
 import op_invoke, fn_invoke from require 'core.invoke'
 import Tag from require 'core.tag'
@@ -170,7 +170,7 @@ class Cell
 
 -- @type RootCell
 class RootCell extends Cell
-  head: => Value.sym 'do'
+  head: => ValueStream.sym 'do'
   tail: => @children
 
   stringify: =>

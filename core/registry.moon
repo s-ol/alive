@@ -2,8 +2,6 @@
 -- `Tag` Registry.
 --
 -- @classmod Registry
-
-import Value from require 'core.value'
 import Result from require 'core.result'
 import Error from require 'core.error'
 

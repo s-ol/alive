@@ -2,10 +2,29 @@
 -- Update scheduling policy for `Op` arguments.
 --
 -- @classmod Input
-import Value from require 'core.value'
+import ValueStream, EventStream, IOStream from require 'core.stream'
 import Result from require 'core.result'
 
-local ColdInput, ValueInput, EventInput, IOInput
+inherits = (klass, frm) ->
+  assert klass, "cant find the ancestor of nil"
+  return true if klass == frm
+  while klass.__parent
+    return true if klass.__parent == frm
+    klass = klass.__parent
+  false
+
+match_parent = (inst, map) ->
+  klass = assert inst and inst.__class, "not an instance"
+  if key = map[klass]
+    return key
+
+  while klass.__parent
+    if key = map[klass.__parent]
+      return key
+
+    klass = klass.__parent
+
+local ColdInput, ValueInput, IOInput, mapping
 
 class Input
 --- Input interface.
@@ -15,20 +34,10 @@ class Input
 
   --- create a new Input.
   --
-  -- `value` is either a `Value` or a `Result` instance and should be
-  -- unwrapped and assigned to `stream`.
-  --
   -- @classmethod
-  -- @tparam Value|Result value
-  new: (value) =>
-    assert value, "nil passed to Input: #{value}"
-    @stream = switch value.__class
-      when Result
-        assert value.value, "Input from result without value!"
-      when Value
-        value
-      else
-        error "Input from unknown value: #{value}"
+  -- @tparam Stream stream
+  new: (@stream) =>
+    assert @stream, "nil passed to Input: #{value}"
 
   --- copy state from old instance (optional).
   --
@@ -44,7 +53,7 @@ class Input
   --
   -- must return a boolean indicating whether `Op`s that refer to this instance
   -- should be notified (via `Op:tick`). If not overwritten, delegates to
-  -- `stream`:@{Value:dirty|dirty}.
+  -- `stream`:@{ValueStream:dirty|dirty}.
   --
   -- @treturn bool whether processing is necessary
   dirty: => @stream\dirty!
@@ -65,7 +74,7 @@ class Input
 
   --- the current value
   --
-  -- @tfield Value stream
+  -- @tfield ValueStream stream
 
 --- members
 -- @section members
@@ -86,33 +95,29 @@ class Input
   -- Never marked dirty. Use this for input streams that are only read when
   -- another `Input` is dirty.
   --
-  -- @tparam Value|Result value
-  @cold: (value) -> ColdInput value
+  -- @tparam Stream|Result value
+  @cold: (value) ->
+    if value.__class == Result
+      value = assert value.value, "Input from result without value!"
+    ColdInput value
 
-  --- Create a `value` `Input`.
+  --- Create a `hot` `Input`.
   --
-  -- Marked dirty for the eval-tick if old and new `Value` differ. This is the
-  -- most common `Input` strategy. Should be used whenever a
-  -- value denotes state.
+  -- Behaviour depends on what kind of `Stream` `value` is:
   --
-  -- @tparam Value|Result value
-  @value: (value) -> ValueInput value
+  -- - `ValueStream`: Marked dirty for the eval-tick if old and new `ValueStream` differ.
+  -- - `EventStream` and `IOStream`: Marked dirty only if the current `EventStream` is dirty.
+  --
+  -- This is the most common `Input` strategy.
+  --
+  -- @tparam Stream|Result value
+  @hot: (value) ->
+    if value.__class == Result
+      value = assert value.value, "Input from result without value!"
 
-  --- Create an `event` `Input`.
-  --
-  -- Only marked dirty if the `Value` itself is dirty. Should be used whenever
-  -- an `Input` denotes a momentary event or impulse.
-  --
-  -- @tparam Value|Result value
-  @event: (value) -> EventInput value
-
-  --- Create an `IO` `Input`.
-  --
-  -- Marked dirty only when an `IO` is dirty. Must be used only for `Value`s
-  -- which @{Value:unwrap|unwrap} to `IO` instances.
-  --
-  -- @tparam Value|Result value
-  @io: (value) -> IOInput value
+    InputType = match_parent value, mapping
+    assert InputType, "Input from unknown value: #{value}"
+    InputType value
 
 class ColdInput extends Input
   dirty: => false
@@ -124,11 +129,14 @@ class ValueInput extends Input
     return @dirty_setup if @dirty_setup != nil
     @stream\dirty!
 
-class EventInput extends Input
-
 class IOInput extends Input
-  impure: true
-  dirty: => @stream\unwrap!\dirty!
+  io: true
+
+mapping = {
+  [ValueStream]: ValueInput
+  [EventStream]: Input
+  [IOStream]: IOInput
+}
 
 {
   :Input

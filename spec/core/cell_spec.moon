@@ -1,10 +1,10 @@
 import Cell, RootCell from require 'core.cell'
-import Value, Scope, Tag, SimpleRegistry, globals from require 'core'
+import ValueStream, Scope, Tag, SimpleRegistry, globals from require 'core'
 import Logger from require 'logger'
 Logger.init 'silent'
 
-hello_world = Cell.parse (Tag.parse '2'), { '', (Value.sym 'hello'), ' ', (Value.str 'world'), '' }
-two_plus_two = Cell.parse (Tag.parse '3'), { '', (Value.sym '+'), ' ', (Value.num 2), ' ', (Value.num 2), '' }
+hello_world = Cell.parse (Tag.parse '2'), { '', (ValueStream.sym 'hello'), ' ', (ValueStream.str 'world'), '' }
+two_plus_two = Cell.parse (Tag.parse '3'), { '', (ValueStream.sym '+'), ' ', (ValueStream.num 2), ' ', (ValueStream.num 2), '' }
 
 reg = SimpleRegistry!
 setup -> reg\grab!
@@ -15,8 +15,8 @@ describe 'Cell', ->
     with hello_world\quote!
       it 'stays equal', ->
         assert.is.equal Cell, .__class
-        assert.is.equal (Value.sym 'hello'), \head!
-        assert.is.same { Value.str 'world' }, \tail!
+        assert.is.equal (ValueStream.sym 'hello'), \head!
+        assert.is.same { ValueStream.str 'world' }, \tail!
 
       it 'shares the tag', ->
         assert.is.equal hello_world.tag, .tag
@@ -24,8 +24,8 @@ describe 'Cell', ->
     with two_plus_two\quote!
       it 'stays equal', ->
         assert.is.equal Cell, .__class
-        assert.is.equal (Value.sym '+'), \head!
-        assert.is.same { (Value.num 2), (Value.num 2) }, \tail!
+        assert.is.equal (ValueStream.sym '+'), \head!
+        assert.is.same { (ValueStream.num 2), (ValueStream.num 2) }, \tail!
 
       it 'shares the tag', ->
         assert.is.equal two_plus_two.tag, .tag
@@ -35,8 +35,8 @@ describe 'Cell', ->
     with hello_world\clone parent
       it 'keeps children', ->
         assert.is.equal Cell, .__class
-        assert.is.equal (Value.sym 'hello'), \head!
-        assert.is.same { Value.str 'world' }, \tail!
+        assert.is.equal (ValueStream.sym 'hello'), \head!
+        assert.is.same { ValueStream.str 'world' }, \tail!
 
       it 'clones the tag', ->
         assert.is.equal hello_world.tag, .tag.original
@@ -48,8 +48,8 @@ describe 'Cell', ->
       assert.has.error -> cell\eval globals
 
     it 'evaluates its head', ->
-      head = Value.sym 'trace'
-      cell = Cell.parse { '', head, ' ', (Value.sym 'true'), '' }
+      head = ValueStream.sym 'trace'
+      cell = Cell.parse { '', head, ' ', (ValueStream.sym 'true'), '' }
 
       s = spy.on head, 'eval'
       cell\eval globals
@@ -62,10 +62,10 @@ describe 'RootCell', ->
 
   test 'head is always "do"', ->
     cell = Cell.parse_root {}
-    assert.is.equal (Value.sym 'do'), cell\head!
+    assert.is.equal (ValueStream.sym 'do'), cell\head!
 
     cell = RootCell nil, { hello_world, two_plus_two }
-    assert.is.equal (Value.sym 'do'), cell\head!
+    assert.is.equal (ValueStream.sym 'do'), cell\head!
 
   test 'tail is all children', ->
     cell = Cell.parse_root {}

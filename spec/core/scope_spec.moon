@@ -1,4 +1,4 @@
-import Scope, Value, Result from require 'core'
+import Scope, ValueStream, Result from require 'core'
 import Op from require 'core.base'
 import Logger from require 'logger'
 Logger.init 'silent'
@@ -27,7 +27,7 @@ describe 'Scope', ->
       assert.is.equal "im a happy string", got.value
 
     test 'Values', ->
-      pi = Value 'num', 3.14
+      pi = ValueStream 'num', 3.14
       scope\set_raw 'pi', pi
 
       assert.is.equal pi, (scope\get 'pi')\const!
@@ -48,7 +48,7 @@ describe 'Scope', ->
       assert.is.equal sub, got.value
 
     test 'tables', ->
-      pi = Value 'num', 3.14
+      pi = ValueStream 'num', 3.14
       scope\set_raw 'math',  { :pi }
 
       got = (scope\get 'math')\const!
@@ -58,7 +58,7 @@ describe 'Scope', ->
       assert.is.equal pi, (scope\get 'math/pi')\const!
 
   it 'wraps Values in from_table', ->
-    pi = Value 'num', 3.14
+    pi = ValueStream 'num', 3.14
     scope = Scope.from_table {
       num: 3
       str: "im a happy string"
@@ -90,7 +90,7 @@ describe 'Scope', ->
     a = Scope!
     b = Scope!
 
-    pi = Value 'num', 3.14
+    pi = ValueStream 'num', 3.14
     b\set_raw 'test', pi
     a\set_raw 'child', b
     root\set_raw 'deep', a
@@ -98,8 +98,8 @@ describe 'Scope', ->
     assert.is.equal pi, (root\get 'deep/child/test')\const!
 
   describe 'can set symbols', ->
-    one = wrap_res Value.num 1
-    two = wrap_res Value.num 2
+    one = wrap_res ValueStream.num 1
+    two = wrap_res ValueStream.num 2
     scope = Scope!
 
     it 'disallows re-setting symbols', ->
