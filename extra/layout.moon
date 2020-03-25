@@ -59,6 +59,10 @@ abs = (page) ->
 -- entry is one of
 -- builtin-name; mod.name/name; mod.name
 link = (ref) ->
+  return version.web if ref == '*web*'
+  return version.repo if ref == '*repo*'
+  return version.release if ref == '*release*'
+
   mod, sym = ref\match '^(.+)/(.*)$'
   abs "reference/#{mod or 'index'}.html##{sym or ref}"
 
@@ -100,7 +104,7 @@ layout = (opts) ->
     span {
       b 'alive'
       ' '
-      a (code version.tag), href: version.web
+      a (code version.tag), href: version.release
       ' documentation'
     }
     div class: 'grow'
@@ -116,7 +120,7 @@ layout = (opts) ->
     "alive documentation"
   foot = footer div {
     'alive '
-    a (code version.tag), href: version.web
+    a (code version.tag), href: version.release
     ', generated '
     os.date '!%Y-%m-%d %T'
   }

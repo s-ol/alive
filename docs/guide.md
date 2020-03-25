@@ -59,7 +59,7 @@ be a note marking the parts of the guide where specific dependencies are
 required.
 
 After installing the dependencies, you can download the `alive` source code
-from the [releases page][release], or clone the [git repository][git]:
+from the [releases page][:*release*:], or clone the [git repository][:*web*:]:
 
     $ git clone https://github.com/s-ol/alivecoding.git
 
@@ -77,7 +77,7 @@ You can stop it by pressing `^C` (control-C).
 
 ### windows
 For Windows, a binary package is available from the latest
-[github release][release]. It includes not only the `alive` source code, but
+[github release][:*release*:]. It includes not only the `alive` source code, but
 also a compiled version of Lua 5.3 as well as Luarocks and all of `alive`'s
 dependencies.
 
@@ -542,10 +542,8 @@ them.
 [pilot]:         https://github.com/hundredrabbits/Pilot
 [homebrew]:      https://brew.sh
 [luarocks]:      https://github.com/luarocks/luarocks/#installing
-[git]:           https://github.com/s-ol/alivecoding
 [reference]:     reference/
 [clojure-style]: https://github.com/bbatsov/clojure-style-guide
 [pd]:            http://puredata.info/
 [max]:           https://cycling74.com/products/max
 [vvvv]:          https://vvvv.org/
-[release]:       https://github.com/s-ol/alivecoding/releases
