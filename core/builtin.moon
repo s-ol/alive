@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtin
-import Action, Op, FnDef, Input from require 'core.base'
+import Action, Op, FnDef, Input, val from require 'core.base'
 import ValueStream, LiteralValue from require 'core.stream.value'
 import Result from require 'core.result'
 import Cell from require 'core.cell'
@@ -282,9 +282,22 @@ trace = ValueStream.meta
       }
       inner\eval scope
 
+print = ValueStream.meta
+  meta:
+    name: 'print'
+    summary: "Print string values."
+    examples: { '(print str)' }
+
+  value: class extends Op
+    setup: (inputs) =>
+      value = val.str\match inputs
+      super value: Input.hot value
+
+    tick: => print @inputs.value!
+
 {
   :doc
-  :trace, 'trace!': trace_
+  :trace, 'trace!': trace_, :print
 
   :def, :use
   require: require_
