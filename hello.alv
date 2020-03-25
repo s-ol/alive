@@ -1,0 +1,4 @@
+([1]import* time util)
+([2]print ([3]switch ([4]tick 0.5)
+  "hello"
+  "world!"))
