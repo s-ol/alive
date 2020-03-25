@@ -16,10 +16,30 @@ programming language, and how to install and use it.
 
 ## installation
 `alive` is written in the Lua programming language, and is compatible with both
-Lua 5.3 and luajit. `alive` requires a number of other Lua libraries to run. To
-manage these dependencies `luarocks` is used, follow [this link][luarocks] for
-instructions on setting it up. Once you have luarocks, you can install the
-dependencies for `alive`:
+Lua 5.3 and luajit.
+
+### unix/linux and mac os
+Your distribution should provide you with packages for Lua and Luarocks. On Mac
+OS X, both are provided through [homebrew][homebrew]. After installing both of
+these, you should be able to start the Lua interpreter from the shell:
+
+    $ lua
+    Lua 5.3.5  Copyright (C) 1994-2018 Lua.org, PUC-Rio
+    > 
+
+You can exit using `CTRL+C`. If the version you see is not 5.3, double check
+your distribution packages or see if it was installed as `lua5.3` or `lua53`.
+Similarily, you should be able to run `luarocks`, `luarocks53` or `luarocks5.3`:
+
+    $ luarocks list
+    
+    Rocks installed for Lua 5.3
+    ---------------------------
+
+Again, double check your installation or try adding `--lua-version 5.3` if the
+displayed version is not 5.3.
+
+With everything reacdy to go, you can now install the dependencies for `alive`:
 
     $ luarocks install moonscript
     $ luarocks install luasystem
@@ -30,54 +50,80 @@ dependencies for `alive`:
 While `moonscript` and `luasystem` are required by the core of `alive`, the
 other packages (`osc`, `luasocket` and `lua-rtmidi`) are specific to some
 modules of the alive language, and as long as you don't need to use these
-modules installation is optional.
+modules their installation is optional.
 
 In a later part of this guide, we will be using modules that require `osc` and
 `luasocket`, so it is recommended to install at least these two. However it is
-possible to follow a large portion of the guide without any of the three. There
-will be a note marking the parts of the guide where specific dependencies are
+possible to follow a large portion of the guide without any of them. There will
+be a note marking the parts of the guide where specific dependencies are
 required.
 
-After installing the dependencies, you can clone the
-[`alivecoding` repository][git] using git:
+After installing the dependencies, you can download the `alive` source code
+from the [releases page][release], or clone the [git repository][git]:
 
     $ git clone https://github.com/s-ol/alivecoding.git
 
-You should now be able to run `alive` from within the repository, but first, you
-will need to create a file for it to run. Create an empty file in the text
-editor you want to use, and save it as `hello.alv` in the `alivecoding`
-repository. Then launch the `alive` copilot like so:
+To run the copilot, open a shell and navigate into the repository. You can now
+run the `hello.alv` example script using the following command:
 
     $ moon init.moon hello.alv
-    hello.alv changed at 1583171231
+    [copilot.moon:76     ] hello.alv changed at 1585138092
+    hello
+    world!
+    hello
+    world!
 
-You should see a similar output message, indicating that `alive` processed the
-file. From now on, whenever you change `hello.alv` and save the file, `alive`
-will reload it and execute your new code. When you are done, you can stop the
-copilot at any time using `^C` (control-C).
+You can stop it by pressing `^C` (control-C).
+
+### windows
+For Windows, a binary package is available from the latest
+[github release][release]. It includes not only the `alive` source code, but
+also a compiled version of Lua 5.3 as well as Luarocks and all of `alive`'s
+dependencies.
+
+To use the binary package, simply extract the archive and move the folder
+wherever you want. You can now start the `hello.alv` example script by dragging
+it onto the `copilot.bat` file in the folder, or by running the following
+command from the main directory in `cmd.exe`:
+
+    C:\…\alive>copilot.bat hello.alv
+    [copilot.moon:76     ] hello.alv changed at 1585138092
+    hello
+    world!
+    hello
+    world!
+
+You can stop it by pressing `^C` (control-C).
 
 ## evaluating code
+To get started writing your own code, create an empty file in the text editor
+you want to use, and save it as `test.alv` in the same folder as `hello.alv`.
+Now restart the copilot as described above, but substituting the new file.
+
+You should see a note indicating that `alive` processed the file. From now on,
+whenever you change `test.alv` and save the file, `alive` will reload it and
+execute your new code. When you are done, you can stop the copilot at any time
+using `^C` (control-C).
+
 `alive`'s syntax is very similar to Lisp. Expressions take the form of
 parenthesized lists like `(head a b c...)`, where the first element of the list
 (`head`) is the name of an operator or function, which defines what the
 expression as a whole will do, while the other elements are parameters whose
-meaning depends on the `head`. Let's start with a simple operator, [trace][]:
-[trace][] is used to inspect values by printing them to the copilot. Enter the
+meaning depends on the `head`. Let's start with a simple operator, [print][]:
+[print][] is used simply to print messages to the copilot console. Enter the
 following in your file and save it:
 
-    (trace "hello world")
+    (print "hello world!")
 
 As soon as you save the file, you should notice two things happening:
 
 1. The copilot should print two new lines to the terminal:
 
        hello.alv changed at 1583424169
-       trace "hello world": <Value str: hello world>
+       hello world!
 
    In the first line, it notifies us that the file has changed. In the second
-   line, you can see the output from [trace][]: it lets you know that
-   `"hello world"` evaluated to a `Value` with the type `str` (string) and
-   contents `hello world`.
+   line, you can see the output from [print][].
 2. The copilot will make a small modification to your file. Depending on the
    editor you are using, this may either result in you seeing the modification
    immediately, or a notice appearing that offers the option to reload the
@@ -87,7 +133,7 @@ As soon as you save the file, you should notice two things happening:
 
 The code should now look like this:
 
-    ([1]trace "hello world")
+    ([1]print "hello world")
 
 The `[1]` that the copilot added to our expression is that expression's `tag`.
 In `alive`, every expression has a tag that helps the copilot to identify the
@@ -105,16 +151,16 @@ Elements of an expression have to be separated by whitespace, but any type of
 and amount of whitespace is valid: feel free to use spaces, tabs, and newlines
 to format code to your liking. The following are all equal and valid examples:
 
-    (trace "hello world")
+    (print "hello world")
 
     (+ 1
        2
        3)
 
-    (trace
+    (print
     	"hello world")
 
-      ( trace "hello world" )
+      ( print "hello world" )
 
 It is however recommended to follow the [clojure style guide][clojure-style] as
 much as it does apply to alive. All further examples in this guide will respect
@@ -154,8 +200,21 @@ There are only two boolean values, `true` and `false`:
     true
     false
 
-You can try using [trace][] with all of these values to get used to how they
-are printed.
+The operator [print][], that we have been using above, only works on strings,
+but there is a similar operator called [trace][] that can be used to inspect
+any kind of value. It prints the value itself alongside more information, such
+as the values type. Give it a try:
+
+    (trace "hello")
+    (trace 2)
+    (trace true)
+
+This will print the following:
+
+    toast.alv changed at 1585138575
+    trace <ValueStream str: hello>: <ValueStream str: hello>
+    trace <ValueStream num: 2>: <ValueStream num: 2>
+    trace <ValueStream sym: true>: <ValueStream bool: true>
 
 ### comments
 To annotate your code, you can use comments. In `alive`, comments begin with
@@ -481,10 +540,12 @@ them.
 
 [supercollider]: https://supercollider.github.io/
 [pilot]:         https://github.com/hundredrabbits/Pilot
-[clojure-style]: https://github.com/bbatsov/clojure-style-guide
+[homebrew]:      https://brew.sh
 [luarocks]:      https://github.com/luarocks/luarocks/#installing
 [git]:           https://github.com/s-ol/alivecoding
 [reference]:     reference/
+[clojure-style]: https://github.com/bbatsov/clojure-style-guide
 [pd]:            http://puredata.info/
 [max]:           https://cycling74.com/products/max
 [vvvv]:          https://vvvv.org/
+[release]:       https://github.com/s-ol/alivecoding/releases
