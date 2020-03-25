@@ -22,6 +22,6 @@ cat <<EOF
   rev_short: "${REV_SHORT}"
   rev_long: "${REV_LONG}"
   repo: "https://github.com/s-ol/alivecoding.git"
-  web: "https://github.com/s-ol/alivecoding/tree/${TAG}"
+  web: "https://github.com/s-ol/alivecoding/releases/tag/${TAG}"
 }
 EOF
