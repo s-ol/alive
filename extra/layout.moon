@@ -98,9 +98,9 @@ layout = (opts) ->
 
   head = header nav {
     span {
-      a 'alive', href: abs 'index.html'
+      b 'alive'
       ' '
-      code version.tag
+      a (code version.tag), href: version.web
       ' documentation'
     }
     div class: 'grow'
