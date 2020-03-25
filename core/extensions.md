@@ -1,13 +1,13 @@
-# writing `alive` plugins
+# writing `alive` extensions
 
-Plugins for `alive` are implemented in [Lua][lua] or [MoonScript][moonscript]
-(which runs as Lua). When an `alive` module is [require][]d, alive looks for a
-Lua module `lib.[module]`. You can simply add a new file with extension `.lua`
-or `.moon` in the `lib` directory of your alive installation or somewhere else
-in your `LUA_PATH`.
+Extensions for `alive` are implemented in [Lua][lua] or [MoonScript][moonscript]
+(which runs as Lua). When an `alive` module is [`(require)`][builtins-req]d,
+alive looks for a Lua module `lib.[module]`. You can simply add a new file with
+extension `.lua` or `.moon` in the `lib` directory of your alive installation or
+somewhere else in your `LUA_PATH`.
 
-To write plugins, a number of classes and utilities are required. All of these
-are exported in the `base` module.
+To write extensions, a number of classes and utilities are required. All of
+these are exported in the `base` module.
 
 ## documentation metadata
 The lua module should return a `Scope` or a table that will be converted using
@@ -16,13 +16,13 @@ which attaches a `meta` table to the value that is used for error messages,
 documentation generation and [`(doc)`][builtins-doc].
 
     import ValueStream from require 'core.base'
-    
+
     two = ValueStream.meta
       meta:
         name: 'two'
         summary: "the number two"
       value: 2
-    
+
     {
       :two
     }
@@ -39,33 +39,33 @@ information that applies should be provided.
   of this entry.
 
 ## defining `Op`s
-Most plugins will want to define a number of *Op*s to be used by the user. They
-are implemented by deriving from the `Op` class and implementing at least the
-`Op:setup` and `Op:tick` methods.
+Most extensions will want to define a number of *Op*s to be used by the user.
+They are implemented by deriving from the `Op` class and implementing at least
+the `Op:setup` and `Op:tick` methods.
 
-    import ValueStream, Op, Input, match from require 'core.base'
+    import ValueStream, Op, Input, evt from require 'core.base'
 
     total_sum = ValueStream.meta
       meta:
         name: 'total-sum'
         summary: "Keep a total of incoming numbers."
         examples: { '(total-sum num!)' }
-        description: "Keep a total sum of incoming number events, plugin-style."
+        description: "Keep a total sum of incoming number events, extension-style."
 
       value: class extends Op
         new: (...) =>
           super ...
           @state or= { total: 0 }
           @out or= ValueStream 'num', @state.total
-                
+
         setup: (inputs, scope) =>
-          { num } = match 'num!', inputs
-          
+          num = evt.num\match inputs
           super num: Inputs.hot num
-        
+
         tick: =>
           @state.total += @inputs.num!
           @out\set @state.total
+
     {
       'total-sum': total_sum
     }
@@ -79,21 +79,24 @@ and the `Scope` the evaluation happened in. Ops generally shouldn't use the
 scope, but might look up 'magic' dynamic symbols like `\*clock\*`.
 
 #### argument parsing
-Arguments should be parsed using `match`. It takes a string that describes the
-argument types and matches them against the provided arguments:
-    
-    import match from require 'core.base'
+Arguments should be parsed using `base.match`. The two exports `base.match.val`
+and `base.match.evt` are used to build complex patterns that can parse and
+validate the Op arguments into complex structures (see the module documentation
+for more information).
 
-    { str, numbers, optional } = match 'str *num any?', inputs
+    import val, evt from require 'core.base'
 
-`match` matches arguments greedily from left to right. Each part of the string
-is the type-name of an argument. Parts can be optional (`num?`), multiple
-(`*num` - one or more numbers) or both (`*num?` - zero or more numbers). If
-there is an equals sign in front of a part, the corresponding `Result` has to be
-*evaltime constant*. The special typename `any` can be used for generic Ops.
+    pattern = evt.bang + val.str + val.num*3 + -evt!
+    { trig, str, numbers, optional } = pattern\match inputs
+
+This example matches first an `EventStream` of type `bang`, then a `ValueStream`
+of type `str`, followed by one, two or three `num`-values and finally an
+optional argument `EventStream` of any type. `:match` will throw an error if it
+couldn't (fully) match the arguments and otherwise return a structured mapping
+of the inputs.
 
 If there are more complex dependencies between arguments, it is recommended to
-do as much of the parsing as possible using `match`, and then continue
+do as much of the parsing as possible using the `base.match` and then continue
 manually. For invalid or missing arguments, `Error` instances should be thrown
 using `error` or `assert`.
 
@@ -104,8 +107,8 @@ There are two types of inputs: `Input.hot` and `Input.cold`:
 are made. They are useful to 'ignore' changes to inputs which are only relevant
 when another input changed value. Imagine for example a `send-value-when` Op,
 which sends a value only when a `bang!` input is live. This Op doesn't have to
-update when the value changes, it's enough to update only when the trigger input
-changes and simply read the value in that moment.
+update when the value changes, it's enough to update only when the trigger
+input changes and simply read the value in that moment.
 
 *Hot* inputs on the other hand mark the input stream as a dependency for the
 Op. Depending on the type of `Stream`, the semantics are a little different:
@@ -124,19 +127,19 @@ To illustrate with the `send-value-when` example:
 
     setup: (inputs, scope) =>
       { trig, value } = match 'bang! any', inputs
-      
+
       super
         trig: Inputs.hot trig
         value: Inputs.cold value
 
 `Op:setup` takes a table that can have any (even nested) shape you want, as
 long as all 'leaf values' are `Input` instances. The following are both valid:
-        
+
     super { (Inputs.hot trig), (Inputs.cold value) }
-    
+
     super
-      trigger:Inputs.hot trig
-      values: { (Inputs.cold val0), (Inputs.cold val1), (Inputs.cold val2) }
+      trigger: Inputs.hot trig
+      values: { (Inputs.cold a), (Inputs.cold b), (Inputs.cold c) }
 
 #### output setup
 When `Op:setup` finishes, `@out` has to be set to a `Stream` instance. The
@@ -168,9 +171,10 @@ changed, and then internal state and the output value may be updated.
 `Action`s are more powerful than `Op`s, because they control whether, which and
 how their arguments are evaluated. They roughly correspond to *macros* in Lisps.
 Since it is rarely necessary to implement `Action`s, there is currently no
-documentation on implementing them, but the `Action` class documentation and the
-examples in `core/builtin.moon` should be enough to get started.
+documentation on implementing them, but the `Action` class documentation and
+the examples in `core/builtin.moon` should be enough to get started.
 
 [lua]:          https://www.lua.org/
 [moonscript]:   http://moonscript.org/
+[builtins-req]: ../../reference/index.html#require
 [builtins-doc]: ../../reference/index.html#doc

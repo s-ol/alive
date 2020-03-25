@@ -12,5 +12,5 @@ If you are looking for the language reference for users, head over to the
 format = 'discount'
 style = 'docs'
 template = 'docs'
-topics={'core/plugin-guide.md'}
+topics={'core/extensions.md'}
 dir = 'docs/internals'
