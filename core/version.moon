@@ -12,8 +12,8 @@
 -- @tfield string web the repo web URL
 {
   tag: "v0.0"
-  rev_short: "662def4"
-  rev_long: "662def4ef082412147ae8126e80065d245f4b426"
+  rev_short: "677c0d2"
+  rev_long: "677c0d2f01e14bbeca1583ec7878d80c71c3aa68"
   repo: "https://github.com/s-ol/alivecoding.git"
   web: "https://github.com/s-ol/alivecoding/tree/v0.0"
 }

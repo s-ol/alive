@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtin
-import Action, Op, FnDef, Input, match from require 'core.base'
+import Action, Op, FnDef, Input from require 'core.base'
 import ValueStream, LiteralValue from require 'core.stream.value'
 import Result from require 'core.result'
 import Cell from require 'core.cell'
@@ -263,10 +263,9 @@ trace = ValueStream.meta
   value: class extends Action
     class traceOp extends Op
       setup: (inputs) =>
-        { prefix, value } = match 'str any', inputs
         super
-          prefix: Input.cold prefix
-          value: Input.hot value
+          prefix: Input.cold inputs[1]
+          value: Input.hot inputs[2]
 
       tick: =>
         L\print "trace #{@inputs.prefix!}: #{@inputs.value.stream}"

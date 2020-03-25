@@ -1,23 +1,23 @@
-import Op, Value, Input, match from require 'core.base'
+import Op, ValueStream, Input, val from require 'core.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
 unpack or= table.unpack
 
-connect = Value.meta
+connect = ValueStream.meta
   meta:
     name: 'connect'
     summary: "Create a UDP remote."
     examples: { '(osc/connect host port)' }
 
   value: class extends Op
-    new: => super 'udp/socket'
-
+    pattern = val.str + val.num
     setup: (inputs) =>
-      { host, port } = match 'str num', inputs
+      @out or= ValueStream 'udp/socket'
+      { host, port } = pattern\match inputs
       super
-        host: Input.value host
-        port: Input.value port
+        host: Input.hot host
+        port: Input.hot port
 
     tick: =>
       { :host, :port } = @unwrap_all!
@@ -26,44 +26,42 @@ connect = Value.meta
       @out\set with sock = udp!
         \setpeername ip, port
 
-send = Value.meta
+send = ValueStream.meta
   meta:
     name: 'send'
     summary: "Send a value via OSC."
-    examples: { '(osc/send socket path val)' }
+    examples: { '(osc/send [socket] path val)' }
     description: "sends a message only when `val` is dirty."
 
   value: class extends Op
-    setup: (inputs) =>
-      { socket, path, value } = match 'udp/socket str any', inputs
+    pattern = -val['udp/socket'] + val.str + val!
+    setup: (inputs, scope) =>
+      { socket, path, value } = pattern\match inputs
       super
-        socket: Input.cold socket
+        socket: Input.cold socket or scope\get '*sock*'
         path:   Input.cold path
-        value:  Input.value value
+        value:  Input.hot value
 
     tick: =>
-      if @inputs.value\dirty!
-        { :socket, :path, :value } = @unwrap_all!
-        msg = if 'table' == type value
-          pack path, unpack value
-        else
-          pack path, value
-        socket\send msg
+      { :socket, :path, :value } = @unwrap_all!
+      msg = pack path, if 'table' == type value then unpack value else value
+      socket\send msg
 
-send_state = Value.meta
+send_state = ValueStream.meta
   meta:
     name: 'send'
     summary: "Synchronize a value via OSC."
-    examples: { '(osc/send! socket path val)' }
+    examples: { '(osc/send! [socket] path val)' }
     description: "sends a message whenever any parameter is dirty."
 
   value: class extends Op
-    setup: (inputs) =>
-      { socket, path, value } = match 'udp/socket str any', inputs
+    pattern = -val['udp/socket'] + val.str + val!
+    setup: (inputs, scope) =>
+      { socket, path, value } = pattern\match inputs
       super
-        socket: Input.value socket
-        path:   Input.value path
-        value:  Input.value value
+        socket: Input.hot socket or scope\get '*sock*'
+        path:   Input.hot path
+        value:  Input.hot value
 
     tick: =>
       { :socket, :path, :value } = @unwrap_all!

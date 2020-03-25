@@ -1,4 +1,4 @@
-import Value, Scope from require 'core'
+import ValueStream, Scope from require 'core'
 import render, layout, autoref from require 'extra.layout'
 import section, h1, h2, h3, p, ul, li, a, code, r from require 'extra.dom'
 
@@ -68,7 +68,7 @@ spit OUT, switch command
           p "These definitions are automatically loaded into the global Scope of
             every alive session."
           ul for key, val in opairs require 'core.builtin'
-            li render key, Value.wrap val
+            li render key, ValueStream.wrap val
         }
       }
 

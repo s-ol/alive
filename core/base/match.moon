@@ -1,95 +1,295 @@
-----
--- Utilities for matching `Result` types.
+-----
+--- Pattern capturing for Op argument parsing.
 --
--- @module match
+-- There is only one basic buildings block for assembling patterns:
+-- `Type`. It can match `ValueStream`s and `EventStream`s depending on its
+-- metatype argument and can take an optional type name to match as an argument.
+--
+-- In addition to this primitive, the following modifiers are available:
+-- `Repeat`, `Sequence`, `Choice`, and `Optional`. They can be used directly,
+-- but there is also a number of shorthands for assembling patterns quickly:
+--
+-- - `val()` and `evt()`: Shorthands for `Type('value')` and `Type('event')`
+-- - `val.num`: Shorthand for `Type('value', 'num')`
+-- - `evt.str`: Shorthand for `Type('event', 'str')`
+-- - `pat * 2`: Shorthand for `Repeat(pat, 1, 2)` (1-4 times `pat`)
+-- - `pat * 0`: Shorthand for `Repeat(pat, 1, nil)` (1-* times `pat`)
+-- - `pat ^ 2`: Shorthand for `Repeat(pat, 0, 2)` (0-4 times `pat`)
+-- - `pat ^ 0`: Shorthand for `Repeat(pat, 0, nil)` (0-* times `pat`)
+-- - `a + b + … + z`: Shorthand for `Sequence{ a, b, ..., z }`
+-- - `a / b / … / z`: Shorthand for `Choice{ a, b, ..., z }`
+-- - `-pat`: Shorthand for `Optional(pat)`
+--
+-- To perform the actual matching, call the `:match` method on a pattern and
+-- pass a sequence of `Result`s. The method will either return the captured
+-- `Result`s (or a table structuring them)
+--
+-- Any ambiguous pattern can be set to 'recall mode' by invoking it.
+-- Recalling patterns will memorize the first Result they match, and
+-- only match further Results of the same type. For example
+--
+--     arg = (val.num / val.str)!
+--     pattern = arg + arg
+--
+-- ...will match either two numbers or two strings, but not one number and one
+-- string. Recalling works on `Choice` and `Type` patterns. `Type` patterns
+-- without a type (`val!` and `evt!`) always behave like this.
+--
+-- On `Sequence` patterns, a special method `:named` exists. It takes a
+-- sequence of keys that are used instead of integers when constructing the
+-- capture table:
+--
+--     pattern = (val.str + val.num):named{'key', 'value'}
+--     pattern:match(...)
+--     -- returns { {key='a', value=1}, {key='b', value=2}, ...}
+--
+-- @module base.match
 import Error from require 'core.error'
-unpack or= table.unpack
+import ValueStream, EventStream from require 'core.stream'
+
+local Repeat, Sequence, Choice, Optional
 
 class Pattern
-  new: (opts) =>
-    if 'string' == type opts
-      splat, const, type, opt = opts\match '^(%*?)(=?)([%w%-%_%/]+)(%??)$'
-      assert type, "couldn't parse type pattern '#{opts}'"
-      opts = {
-        :type
-        splat: splat == '*'
-        const: const == '='
-        opt: opt == '?'
-      }
+  match: (seq) =>
+    @reset!
+    num, cap = @capture seq, 1
+    assert num == #seq, do
+      Error 'argument', "couldn't match arguments against pattern #{@}"
+    cap
 
-    @type = opts.type
-    @const = opts.const
-    @opt = opts.opt
-    @splat = opts.splat
+  remember: (key) =>
+    return true unless @recall
 
-  matches: (result) =>
-    return false unless result
+    @recalled or= key
+    @recalled == key
 
-    if @const
-      return false unless result\is_const!
+  rep: (min, max) => Repeat @, min, max
 
-    if not result.value
-      return @type == 'nil'
+  reset: => @recalled = nil
 
-    return true if @type == 'any'
+  __call: => @
+  __mul: (num) => Repeat @, 1, if num ~= 0 then num
+  __pow: (num) => Repeat @, 0, if num ~= 0 then num
+  __add: (other) => Sequence { @, other }
+  __div: (other) => Choice { @, other }
+  __unm: => Optional @
 
-    result.value.type == @type
+  __inherited: (cls) =>
+    cls.__base.__call or= @__call
+    cls.__base.__mul or= @__mul
+    cls.__base.__pow or= @__pow
+    cls.__base.__add or= @__add
+    cls.__base.__div or= @__div
+    cls.__base.__unm or= @__unm
 
-  match: (results) =>
-    if @splat
-      matched = while @matches results[1]
-        table.remove results, 1
+--- Base Stream Pattern.
+--
+-- When instantiated with `type`, only succeeds for `Stream`s whose value and
+-- meta types match.
+--
+-- Otherwise, matches Streams based only on `metatype` for the first match, but
+-- using both afterwards (recall mode).
+--
+-- @function Stream
+-- @tparam string metatype "value" or "event"
+-- @tparam ?string type type name
+class Type extends Pattern
+  new: (@metatype, @type) =>
+    @recall = not @type
 
-      assert @opt or #matched > 0, Error 'argument', "expected at least one argument for spread"
-      matched
-    else
-      result = results[1]
-      matches = @matches result
-      assert @opt or matches, Error 'argument', "argument #{result and result\type!} incompatible with expected type #{@}"
-      if matches then table.remove results, 1
+  capture: (seq, i) =>
+    return unless seq[i]
+    type, mt = seq[i]\type!, seq[i]\metatype!
+    return unless @metatype == mt
+    match = if @type then type == @type else @remember type
+    if match
+      1, seq[i]
 
   __tostring: =>
-    str = @type
-    str = '*' .. str if @splat
-    str = '=' .. str if @const
-    str = str .. '?' if @opt
+    str = tostring @type
+    str ..= '!' if @metatype == 'event'
     str
 
---- match inputs to a argument type definition.
+--- Repeat a pattern.
 --
--- `pattern` is a string of type entries. Every type entry can be like this:
+-- Matches a given `inner` pattern as many times as possible, within the given
+-- minimum/maximum counts. Matching this pattern results in a sequence of the
+-- individual captures produced by the inner pattern.
 --
---  - `any` - matches one `Result` and returns it.
---  - `typename` - matches one `Result` of type `typename` and returns it.
---  - `=typename` - matches one eval-time const `Result`s of type `typname` and
---    returns it.
---  - `typename?` - matches what `typename` would match, if possible (greedy).
---    Otherwise returns `nil`.
---  - `*typename` - matches as many `typename` `Result`s as possible (greedy).
---    Throws if there isn't at least one such `Result`. Returns a sequence of
---    `Result`s.
---  - `*typename?` - like `*typename`, except it also matches zero `Result`s.
---  - `*=typename`, `=typename?` and `*=typename?` behave as expected.
+-- @function Repeat
+-- @tparam Pattern inner the original pattern
+-- @tparam ?number min minimum amount of repetitions
+-- @tparam ?number max maximum amount of repetitions (default infinite)
+class Repeat extends Pattern
+  new: (@inner, @min, @max) =>
+
+  capture: (seq, i) =>
+    take, all = 0, {}
+    while true
+      num, cap = @inner\capture seq, i+take
+      break unless num
+
+      take += num
+      table.insert all, cap
+
+      break if @max and take >= @max
+
+    return if @min and take < @min
+    return if @max and take > @max
+
+    take, all
+
+  reset: =>
+    @inner\reset!
+
+  __call: =>
+    @@ @inner!, @min, @max
+
+  __tostring: =>
+    min = @min or '0'
+    max = @max or '*'
+    "#{@inner}{#{min}-#{max}}"
+
+--- Match multiple patterns in order.
 --
---  Except for `typename?` and `*typename?`, all entries throw if they cannot
---  match the next `Result` in `inputs`.
+-- Matches the inner patterns in order, only succeeds if all of them match.
+-- Captures the individual captures produced by the inner patterns in a
+-- sequence, or table with keys specified in `keys` or using the `:named(keys)`
+-- modifier.
 --
---  Throws if there are leftover `inputs` after matching all of `pattern`.
+-- @function Sequence
+-- @tparam {Pattern,...} elements the inner patterns
+-- @tparam ?{string,...} keys the keys to use when capturing matches
+class Sequence extends Pattern
+  new: (@elements, @keys) =>
+
+  capture: (seq, i) =>
+    take, all = 0, {}
+    for key, elem in ipairs @elements
+      num, cap = elem\capture seq, i+take
+      return unless num
+
+      take += num
+      key = @keys[key] if @keys
+      all[key] = cap
+
+    take, all
+
+  reset: =>
+    for elem in *@elements
+      elem\reset!
+
+  named: (...) =>
+    @@ [e for e in *@elements], { ... }
+
+  __call: =>
+    @@ [e! for e in *@elements]
+
+  __add: (other) =>
+    elements = [e for e in *@elements]
+    table.insert elements, other
+    @@ elements
+
+  __tostring: =>
+    core = table.concat [tostring e for e in *@elements], ' '
+    "(#{core})"
+
+--- Match one of multiple options.
 --
--- @tparam string pattern the argument type definition
--- @tparam {Result,...} inputs the list of inputs
--- @treturn {Result|{Result,...},...} the inputs as matched against `pattern`
-match = (pattern, inputs) ->
-  patterns = while pattern
-    pat, rest = pattern\match '^([^ ]+) (.*)$'
-    pat = pattern unless pat
-    pattern = rest
-    Pattern pat
-  values = [p\match inputs for p in *patterns]
-  assert #inputs == 0, Error 'argument', "#{#inputs} extra arguments given!"
-  values
+-- Matches using the first matching pattern in `elements` and returns its
+-- captured value. Supports recalling the matched subpattern.
+--
+-- @function Choice
+-- @tparam {Pattern,...} elements the inner patterns
+-- @tparam ?{string,...} keys the keys to use when capturing matches
+class Choice extends Pattern
+  new: (@elements, @recall=false) =>
+
+  capture: (seq, i) =>
+    for key, elem in ipairs @elements
+      num, cap = elem\capture seq, i
+      if num and @remember key
+        return num, cap
+
+  reset: =>
+    super!
+    for elem in *@elements
+      elem\reset!
+
+  __call: =>
+    @@ [e! for e in *@elements], true
+
+  __div: (other) =>
+    elements = [e for e in *@elements]
+    table.insert elements, other
+    @@ elements
+
+  __tostring: =>
+    core = table.concat [tostring e for e in *@elements], ' | '
+    "(#{core})"
+
+--- Optionally match a pattern.
+--
+-- Matches using the first matching pattern in `elements` and returns its
+-- captured value. Supports recalling the matched subpattern.
+--
+-- @function Optional
+-- @tparam {Pattern,...} elements the inner patterns
+-- @tparam ?{string,...} keys the keys to use when capturing matches
+class Optional extends Pattern
+  new: (@inner) =>
+
+  capture: (seq, i) =>
+    num, cap = @inner\capture seq, i
+    num or 0, cap
+
+  reset: =>
+    @inner\reset!
+
+  __call: =>
+    @@ @inner!
+
+  __unm: => @
+
+  __tostring: => "#{@inner}?"
+
+--- `Value` shorthands.
+--
+-- Call or index with a string to obtain a `Type` instance.
+-- Call to obtain a wildcard pattern.
+--
+--     val.str, val.num
+--     val['vec3'], val('vec3')
+--     val()
+--
+-- @table val
+val = setmetatable {}, {
+  __index: (key) =>
+    with v = Type 'value', key
+      @[key] = v
+
+  __call: (...) => Type 'value', ...
+}
+
+--- `Event` shorthands.
+--
+-- Call or index with a string to obtain an `Type` instance.
+-- Call to obtain a wildcard pattern.
+--
+--     evt.bang, evt.str, evt.num
+--     evt['midi/message'], evt('midi/message')
+--     evt()
+--
+-- @table evt
+evt = setmetatable {}, {
+  __index: (key) =>
+    with v = Type 'event', key
+      @[key] = v
+
+  __call: (...) => Type 'event', ...
+}
 
 {
-  :Pattern
-  :match
+  :Type, :Repeat, :Sequence, :Choice, :Optional
+  :val, :evt
 }

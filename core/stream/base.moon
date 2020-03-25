@@ -53,17 +53,6 @@ class Stream
   --
   -- @tfield ?table meta
 
-  __tostring: =>
-    value = if @meta.name
-      @meta.name
-    else if 'table' == (type @value) and rawget @value, '__base'
-      @value.__name
-    else
-      tostring @value
-    "<#{@@__name} #{@type}: #{value}>"
-
-  __inherited: (cls) => cls.__base.__tostring = @__tostring
-
 --- static functions
 -- @section static
 

@@ -1,4 +1,4 @@
-import Op, Value, Input, Error, match from require 'core.base'
+import Op, ValueStream, Input, Error, val from require 'core.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -15,13 +15,13 @@ tobool = (val) ->
       true
 
 class ReduceOp extends Op
-  new: => super 'bool'
-
+  pattern = val! + val! * 0
   setup: (inputs) =>
-    { first, rest } = match "any *any", inputs
+    @out or= ValueStream 'bool'
+    { first, rest } = pattern\match inputs
     super
-      first: Input.value first
-      rest: [Input.value v for v in *rest]
+      first: Input.hot first
+      rest: [Input.hot v for v in *rest]
 
   tick: =>
     { :first, :rest } = @unwrap_all!
@@ -31,7 +31,7 @@ class ReduceOp extends Op
 
     @out\set accum
 
-eq = Value.meta
+eq = ValueStream.meta
   meta:
     name: 'eq'
     summary: "Check for equality."
@@ -39,16 +39,16 @@ eq = Value.meta
     description: "`true` if the types and values of all arguments are equal."
 
   value: class extends Op
-    new: => super 'bool', false
-
+    pattern = val! + val! * 0
     setup: (inputs) =>
-      { first, rest } = match "any *any", inputs
+      @out or= ValueStream 'bool', false
+      { first, rest } = pattern\match inputs
       same = all_same first\type!, [i\type! for i in *rest]
 
       super if same
         {
-          first: Input.value first
-          rest: [Input.value v for v in *rest]
+          first: Input.hot first
+          rest: [Input.hot v for v in *rest]
         }
       else
         {}
@@ -68,8 +68,7 @@ eq = Value.meta
 
       @out\set equal
 
-
-not_eq = Value.meta
+not_eq = ValueStream.meta
   meta:
     name: 'not-eq'
     summary: "Check for inequality."
@@ -77,11 +76,10 @@ not_eq = Value.meta
     description: "`true` if types or values of any two arguments are different."
 
   value: class extends Op
-    new: => super 'bool'
-
     setup: (inputs) =>
+      @out or= ValueStream 'bool', false
       assert #inputs > 1, Error 'argument', "need at least two values"
-      super [Input.value v for v in *inputs]
+      super [Input.hot v for v in *inputs]
 
     tick: =>
       if not @inputs[1]
@@ -99,7 +97,7 @@ not_eq = Value.meta
 
       @out\set diff
 
-and_ = Value.meta
+and_ = ValueStream.meta
   meta:
     name: 'and'
     summary: "Logical AND."
@@ -107,7 +105,7 @@ and_ = Value.meta
   value: class extends ReduceOp
     fn: (a, b) -> a and b
 
-or_ = Value.meta
+or_ = ValueStream.meta
   meta:
     name: 'or'
     summary: "Logical OR."
@@ -115,7 +113,7 @@ or_ = Value.meta
   value: class extends ReduceOp
     fn: (a, b) -> a or b
 
-not_ = Value.meta
+not_ = ValueStream.meta
   meta:
     name: 'not'
     summary: "Logical NOT."
@@ -126,11 +124,11 @@ not_ = Value.meta
 
   setup: (inputs) =>
     { value } = match 'any', inputs
-    super value: Input.value value
+    super value: Input.hot value
 
   tick: => @out\set not tobool @inputs.value!
 
-bool = Value.meta
+bool = ValueStream.meta
   meta:
     name: 'bool'
     summary: "Cast value to bool."
@@ -138,11 +136,10 @@ bool = Value.meta
     description: "`false` if a is `false`, `nil` or `0`, `true` otherwise."
 
   value: class extends Op
-    new: => super 'bool'
-
     setup: (inputs) =>
-      { value } = match 'any', inputs
-      super value: Input.value value
+      @out or= ValueStream 'bool'
+      { value } = val!\match inputs
+      super value: Input.hot value
 
     tick: => @out\set tobool @inputs\value!
 

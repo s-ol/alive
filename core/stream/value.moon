@@ -57,6 +57,20 @@ class ValueStream extends Stream
   -- Compares two `ValueStream`s by comparing their types and their Lua values.
   __eq: (other) => other.type == @type and other.value == @value
 
+  __tostring: =>
+    value = if @meta.name
+      @meta.name
+    else if 'table' == (type @value) and rawget @value, '__base'
+      @value.__name
+    else
+      tostring @value
+    "<#{@@__name} #{@type}: #{value}>"
+
+  --- Stream metatype.
+  --
+  -- @tfield string metatype
+  metatype: 'value'
+
   --- the type name of this stream.
   --
   -- the following builtin typenames are used:

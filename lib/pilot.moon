@@ -1,4 +1,4 @@
-import Op, Value, Input, Error, match from require 'core.base'
+import Op, ValueStream, Input, val, evt from require 'core.base'
 import udp from require 'socket'
 
 local conn
@@ -20,47 +20,49 @@ send = (...) ->
   conn or= udp!
   conn\sendto str, '127.0.0.1', 49161
 
-play = Value.meta
+arg = val.num / val.str
+
+play = ValueStream.meta
   meta:
     name: 'play'
     summary: "Play a note when a bang arrives."
     examples: { '(pilot/play trig ch oct note [vel [len]])' }
 
   value: class extends Op
+    pattern = evt.bang + arg^5
     setup: (inputs) =>
-      { trig, args } = match 'bang *any', inputs
-      assert #args < 6, Error 'argument', "too many arguments!"
+      { trig, args } = pattern\match inputs
       super
-        trig: Input.event trig
+        trig: Input.hot trig
         args: [Input.cold a for a in *args]
 
     tick: =>
       { :trig, :args } = @inputs
-      if trig\dirty! and trig!
+      for _ in *trig!
         send [a! for a in *@inputs.args]
 
-play_ = Value.meta
+play_ = ValueStream.meta
   meta:
     name: 'play!'
     summary: "Play a note when a note arrives."
     examples: { '(pilot/play! ch oct note [vel [len]])' }
 
   value: class extends Op
+    pattern = arg + arg + (evt.num / evt.str) + arg^2
     setup: (inputs) =>
-      { chan, octv, note, args } = match 'any any any *any', inputs
-      assert #args < 3, Error 'argument', "too many arguments!"
+      { chan, octv, note, args } = pattern\match inputs
       super
         chan: Input.cold chan
         octv: Input.cold octv
-        note: Input.event note
+        note: Input.hot note
         args: [Input.cold a for a in *args]
 
     tick: =>
-      if @inputs.note\dirty!
-        { :chan, :oct, :note, :args } = @unwrap_all!
-        send { chan, oct, note }, args
+      { :chan, :octv, :note, :args } = @inputs
+      for note in *note!
+        send { chan!, octv!, note! }, args
 
-effect = Value.meta
+effect = ValueStream.meta
   meta:
     name: 'effect'
     summary: "Set effect parameters."
@@ -68,12 +70,13 @@ effect = Value.meta
     description: "`effect` should be one of 'DIS', 'CHO', 'REV' or 'FEE'"
 
   value: class extends Op
+    pattern = val.str + arg + arg
     setup: (inputs) =>
-      { which, a, b } = match 'str num num', inputs
+      { which, a, b } = pattern\match inputs
       super {
-        Input.cold which
-        Input.value a
-        Input.value b
+        Input.hot which
+        Input.hot a
+        Input.hot b
       }
 
     tick: =>

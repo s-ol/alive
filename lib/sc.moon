@@ -1,8 +1,8 @@
-import Op, Value, Input, Error, match from require 'core.base'
+import Op, ValueStream, Input, val, evt from require 'core.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
-play = Value.meta
+play = ValueStream.meta
   meta:
     name: 'play'
     summary: 'Play a SuperCollider SynthDef.'
@@ -12,20 +12,20 @@ Plays the synth `synth` on the `udp/socket` `socket` whenever `trig` is live.
 Any number of parameter-value pairs can be specified and are captured and sent
 together with the note when triggered."
   value: class extends Op
+    pattern = val['udp/socket'] + val.str + evt.bang + (val.str + val.num)\rep 0
     setup: (inputs) =>
-      { socket, synth, trig, ctrls } = match 'udp/socket str bang *any?', inputs
+      { socket, synth, trig, ctrls } = pattern\match inputs
 
-      assert #ctrls % 2 == 0, Error 'argument', "parameters need to be specified as pairs"
-      for key in *ctrls[1,,2]
-        assert key\type! == 'str', Error 'argument', "ony strings are supported as control names"
-      for val in *ctrls[2,,2]
-        assert val\type! == 'num', Error 'argument', "only numbers are supported as control values"
+      flat_ctrls = {}
+      for { key, value } in *ctrls
+        table.insert flat_ctrls, key
+        table.insert flat_ctrls, value
 
       super
-        trig:   Input.event trig
+        trig:   Input.hot trig
         socket: Input.cold socket
         synth:  Input.cold synth
-        ctrls: [Input.cold v for v in *ctrls]
+        ctrls: [Input.cold v for v in *flat_ctrls]
 
     tick: =>
       if @inputs.trig\dirty! and @inputs.trig!

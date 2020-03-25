@@ -1,14 +1,16 @@
 ----
 -- Base definitions for extensions.
 --
--- This module exports the following classes that extension modules may need:
+-- This module exports the following classes and tables that extension modules
+-- may need:
 --
 -- @module base
 -- @see Op
 -- @see Action
 -- @see FnDef
 -- @see Input
--- @see match
+-- @see base.match.val
+-- @see base.match.evt
 -- @see ValueStream
 -- @see EventStream
 -- @see IOStream
@@ -19,7 +21,7 @@ import Op from require 'core.base.op'
 import Action from require 'core.base.action'
 import FnDef from require 'core.base.fndef'
 import Input from require 'core.base.input'
-import match from require 'core.base.match'
+import val, evt from require 'core.base.match'
 import ValueStream, EventStream, IOStream from require 'core.stream'
 import Result from require 'core.result'
 import Error from require 'core.error'
@@ -29,7 +31,7 @@ import Error from require 'core.error'
   :Action
   :FnDef
   :Input
-  :match
+  :val, :evt
 
   -- redundant exports, to keep anything an extension might need in one import
   :ValueStream, :EventStream, :IOStream

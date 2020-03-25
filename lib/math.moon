@@ -1,14 +1,14 @@
-import Op, Value, Error, Input, match from require 'core.base'
+import Op, ValueStream, Error, Input, val from require 'core.base'
 unpack or= table.unpack
 
 class ReduceOp extends Op
-  new: => super 'num'
-
+  pattern = val.num + val.num*0
   setup: (inputs) =>
-    { first, rest } = match 'num *num', inputs
+    @out or= ValueStream 'num'
+    { first, rest } = pattern\match inputs
     super
-      first: Input.value first
-      rest: [Input.value v for v in *rest]
+      first: Input.hot first
+      rest: [Input.hot v for v in *rest]
 
   tick: =>
     { :first, :rest } = @unwrap_all!
@@ -17,44 +17,39 @@ class ReduceOp extends Op
       accum = @.fn accum, val
     @out\set accum
 
-func_op = (arity, func) ->
+func_op = (func, pattern) ->
   class extends Op
-    new: => super 'num'
 
     setup: (inputs) =>
-      { params } = match '*num', inputs
-      if arity != '*'
-        err = Error 'argument', "need exactly #{arity} arguments"
-        assert #params == arity, err
-      super [Input.value p for p in *params]
+      @out or= ValueStream 'num'
+      params = pattern\match inputs
+      super [Input.hot p for p in *params]
 
     tick: => @out\set func unpack @unwrap_all!
 
-func_def = (name, args, func, summary) ->
-   _, arity = args\gsub ' ', ' '
-
-   Value.meta
+func_def = (name, args, func, summary, pattern) ->
+   ValueStream.meta
      meta:
        :name
        :summary
        examples: { "(#{name} #{args})" }
-     value: func_op arity+1, func
+     value: func_op func, pattern or val.num\rep 1, 1
 
 evenodd_op = (remainder) ->
   class extends Op
-    new: => super 'bool'
-
+    pattern = val.num + -val.num
     setup: (inputs) =>
-      { val, div } = match 'num num?', inputs
+      @out or= ValueStream 'bool'
+      { val, div } = pattern\match inputs
       super
-        val: Input.value val
-        div: Input.value div or Value.num 2
+        val: Input.hot val
+        div: Input.hot div or ValueStream.num 2
 
     tick: =>
       { :val, :div } = @unwrap_all!
       @out\set (val % div) == remainder
 
-add = Value.meta
+add = ValueStream.meta
   meta:
     name: 'add'
     summary: "Add values."
@@ -63,7 +58,7 @@ add = Value.meta
   value: class extends ReduceOp
     fn: (a, b) -> a + b
 
-sub = Value.meta
+sub = ValueStream.meta
   meta:
     name: 'sub'
     summary: "Subtract values."
@@ -72,7 +67,7 @@ sub = Value.meta
   value: class extends ReduceOp
     fn: (a, b) -> a - b
 
-mul = Value.meta
+mul = ValueStream.meta
   meta:
     name: 'mul'
     summary: "Multiply values."
@@ -80,7 +75,7 @@ mul = Value.meta
   value: class extends ReduceOp
     fn: (a, b) -> a * b
 
-div = Value.meta
+div = ValueStream.meta
   meta:
     name: 'div'
     summary: "Divide values."
@@ -89,7 +84,7 @@ div = Value.meta
   value: class extends ReduceOp
     fn: (a, b) -> a / b
 
-pow = Value.meta
+pow = ValueStream.meta
   meta:
     name: 'pow'
     summary: "Raise to a power."
@@ -98,7 +93,7 @@ pow = Value.meta
   value: class extends ReduceOp
     fn: (a, b) -> a ^ b
 
-mod = Value.meta
+mod = ValueStream.meta
   meta:
     name: 'mod'
     summary: 'Modulo operator.'
@@ -106,7 +101,7 @@ mod = Value.meta
     description: "Calculate remainder of division by `div`."
   value: func_op 2, (a, b) -> a % b
 
-even = Value.meta
+even = ValueStream.meta
   meta:
     name: 'even'
     summary: 'Check whether val is even.'
@@ -115,7 +110,7 @@ even = Value.meta
 `div` defaults to 2."
   value: evenodd_op 0
 
-odd = Value.meta
+odd = ValueStream.meta
   meta:
     name: 'odd'
     summary: 'Check whether val is odd.'
@@ -124,7 +119,7 @@ odd = Value.meta
 `div` defaults to 2."
   value: evenodd_op 1
 
-mix = Value.meta
+mix = ValueStream.meta
   meta:
     name: 'mix'
     summary: 'Linearly interpolate.'
@@ -132,7 +127,7 @@ mix = Value.meta
     description: "Interpolate between `a` and `b` using `i` in range 0-1."
   value: func_op 3, (a, b, i) -> i*b + (1-i)*a
 
-min = Value.meta
+min = ValueStream.meta
   meta:
     name: 'min'
     summary: "Find the minimum."
@@ -140,7 +135,7 @@ min = Value.meta
     description: "Return the lowest of arguments."
   value: func_op '*', math.min
 
-max = Value.meta
+max = ValueStream.meta
   meta:
     name: 'max'
     summary: "Find the maximum."
@@ -154,7 +149,7 @@ tan = func_def 'tan', 'alpha', math.tan, "Tangent function (radians)."
 acos = func_def 'acos', 'cos', math.acos, "Inverse cosine function (radians)."
 asin = func_def 'asin', 'sin', math.asin, "Inverse sine function (radians)."
 atan = func_def 'atan', 'tan', math.atan, "Inverse tangent function (radians)."
-atan2 = func_def 'atan2', 'y x', math.atan2, "Inverse tangent function (two argument version)."
+atan2 = func_def 'atan2', 'y x', math.atan2, "Inverse tangent function (two argument version).", val.num\rep(2, 2)
 cosh = func_def 'cosh', 'alpha', math.cosh, "Hyperbolic cosine function (radians)."
 sinh = func_def 'sinh', 'alpha', math.sinh, "Hyperbolic sine function (radians)."
 tanh = func_def 'tanh', 'alpha', math.tanh, "Hyperbolic tangent function (radians)."
@@ -164,7 +159,7 @@ ceil = func_def 'ceil', 'val', math.ceil, "Round towards positive infinity."
 abs = func_def 'abs', 'val', math.abs, "Get the absolute value."
 
 exp = func_def 'exp', 'exp', math.floor, "*e* number raised to a power."
-log = func_def 'log', 'val base', math.log, "Logarithm with given base."
+log = func_def 'log', 'val [base]', math.log, "Logarithm with given base.", val.num*2
 log10 = func_def 'log10', 'val', math.log10, "Logarithm with base 10."
 sqrt = func_def 'sqrt', 'val', math.sqrt, "Square root function."
 
@@ -181,11 +176,11 @@ sqrt = func_def 'sqrt', 'val', math.sqrt, "Square root function."
   :mix
   :min, :max
 
-  pi: with Value.wrap math.pi
+  pi: with ValueStream.wrap math.pi
     .meta = summary: 'The pi constant.'
-  tau: with Value.wrap math.pi*2
+  tau: with ValueStream.wrap math.pi*2
     .meta = summary: 'The tau constant.'
-  huge: with Value.wrap math.huge
+  huge: with ValueStream.wrap math.huge
     .meta = summary: 'Positive infinity constant.'
 
   :sin, :cos, :tan

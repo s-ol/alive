@@ -1,4 +1,4 @@
-import Value, IO, Op, Registry, Input, Error, match from require 'core.base'
+import ValueStream, IOStream, Op, Input, Error, val from require 'core.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 
 bit = do
@@ -30,27 +30,23 @@ find_port = (Klass, name) ->
 
     \openport id
 
-class MidiPort extends IO
-  new: (@inp, @out) =>
-    @messages = {}
+class MidiPort extends IOStream
+  new: => super 'midi/port'
+
+  setup: (inp, out) =>
+    @inp = inp and find_port RtMidiIn, inp
+    @out = out and find_port RtMidiOut, out
 
   tick: =>
-    if @inp
-      @messages = while true
-        delta, bytes = @inp\getmessage!
-        break unless delta
+    return unless @inp
+    while true
+      delta, bytes = @inp\getmessage!
+      break unless delta
 
-        { status, a, b } = bytes
-        chan = band status, 0xf
-        status = MIDI[rshift status, 4]
-        { :status, :chan, :a, :b, port: @ }
-
-  dirty: => #@messages > 0
-
-  receive: =>
-    coroutine.wrap ->
-      for msg in *@messages
-        coroutine.yield msg
+      { status, a, b } = bytes
+      chan = band status, 0xf
+      status = MIDI[rshift status, 4]
+      @add { :status, :chan, :a, :b }
 
   send: (status, chan, a, b) =>
     assert @out, Error 'type', "#{@} is not an output or bidirectional port"
@@ -59,15 +55,15 @@ class MidiPort extends IO
     @out\sendmessage status, a, b
 
 class PortOp extends Op
-  new: => super 'midi/port'
+  new: (...) =>
+    super ...
+    @out or= MidiPort!
 
   tick: (inp, out) =>
-    if (inp and inp\dirty!) or (out and out\dirty!)
-      inp = inp and find_port RtMidiIn, inp!
-      out = out and find_port RtMidiOut, out!
-      @out\set MidiPort inp, out
+    { :inp, :out } = @unwrap_all!
+    @out\setup inp, out
 
-input = Value.meta
+input = ValueStream.meta
   meta:
     name: 'input'
     summary: "Create a MIDI input port."
@@ -75,12 +71,10 @@ input = Value.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      { name } = match 'str', inputs
-      super name: Input.value name
+      name = val.str\match inputs
+      super inp: Input.hot name
 
-    tick: => super @inputs.name
-
-output = Value.meta
+output = ValueStream.meta
   meta:
     name: 'output'
     summary: "Create a MIDI output port."
@@ -88,12 +82,10 @@ output = Value.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      { name } = match 'str', inputs
-      super name: Input.value name
+      name = val.str\match inputs
+      super out: Input.hot name
 
-    tick: => super nil, @inputs.name
-
-inout = Value.meta
+inout = ValueStream.meta
   meta:
     name: 'inout'
     summary: "Create a bidirectional MIDI port."
@@ -101,12 +93,10 @@ inout = Value.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      { inp, out } = match 'str str', inputs
+      { inp, out } = (val.str + val.str)\match inputs
       super
-        inp: Input.value inp
-        out: Input.value out
-
-    tick: => super @inputs.inp, @inputs.out
+        inp: Input.hot inp
+        out: Input.hot out
 
 apply_range = (range, val) ->
   if range\type! == 'str'

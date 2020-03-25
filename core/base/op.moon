@@ -5,7 +5,7 @@
 
 deepcopy = (val) ->
   switch type val
-    when 'number', 'string', 'boolean'
+    when 'number', 'string', 'boolean', 'nil'
       val
     when 'table'
       assert (not getmetatable {}), "state should only contain simple tables!"
@@ -35,8 +35,8 @@ class Op
   --
   -- @treturn Op
   fork: =>
-    out = if @out then @out\fork
-    state = if @state then deepcopy state
+    out = if @out then @out\fork!
+    state = if @state then deepcopy @state
     @@ out, state
 
   --- internal state of this Op.
@@ -53,8 +53,8 @@ class Op
   -- `ValueStream`, it should have a value assigned via `set` or the
   -- constructor once `tick` is called the first time. If `out`'s value is not
   -- initialized in `new` or `setup`, the implementation must make sure
-  -- `tick``(true)` is called at -- least on the first eval-cycle the Op goes
-  -- through, e.g. by using an `Input.value`.
+  -- `tick``(true)` is called at least on the first eval-cycle the Op goes
+  -- through, e.g. by using an `Input.hot` with a `ValueStream`.
   --
   -- @tfield Stream out
 
@@ -95,10 +95,10 @@ class Op
 
   --- handle incoming events and update `out` (optional).
   --
-  -- Called once per frame if any `Input`s are dirty. Some `Input`s (like
-  -- `Input.value`) have special behaviour immediately after `setup`, that can
-  -- cause them to become dirty at eval-time. In this case, an eval-time tick
-  -- is executed. You can detect this using the `setup` parameter.
+  -- Called once per frame if any `Input`s are dirty. Some `Input`s may have
+  -- special behaviour immediately after `setup` that can cause them to become
+  -- dirty at eval-time. In this case, an eval-time tick is executed. You can
+  -- detect this using the `setup` parameter.
   --
   -- `tick` is called after `setup`. `tick` is not called immediately after
   -- `setup` if no `inputs` are dirty. Update `out` here.

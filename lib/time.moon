@@ -1,8 +1,13 @@
-import Value, Error, IO, Op, Input, match from require 'core.base'
+import
+  ValueStream, EventStream, IOStream,
+  Error, Op, Input, val, evt
+from require 'core.base'
 import monotime from require 'system'
 
-class Clock extends IO
+class Clock extends IOStream
   new: (@frametime) =>
+    super 'clock'
+
     return unless monotime
     @last = monotime!
     @dt = 0
@@ -17,9 +22,14 @@ class Clock extends IO
     else
       false
 
+  unwrap: =>
+    dt = @dt
+    time = @last
+    { :dt, :time }
+
   dirty: => @is_dirty
 
-clock = Value.meta
+clock = ValueStream.meta
   meta:
     name: 'clock'
     summary: "Create a clock source."
@@ -28,21 +38,23 @@ clock = Value.meta
 IO that triggers other operators at a fixed frame rate.
 `fps` defaults to 60 and has to be an eval-time constant"
   value: class extends Op
-    new: => super 'clock'
+    new: (...) =>
+      super ...
+      @out or= Clock!
 
     setup: (inputs) =>
-      { fps } = match 'num?', inputs
-      super fps: Input.value fps or Value.num 60
+      fps = (-val.num)\match inputs
+      super fps: Input.hot fps or ValueStream.num 60
+      @out.frametime = 1 / @inputs.fps!
 
     tick: =>
-      if @inputs.fps\dirty!
-        @out\set Clock 1 / @inputs.fps!
+      @out.frametime = 1 / @inputs.fps!
 
-lfo = Value.meta
+lfo = ValueStream.meta
   meta:
     name: 'lfo'
     summary: "Low-frequency oscillator."
-    examples: { '(lfo [clock] freq wave)' }
+    examples: { '(lfo [clock] freq [wave])' }
     description: "
 oscillates between 0 and 1 at the frequency freq.
 wave selects the wave shape from the following:
@@ -50,31 +62,32 @@ wave selects the wave shape from the following:
 - `'saw'`
 - `'tri'`"
   value: class extends Op
-    new: =>
-      super 'num'
-      @state.phase or= 0
+    new: (...) =>
+      super ...
+      @state or= 0
+      @out or= ValueStream 'num'
 
-    default_wave = Value.str 'sin'
+    default_wave = ValueStream.str 'sin'
+    pattern = -evt.clock + val.num + -val.str
     setup: (inputs, scope) =>
-      { clock, freq, wave } = match 'clock? num any?', inputs
+      { clock, freq, wave } = pattern\match inputs
       super
-        clock: Input.io clock or scope\get '*clock*'
-        freq: Input.value freq
-        wave: Input.value wave or default_wave
+        clock: Input.hot clock or scope\get '*clock*'
+        freq: Input.cold freq
+        wave: Input.hot wave or default_wave
 
     tau = math.pi * 2
     tick: =>
       if @inputs.clock\dirty!
-        { :clock, :freq, :wave } = @unwrap_all!
+        @state += @inputs.clock!.dt * @iputs.freq!
 
-        @state.phase += clock.dt * freq
-        @out\set switch wave
-          when 'sin' then .5 + .5 * math.cos @state.phase * tau
-          when 'saw' then @state.phase % 1
-          when 'tri' then math.abs (2*@state.phase % 2) - 1
-          else error Error 'argument', "unknown wave type '#{wave}'"
+      @out\set switch @inputs.wave!
+        when 'sin' then .5 + .5 * math.cos @state * tau
+        when 'saw' then @state % 1
+        when 'tri' then math.abs (2*@state % 2) - 1
+        else error Error 'argument', "unknown wave type '#{wave}'"
 
-ramp = Value.meta
+ramp = ValueStream.meta
   meta:
     name: 'ramp'
     summary: "Sawtooth LFO."
@@ -82,31 +95,32 @@ ramp = Value.meta
     description: "
 ramps from 0 to max (default same as ramp) once every period seconds."
   value: class extends Op
-    new: =>
-      super 'num'
-      @state.phase or= 0
+    new: (...) =>
+      super ...
+      @state or= 0
+      @out or= ValueStream 'num'
 
+    pattern = -evt.clock + val.num + -val.num
     setup: (inputs, scope) =>
-      { clock, period, max } = match 'clock? num num?', inputs
+      { clock, period, max } = pattern\match inputs
       super
-        clock: Input.io clock or scope\get '*clock*'
-        period: Input.value period
-        max: max and Input.value max
+        clock: Input.hot clock or scope\get '*clock*'
+        period: Input.cold period
+        max: max and Input.cold max
 
     tick: =>
       clock_dirty = @inputs.clock\dirty!
       if clock_dirty
-        { :clock, :period, :max } = @unwrap_all!
-        max or= period
-        @state.phase += clock.dt / period
+        period = @inputs.period!
+        max = (@inputs.max or @inputs.period)!
+        @phase += @inputs.clock!.dt / period
 
-        while @state.phase >= 1
-          @state.phase -= 1
+        while @phase >= 1
+          @phase -= 1
 
-      if clock_dirty or (@inputs.max and @inputs.max\dirty!)
-        @out\set @state.phase * max
+        @out\set @phase * max
 
-tick = Value.meta
+tick = ValueStream.meta
   meta:
     name: 'tick'
     summary: "Count ticks."
@@ -115,52 +129,51 @@ tick = Value.meta
 counts upwards by one every period seconds and returns the number of completed
 ticks."
   value: class extends Op
-    new: =>
-      super 'num', 0
-      @state.phase or= 0
-      @state.count or= 0
+    new: (...) =>
+      super ...
+      @state or= { phase: 0, count: 0 }
+      @out or= ValueStream 'num', @state.count
 
+    pattern = -evt.clock + val.num
     setup: (inputs, scope) =>
-      { clock, period } = match 'clock? num', inputs
+      { clock, period } = pattern\match inputs
       super
-        clock: Input.io clock or scope\get '*clock*'
-        period: Input.value period
+        clock: Input.hot clock or scope\get '*clock*'
+        period: Input.cold period
 
     tick: =>
-      if @inputs.clock\dirty!
-        { :clock, :period, :max } = @unwrap_all!
-        @state.phase += clock.dt / period
+      @state.phase += @inputs.clock!.dt / @inputs.period!
 
-        while @state.phase >= 1
-          @state.phase -= 1
-          @state.count += 1
-          @out\set @state.count
+      while @state.phase >= 1
+        @state.phase -= 1
+        @state.count += 1
+        @out\set @state.count
 
-every = Value.meta
+every = ValueStream.meta
   meta:
     name: 'every'
     summary: "Emit bangs."
     examples: { '(every [clock] period)' }
     description: "returns true once every period seconds."
   value: class extends Op
-    new: =>
-      super 'bang'
-      @state.phase or= 0
+    new: (...) =>
+      super ...
+      @state or= 0
+      @out or= EventStream 'bang'
 
+    pattern = -evt.clock + val.num
     setup: (inputs, scope) =>
-      { clock, period } = match 'clock? num', inputs
+      { clock, period } = pattern\match inputs
       super
-        clock: Input.io clock or scope\get '*clock*'
-        period: Input.value period
+        clock: Input.hot clock or scope\get '*clock*'
+        period: Input.cold period
 
     tick: =>
-      if @inputs.clock\dirty!
-        { :clock, :period, :max } = @unwrap_all!
-        @state.phase += clock.dt / period
+      @state += @inputs.clock!.dt / @inputs.period!
 
-        while @state.phase >= 1
-          @state.phase -= 1
-          @out\set true
+      while @state >= 1
+        @state -= 1
+        @out\add true
 
 {
   :clock
@@ -168,7 +181,7 @@ every = Value.meta
   :ramp
   :tick
   :every
-  '*clock*': with Value 'clock', Clock 1/60
+  '*clock*': with Clock 1/60
     .meta =
       name: '*clock*'
       summary: 'Default clock source (60fps).'

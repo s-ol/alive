@@ -24,6 +24,13 @@ class IOStream extends EventStream
   -- @tparam string type the typename of this stream.
   new: (type) => super type
 
+  --- create a mutable copy of this stream.
+  --
+  -- Used to wrap insulate eval-cycles from each other.
+  --
+  -- @treturn IOStream
+  fork: => @
+
   --- poll for changes.
   --
   -- Called every frame by the main event loop to update internal state.
@@ -32,7 +39,7 @@ class IOStream extends EventStream
   --- check whether this adapter requires processing.
   --
   -- Must return a boolean indicating whether `Op`s that refer to this instance
-  -- via `Input.io` should be notified (via `Op:tick`). May be called multiple
+  -- via `Input.hot` should be notified (via `Op:tick`). May be called multiple
   -- times. May be called before `tick` on the first frame after construction.
   --
   -- If this is not overrided, the `EventStream` interface can be used, see

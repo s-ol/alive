@@ -1,4 +1,4 @@
-import Op, Value, Input, Error, match from require 'core.base'
+import Op, ValueStream, EventStream, Input, val, evt from require 'core.base'
 
 all_same = (list) ->
   for v in *list[2,]
@@ -7,7 +7,7 @@ all_same = (list) ->
 
   list[1]
 
-switch_ = Value.meta
+switch_ = ValueStream.meta
   meta:
     name: 'switch'
     summary: "Switch between multiple inputs."
@@ -19,17 +19,21 @@ switch_ = Value.meta
   (indexed starting from 0) is reproduced."
 
   value: class extends Op
+    val_or_evt = (val! / evt!)!
+    pattern = (val.num / val.bool) + val_or_evt*0
     setup: (inputs) =>
-      { i, values } = match 'any *any', inputs
+      { i, values } = pattern\match inputs
 
-      i_type = i\type!
-      assert i_type == 'bool' or i_type == 'num', Error 'argument', "i has to be bool or num"
-      typ = all_same [v\type! for v in *values]
-      @out = Value typ if not @out or typ != @out.type
+      @state = values[1].value.__class == ValueStream
+
+      @out = if @state
+        ValueStream values[1]\type!
+      else
+        EventStream values[1]\type!
 
       super
-        i: Input.value i
-        values: [Input.value v for v in *values]
+        i: Input.hot i
+        values: [Input.hot v for v in *values]
 
     tick: =>
       { :i, :values } = @inputs
@@ -41,57 +45,24 @@ switch_ = Value.meta
         else
           i = 1 + (math.floor i!) % #values
           values[i]
-      @out\set active and active!
+      if @state
+        @out\set active and active!
+      else
+        if active and active\dirty!
+          for event in *active!
+            @out\add event
 
-route = Value.meta
-  meta:
-    name: 'route'
-    summary: "Route between multiple inputs."
-    examples: { '(route i v0 [e1 e2…])' }
-    description: "
-- when `i` is `true`, the first event stream is reproduced.
-- when `i` is `false`, the second event stream is reproduced.
-- when `i` is a `num`, it is [math/floor][]ed and the matching argument
-  (indexed starting from 0) is reproduced."
-
-  value: class extends Op
-    setup: (inputs) =>
-      { i, values } = match 'any *any', inputs
-
-      i_type = i\type!
-      assert i_type == 'bool' or i_type == 'num', Error 'argument', "i has to be bool or num"
-      typ = all_same [v\type! for v in *values]
-      @out = Value typ if not @out or typ != @out.type
-
-      super
-        i: Input.value i
-        values: [Input.value v for v in *values]
-
-    tick: =>
-      { :i, :values } = @inputs
-      active = switch i!
-        when true
-          values[1]
-        when false
-          values[2]
-        else
-          i = 1 + (math.floor i!) % #values
-          values[i]
-      if active and active\dirty!
-        @out\set active!
-
-route = Value.meta
+edge = ValueStream.meta
   meta:
     name: 'edge'
     summary: "Convert rising edges to bangs."
     examples: { '(edge bool)' }
 
   value: class extends Op
-    new: => super 'bang'
-
     setup: (inputs) =>
-      { value } = match 'bool', inputs
-      super value: Input.value value
+      @out or= EventStream 'bang'
+      value = val.bool\match inputs
+      super value: Input.hot value
 
     tick: =>
       now = @inputs.value!
@@ -99,8 +70,43 @@ route = Value.meta
         @out\set true
         @state.last = now
 
+change = ValueStream.meta
+  meta:
+    name: 'change'
+    summary: "Convert value changes to events."
+    examples: { '(change val)' }
+
+  value: class extends Op
+    setup: (inputs) =>
+      value = val!\match inputs
+      @out or= EventStream value\type!
+      super value: Input.hot value
+
+    tick: =>
+      now = @inputs.value!
+      if now != @state
+        @out\add @inputs.value!
+        @state = now
+
+hold = ValueStream.meta
+  meta:
+    name: 'hold'
+    summary: "Convert events to value changes."
+    examples: { '(hold evt)' }
+
+  value: class extends Op
+    setup: (inputs) =>
+      event = evt!\match inputs
+      @out or= ValueStream event\type!
+      super event: Input.hot event
+
+    tick: =>
+      for val in *@inputs.event!
+        @out\set val
+
 {
   'switch': switch_
-  :route
   :edge
+  :change
+  :hold
 }

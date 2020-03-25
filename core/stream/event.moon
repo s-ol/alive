@@ -26,7 +26,7 @@ class EventStream extends Stream
       @events = {}
 
     @updated = registry.Registry.active!.tick
-    table.insert @events, {}
+    table.insert @events, event
 
   --- get the sequence of current events (if any).
   --
@@ -45,10 +45,18 @@ class EventStream extends Stream
   -- Used to wrap insulate eval-cycles from each other.
   --
   -- @treturn EventStream
-  fork: => EventStream @type
+  fork: => @@ @type
 
   --- alias for `unwrap`.
   __call: (...) => @unwrap ...
+
+  __tostring: =>
+    "<#{@@__name} #{@type}>"
+
+  --- Stream metatype.
+  --
+  -- @tfield string metatype
+  metatype: 'event'
 
   --- the type name of the stream.
   --

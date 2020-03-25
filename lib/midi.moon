@@ -1,22 +1,21 @@
-import Value, Op, Input, match from require 'core.base'
+import ValueStream, EventStream, Op, Input, val, evt from require 'core.base'
 import input, output, inout, apply_range from require 'lib.midi.core'
 
-gate = Value.meta
+gate = ValueStream.meta
   meta:
     name: 'gate'
     summary: "gate from note-on and note-off messages."
-    examples: { '(midi/gate port note [chan])' }
+    examples: { '(midi/gate [port] note [chan])' }
 
   value: class extends Op
-    new: =>
-      super 'bool', false
-
-    setup: (inputs) =>
-      { port, note, chan } = match 'midi/port num num?', inputs
+    pattern = -evt['midi/port'] + val.num -val.num
+    setup: (inputs, scope) =>
+      @out or= ValueStream 'bool'
+      { port, note, chan } = pattern\match inputs
       super
-        port: Input.io port
-        note: Input.value note
-        chan: Input.value chan or Value.num -1
+        port: Input.hot port or scope\get '*midi*'
+        note: Input.hot note
+        chan: Input.hot chan or ValueStream.num -1
 
     tick: =>
       { :port, :note, :chan } = @inputs
@@ -25,47 +24,42 @@ gate = Value.meta
         @out\set false
 
       if port\dirty!
-        for msg in port!\receive!
+        for msg in *port!
           if msg.a == note! and (chan! == -1 or msg.chan == chan!)
             if msg.status == 'note-on'
               @out\set true
             elseif msg.status == 'note-off'
               @out\set false
 
-trig = Value.meta
+trig = ValueStream.meta
   meta:
     name: 'trig'
     summary: "`bang`s from note-on messages."
-    examples: { '(midi/trig port note [chan])' }
+    examples: { '(midi/trig [port] note [chan])' }
 
   value: class extends Op
-    new: =>
-      super 'bang', false
-
-    setup: (inputs) =>
-      { port, note, chan } = match 'midi/port num num?', inputs
+    pattern = -evt['midi/port'] + val.num -val.num
+    setup: (inputs, scope) =>
+      @out or= EventStream 'bang'
+      { port, note, chan } = pattern\match inputs
       super
-        port: Input.io port
-        note: Input.value note
-        chan: Input.value chan or Value.num -1
+        port: Input.hot port or scope\get '*midi*'
+        note: Input.cold note
+        chan: Input.cold chan or ValueStream.num -1
 
     tick: =>
       { :port, :note, :chan } = @inputs
 
-      if note\dirty! or chan\dirty!
-        @out\set false
+      for msg in *port!
+        if msg.a == note! and (chan! == -1 or msg.chan == chan!)
+          if msg.status == 'note-on'
+            @out\add true
 
-      if port\dirty!
-        for msg in port!\receive!
-          if msg.a == note! and (chan! == -1 or msg.chan == chan!)
-            if msg.status == 'note-on'
-              @out\set true
-
-trig = Value.meta
+cc = ValueStream.meta
   meta:
-    name: 'trig'
+    name: 'cc'
     summary: "`num` from cc-change messages."
-    examples: { '(midi/cc port cc [chan [range]])' }
+    examples: { '(midi/cc [port] cc [chan [range]])' }
     description: "
 `range` can be one of:
 - 'raw' [ 0 - 128[
@@ -76,28 +70,24 @@ trig = Value.meta
 - (num) [ 0 - num["
 
   value: class extends Op
-    new: =>
-      super 'num'
-
-    setup: (inputs) =>
-      { port, cc, chan, range } = match 'midi/port num num? any?', inputs
+    pattern = -evt['midi/port'] + val.num + -val.num + -val.num
+    setup: (inputs, scope) =>
+      { port, cc, chan, range } = pattern\match inputs
       super
-        port:  Input.io port
-        cc:    Input.value cc
-        chan:  Input.value chan or Value.num -1
-        range: Input.value range or Value.str 'uni'
+        port:  Input.hot port or scope\get '*midi*'
+        cc:    Input.cold cc
+        chan:  Input.cold chan or ValueStream.num -1
+        range: Input.cold range or ValueStream.str 'uni'
 
-      if not @out\unwrap!
-        @out\set apply_range @inputs.range, 0
+      @out or= ValueStream 'num', apply_range @inputs.range, 0
 
     tick: =>
       { :port, :cc, :chan, :range } = @inputs
-      if port\dirty!
-        for msg in port!\receive!
-          if msg.status == 'control-change' and
-             (chan! == -1 or msg.chan == chan!) and
-             msg.a == cc!
-            @out\set apply_range range, msg.b
+      for msg in *port!
+        if msg.status == 'control-change' and
+           (chan! == -1 or msg.chan == chan!) and
+           msg.a == cc!
+          @out\set apply_range range, msg.b
 
 {
   :input

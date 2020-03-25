@@ -1,15 +1,17 @@
-import Op, Value, Input from require 'core.base'
+import Op, ValueStream, Input from require 'core.base'
 
-str = Value.meta
+str = ValueStream.meta
   meta:
     name: 'str'
     summary: "Concatenate/stringify values."
     examples: { '(.. v1 [v2…])', '(str v1 [v2…])' }
   value: class extends Op
-    new: => super 'str'
+    setup: (inputs) =>
+      @out or= ValueStream 'string'
+      super [Input.hot v for v in *inputs]
 
-    setup: (inputs) => super [Input.value v for v in *inputs]
-    tick: => @out\set table.concat [tostring v! for v in *@inputs]
+    tick: =>
+      @out\set table.concat [tostring v! for v in *@inputs]
 
 {
   :str, '..': str

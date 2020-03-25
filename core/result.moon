@@ -12,16 +12,24 @@ class Result
   --- return whether this Result's value is const.
   is_const: => not next @side_inputs
 
-  --- assert value-constness and returns the value.
+  --- assert value-constness and return the value.
   -- @tparam[opt] string msg the error message to throw
+  -- @treturn any
   const: (msg) =>
     assert not (next @side_inputs), msg or "eval-time const expected"
     @value
 
-  --- assert this result has a value, returns its type.
+  --- assert this result has a value, return its type.
+  -- @treturn string
   type: =>
     assert @value, "Result with value expected"
     @value.type
+
+  --- assert this result has a value, returns its metatype.
+  -- @treturn string `"value"` or `"event"`
+  metatype: =>
+    assert @value, "Result with value expected"
+    @value.metatype
 
   --- create a copy of this result with value-copy semantics.
   -- the copy has the same @value and @side_inputs, but will not update
