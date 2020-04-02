@@ -160,7 +160,8 @@ There are three types of `Stream`s that can be created:
   polled by the event loop at the start of every tick. This gives them a chance
   to effectively create changes 'out of thin air' and kickstart the execution
   of the dataflow engine. All *runtime* execution is due to an `IOStream`
-  becoming dirty somewhere.
+  becoming dirty somewhere. See the section on implementing `IOStream`s below
+  for more information.
 
 ### Op:tick
 `Op:tick` is called whenever any of the inputs are *dirty*. This is where the
@@ -168,13 +169,53 @@ Op's main logic will go. Generally here it should be checked which input(s)
 changed, and then internal state and the output value may be updated.
 
 ## defining `Action`s
-`Action`s are more powerful than `Op`s, because they control whether, which and
+Actions are more powerful than Ops, because they control whether, which and
 how their arguments are evaluated. They roughly correspond to *macros* in Lisps.
-Since it is rarely necessary to implement `Action`s, there is currently no
-documentation on implementing them, but the `Action` class documentation and
-the examples in `core/builtin.moon` should be enough to get started.
+There is less of a concrete guideline for implementing Actions because there
+are a lot more options, and it really depends a lot on what the Action should
+achieve. Nevertheless, a good starting point is to read the `Action` class
+documentation, take a look at the builtin `Action`s in `core/builtin.moon` and
+get familiar with the relevant internal interfaces (especially `AST`, `Result`
+, and `Scope`).
+
+## defining `IOStream`s
+`IOStream`s are `EventStream`s that can 'magically' create events out of
+nothing. They are the source of all processing in alive. Whenever you want to
+bring events into alive from an external protocol or application, an IOStream
+will be necessary.
+
+To implement a custom IOStream, create it as a class that inherits from the
+`IOStream` base and implement the constructor and `IOStream:tick`:
+
+    import IOStream from require 'core.base'
+    
+    class UnreliableStream extends IOStream
+      new: => super 'bang'
+      
+      tick: =>
+        if math.random! < 0.1
+          @add true
+
+In the constructor, you should call the super-constructor `EventStream.new` to
+set the event type. Often this will be a custom event that is only used inside
+your extension (such as e.g. the `midi/port` type in the [midi][modules-midi]
+module), but it can also be a primitive type like `'num'` in this example. In
+`:tick`, your IOStream is given a chance to communicate with the external world
+and create any resulting events. The example stream above randomly sends bang
+events out, with a 10% chance each 'tick' of the system. Note that there is no
+guarantee about when or how often ticks occur, so you really shouldn't rely on
+them this way in a real extension.
+
+### using `IOStream`s
+There's a couple of ways IOStreams can be used and exposed to the user of your
+extension. You can either expose an instance of your IOStream directly
+(documented using `ValueStream.meta`), or offer an Op that creates and returns
+an instance in `Op.out` - that way the IOStream can be created only on demand
+and take parameters. It is also possible to not exepose the IOStream at all,
+and rather pass it as a hardcoded input into an Op's `Op.inputs`.
 
 [lua]:          https://www.lua.org/
 [moonscript]:   http://moonscript.org/
 [builtins-req]: ../../reference/index.html#require
 [builtins-doc]: ../../reference/index.html#doc
+[modules-midi]: ../../reference/midi.html
