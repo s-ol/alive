@@ -16,18 +16,13 @@ class Clock extends IOStream
   tick: =>
     time = monotime!
     @dt = time - @last
-    @is_dirty = if @dt >= @frametime
+    if @dt >= @frametime
+      @add { dt: @dt, :time }
       @last = time
-      true
-    else
-      false
 
-  unwrap: =>
-    dt = @dt
-    time = @last
-    { :dt, :time }
-
-  dirty: => @is_dirty
+class ScaledClock extends EventStream
+  set: (val) => @value
+  unwrap: => @value
 
 clock = ValueStream.meta
   meta:
@@ -49,6 +44,28 @@ IO that triggers other operators at a fixed frame rate.
 
     tick: =>
       @out.frametime = 1 / @inputs.fps!
+
+scale_time = ValueStream.meta
+  meta:
+    name: 'scale-time'
+    summary: "Scale clock times."
+    examples: { '(scale-time [clock] scale)' }
+  value: class extends Op
+    new: (...) =>
+      super ...
+      @out or= EventStream 'clock'
+
+    pattern = -evt.clock + val.num + -val.str
+    setup: (inputs, scope) =>
+      { clock, scale } = pattern\match inputs
+      super
+        clock: Input.hot clock or scope\get '*clock*'
+        scale: Input.cold scale
+
+    tick: =>
+      scale = @inputs.scale!
+      for evt in *@inputs.clock!
+        @out\add {k, v*scale for k,v in pairs evt}
 
 lfo = ValueStream.meta
   meta:
@@ -78,8 +95,8 @@ wave selects the wave shape from the following:
 
     tau = math.pi * 2
     tick: =>
-      if @inputs.clock\dirty!
-        @state += @inputs.clock!.dt * @iputs.freq!
+      for tick in *@inputs.clock!
+        @state += tick.dt * @inputs.freq!
 
       @out\set switch @inputs.wave!
         when 'sin' then .5 + .5 * math.cos @state * tau
@@ -109,16 +126,15 @@ ramps from 0 to max (default same as ramp) once every period seconds."
         max: max and Input.cold max
 
     tick: =>
-      clock_dirty = @inputs.clock\dirty!
-      if clock_dirty
+      for tick in *@inputs.clock!
         period = @inputs.period!
         max = (@inputs.max or @inputs.period)!
-        @phase += @inputs.clock!.dt / period
+        @phase += tick.dt / period
 
-        while @phase >= 1
-          @phase -= 1
+      while @phase >= 1
+        @phase -= 1
 
-        @out\set @phase * max
+      @out\set @phase * max
 
 tick = ValueStream.meta
   meta:
@@ -142,7 +158,8 @@ ticks."
         period: Input.cold period
 
     tick: =>
-      @state.phase += @inputs.clock!.dt / @inputs.period!
+      for tick in *@inputs.clock!
+        @state.phase += tick.dt / @inputs.period!
 
       while @state.phase >= 1
         @state.phase -= 1
@@ -169,18 +186,65 @@ every = ValueStream.meta
         period: Input.cold period
 
     tick: =>
-      @state += @inputs.clock!.dt / @inputs.period!
+      for tick in *@inputs.clock!
+        @state += tick.dt / @inputs.period!
 
       while @state >= 1
         @state -= 1
         @out\add true
 
+sequence = ValueStream.meta
+  meta:
+    name: 'sequence'
+    summary: "Play a sequence of events."
+    examples: { '(sequence [clock] delay0 evt1 delay1 evt2...)' }
+  value: class extends Op
+    new: (...) =>
+      super ...
+      @state or= { i: 1, t: 0 }
+
+    pair = (val! + val.num)\named('value', 'delay')
+    pattern = -evt.clock + val.num + pair*0
+
+    inputify = (step) ->
+      {
+        delay: Input.cold step.delay
+        value: if step.value then Input.hot step.value
+      }
+
+    setup: (inputs, scope) =>
+      { clock, first, steps } = pattern\match inputs
+      @out = EventStream steps[1].value\type!
+      table.insert steps, 1, { delay: first }
+      super
+        clock: Input.hot clock or scope\get '*clock*'
+        steps: [inputify step for step in *steps]
+
+    tick: =>
+      for tick in *@inputs.clock!
+        @state.t += tick.dt
+
+      change, current = false, nil
+      while true
+        current = @inputs.steps[@state.i]
+        if @state.t >= current.delay!
+          @state.t -= current.delay!
+          @state.i = 1 + (@state.i % #@inputs.steps)
+          change = true
+        else
+          break
+
+      if current.value and (change or current.value\dirty!)
+        @out\add current.value!
+
 {
   :clock
+  'scale-time': scale_time
   :lfo
   :ramp
   :tick
   :every
+  :sequence
   '*clock*': with Clock 1/60
     .meta =
       name: '*clock*'
