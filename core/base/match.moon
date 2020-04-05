@@ -39,7 +39,7 @@
 -- sequence of keys that are used instead of integers when constructing the
 -- capture table:
 --
---     pattern = (val.str + val.num):named{'key', 'value'}
+--     pattern = (val.str + val.num):named('key', 'value')
 --     pattern:match(...)
 --     -- returns { {key='a', value=1}, {key='b', value=2}, ...}
 --
@@ -154,7 +154,7 @@ class Repeat extends Pattern
 --
 -- Matches the inner patterns in order, only succeeds if all of them match.
 -- Captures the individual captures produced by the inner patterns in a
--- sequence, or table with keys specified in `keys` or using the `:named(keys)`
+-- sequence, or table with keys specified in `keys` or using the `:named(...)`
 -- modifier.
 --
 -- @function Sequence
