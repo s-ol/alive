@@ -316,6 +316,12 @@ print = ValueStream.meta
       summary: "The boolean constant `false`."
     value: ValueStream.bool false
 
+  bang: ValueStream.meta
+    meta:
+      name: 'bang'
+      summary: "A `bang` value-constant."
+    value: ValueStream 'bang', true
+
   :fn, :defn
   'do': do_expr
   if: if_
