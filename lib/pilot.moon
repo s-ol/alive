@@ -59,8 +59,9 @@ play_ = ValueStream.meta
 
     tick: =>
       { :chan, :octv, :note, :args } = @inputs
+      args = for a in *args do a!
       for note in *note!
-        send { chan!, octv!, note! }, args
+        send { chan!, octv!, note }, args
 
 effect = ValueStream.meta
   meta:
