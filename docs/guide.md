@@ -67,7 +67,7 @@ To run the copilot, open a shell and navigate into the repository. You can now
 run the `hello.alv` example script using the following command:
 
     $ moon init.moon hello.alv
-    [copilot.moon:76     ] hello.alv changed at 1585138092
+    hello.alv changed at 1585138092
     hello
     world!
     hello
@@ -87,7 +87,7 @@ it onto the `copilot.bat` file in the folder, or by running the following
 command from the main directory in `cmd.exe`:
 
     C:\…\alive>copilot.bat hello.alv
-    [copilot.moon:76     ] hello.alv changed at 1585138092
+    hello.alv changed at 1585138092
     hello
     world!
     hello
