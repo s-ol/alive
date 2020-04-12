@@ -22,6 +22,9 @@ basic_tests = (stream, input) ->
   it 'gives access to the type string', ->
     assert.is.equal stream.type, input\type!
 
+  it 'gives access to the metatype string', ->
+    assert.is.equal stream.metatype, input\metatype!
+
 describe 'Input.cold', ->
   stream = ValueStream.num 1
   input = Input.cold stream

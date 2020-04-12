@@ -72,6 +72,9 @@ class Input
   --- return the type name of this `Input` (optional).
   type: => @stream.type
 
+  --- return the metatype name of this `Input` (optional).
+  metatype: => @stream.metatype
+
   --- the current value
   --
   -- @tfield ValueStream stream
