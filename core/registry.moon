@@ -5,8 +5,6 @@
 import Result from require 'core.result'
 import Error from require 'core.error'
 
-unpack or= table.unpack
-
 class Registry
 --- internals for `Tag`
 -- @section internals

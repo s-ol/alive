@@ -2,7 +2,6 @@ import ValueStream, EventStream, Op, Input, val, evt from require 'core.base'
 import apply_range, bit from require 'lib.midi.core'
 import bor, lshift from bit
 
-unpack or= table.unpack
 color = (r, g) -> bit.bor 12, r, (bit.lshift g, 4)
 
 cc_seq = ValueStream.meta

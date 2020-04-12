@@ -2,6 +2,8 @@ import Op, ValueStream, Input, val, evt from require 'core.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
+unpack or= table.unpack
+
 play = ValueStream.meta
   meta:
     name: 'play'
