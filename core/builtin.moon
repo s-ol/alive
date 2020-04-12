@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtin
-import Action, Op, FnDef, Input, val from require 'core.base'
+import Action, Op, FnDef, Input, val, evt from require 'core.base'
 import ValueStream, LiteralValue from require 'core.stream.value'
 import Result from require 'core.result'
 import Cell from require 'core.cell'
@@ -290,10 +290,15 @@ print = ValueStream.meta
 
   value: class extends Op
     setup: (inputs) =>
-      value = val.str\match inputs
+      value = (val.str / evt.str)\match inputs
       super value: Input.hot value
 
-    tick: => print @inputs.value!
+    tick: =>
+      if @inputs.value\metatype! == 'event'
+        for msg in *@inputs.value!
+          print msg
+      else
+        print @inputs.value!
 
 {
   :doc
