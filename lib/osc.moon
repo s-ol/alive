@@ -1,4 +1,4 @@
-import Op, ValueStream, Input, val from require 'core.base'
+import Op, ValueStream, Input, val, evt from require 'core.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
@@ -29,12 +29,16 @@ connect = ValueStream.meta
 send = ValueStream.meta
   meta:
     name: 'send'
-    summary: "Send a value via OSC."
-    examples: { '(osc/send [socket] path val)' }
-    description: "sends a message only when `val` is dirty."
+    summary: "Send events via OSC."
+    examples: { '(osc/send [socket] path evt)' }
+    description: "Sends an OSC message with `evt` as an argument.
 
+- `socket` should be a `udp/socket` value. This argument can be omitted and the
+  value be passed as a dynamic definition in `*sock*` instead.
+- `path` is the OSC path to send the message to. It should be a string-value.
+- `evt` is the argument to send. It should be an event stream."
   value: class extends Op
-    pattern = -val['udp/socket'] + val.str + val!
+    pattern = -val['udp/socket'] + val.str + evt!
     setup: (inputs, scope) =>
       { socket, path, value } = pattern\match inputs
       super
@@ -44,15 +48,23 @@ send = ValueStream.meta
 
     tick: =>
       { :socket, :path, :value } = @unwrap_all!
-      msg = pack path, if 'table' == type value then unpack value else value
-      socket\send msg
+      for val in *value
+        msg = pack path, if 'table' == type val then unpack val else val
+        socket\send msg
 
-send_state = ValueStream.meta
+sync = ValueStream.meta
   meta:
-    name: 'send'
+    name: 'sync'
     summary: "Synchronize a value via OSC."
-    examples: { '(osc/send! [socket] path val)' }
+    examples: { '(osc/sync [socket] path val)' }
     description: "sends a message whenever any parameter is dirty."
+    description: "Sends an OSC message with `val` as an argument whenever any
+of the arguments change.
+
+- `socket` should be a `udp/socket` value. This argument can be omitted and the
+  value be passed as a dynamic definition in `*sock*` instead.
+- `path` is the OSC path to send the message to. It should be a string-value.
+- `val` is the value to Synchronize. It should be a value stream."
 
   value: class extends Op
     pattern = -val['udp/socket'] + val.str + val!
@@ -71,5 +83,5 @@ send_state = ValueStream.meta
 {
   :connect
   :send
-  'send!': send_state
+  :sync
 }
