@@ -35,7 +35,7 @@ eq = ValueStream.meta
   meta:
     name: 'eq'
     summary: "Check for equality."
-    examples: { '(== a b [c]...)', '(eq a b [c]...)' }
+    examples: { '(== a b [c]…)', '(eq a b [c]…)' }
     description: "`true` if the types and values of all arguments are equal."
 
   value: class extends Op
@@ -72,7 +72,7 @@ not_eq = ValueStream.meta
   meta:
     name: 'not-eq'
     summary: "Check for inequality."
-    examples: { '(!= a b [c]...)', '(not-eq a b [c]...)' }
+    examples: { '(!= a b [c]…)', '(not-eq a b [c]…)' }
     description: "`true` if types or values of any two arguments are different."
 
   value: class extends Op

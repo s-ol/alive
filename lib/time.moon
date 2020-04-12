@@ -29,9 +29,12 @@ clock = ValueStream.meta
     name: 'clock'
     summary: "Create a clock source."
     examples: { '(clock)', '(clock fps)' }
-    description: "
-IO that triggers other operators at a fixed frame rate.
-`fps` defaults to 60 and has to be an eval-time constant"
+    description: "Creates a new clock event stream.
+
+The clock event stream is an IO that triggers other operators at a fixed
+frame rate.
+
+- `fps` has to be an eval-time constant and defaults to `60` if omitted."
   value: class extends Op
     new: (...) =>
       super ...
@@ -48,8 +51,13 @@ IO that triggers other operators at a fixed frame rate.
 scale_time = ValueStream.meta
   meta:
     name: 'scale-time'
-    summary: "Scale clock times."
+    summary: "Scale clock time."
     examples: { '(scale-time [clock] scale)' }
+    description: "Creates a new clock event stream scaled by `scale`.
+
+- `clock` should be a `time/clock` event stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `scale` should be a num-value."
   value: class extends Op
     new: (...) =>
       super ...
@@ -72,12 +80,15 @@ lfo = ValueStream.meta
     name: 'lfo'
     summary: "Low-frequency oscillator."
     examples: { '(lfo [clock] freq [wave])' }
-    description: "
-oscillates between 0 and 1 at the frequency freq.
-wave selects the wave shape from the following:
-- `'sin'` (default)
-- `'saw'`
-- `'tri'`"
+    description: "Oscillates betwen `0` and `1` at the frequency `freq`.
+
+- `clock` should be a `time/clock` event stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `freq` should be a num-value.
+- `wave` selects the wave shape from one of the following:
+  - `'sin'` (the default)
+  - `'saw'`
+  - `'tri'`"
   value: class extends Op
     new: (...) =>
       super ...
@@ -109,8 +120,12 @@ ramp = ValueStream.meta
     name: 'ramp'
     summary: "Sawtooth LFO."
     examples: { '(ramp [clock] period [max])' }
-    description: "
-ramps from 0 to max (default same as ramp) once every period seconds."
+    description: "Ramps from `0` to `max` once every `period` seconds.
+
+- `clock` should be a `time/clock` event stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `period` should be a num-value.
+- `max` should be a num-value and defaults to `period` if omitted."
   value: class extends Op
     new: (...) =>
       super ...
@@ -141,9 +156,12 @@ tick = ValueStream.meta
     name: 'tick'
     summary: "Count ticks."
     examples: { '(tick [clock] period)' }
-    description: "
-counts upwards by one every period seconds and returns the number of completed
-ticks."
+    description: "Counts upwards by one every `period` seconds.
+
+- `clock` should be a `time/clock` event stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `period` should be a num-value.
+- returns a `num` value that increases by 1 every `period`."
   value: class extends Op
     new: (...) =>
       super ...
@@ -169,9 +187,12 @@ ticks."
 every = ValueStream.meta
   meta:
     name: 'every'
-    summary: "Emit bangs."
-    examples: { '(every [clock] period)' }
-    description: "returns true once every period seconds."
+    description: "Emits a bang once every `period` seconds.
+
+- `clock` should be a `time/clock` event stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `period` should be a num-value.
+- the return type will be a stream of bang-events."
   value: class extends Op
     new: (...) =>
       super ...
@@ -196,8 +217,16 @@ every = ValueStream.meta
 sequence = ValueStream.meta
   meta:
     name: 'sequence'
-    summary: "Play a sequence of events."
-    examples: { '(sequence [clock] delay0 evt1 delay1 evt2...)' }
+    summary: "Emit a sequence of values as events over time."
+    examples: { '(sequence [clock] delay0 evt1 delay1 evt2 delay2…)' }
+    description: "
+Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in between.
+
+- `clock` should be a `time/clock` event stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `delay0`, `delay1`, … must be num-values.
+- `evt1`, `evt2`, … must be values of the same type.
+- the return type will be an event stream with the same type as the `evt`s."
   value: class extends Op
     new: (...) =>
       super ...
