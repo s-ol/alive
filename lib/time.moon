@@ -187,24 +187,28 @@ tick = ValueStream.meta
 every = ValueStream.meta
   meta:
     name: 'every'
-    description: "Emits a bang once every `period` seconds.
+    summary: "Emit events regularly."
+    examples: { '(every [clock] period [evt])' }
+    description: "Emits `evt` as an event once every `period` seconds.
 
 - `clock` should be a `time/clock` event stream. This argument can be omitted
   and the stream be passed as a dynamic definition in `*clock*` instead.
 - `period` should be a num-value.
-- the return type will be a stream of bang-events."
+- `evt` can be a value of any type. It defaults to `bang`.
+- the return type will be an event stream with the same type as `evt`."
   value: class extends Op
     new: (...) =>
       super ...
       @state or= 0
-      @out or= EventStream 'bang'
 
-    pattern = -evt.clock + val.num
+    pattern = -evt.clock + val.num + -val!
     setup: (inputs, scope) =>
-      { clock, period } = pattern\match inputs
+      { clock, period, evt } = pattern\match inputs
       super
         clock: Input.hot clock or scope\get '*clock*'
         period: Input.cold period
+        evt: Input.cold evt or ValueStream 'bang', true
+      @out = EventStream @inputs.evt\type!
 
     tick: =>
       for tick in *@inputs.clock!
@@ -212,7 +216,7 @@ every = ValueStream.meta
 
       while @state >= 1
         @state -= 1
-        @out\add true
+        @out\add @inputs.evt!
 
 sequence = ValueStream.meta
   meta:
