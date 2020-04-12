@@ -6,7 +6,7 @@
 --
 -- @module base
 -- @see Op
--- @see Action
+-- @see Builtin
 -- @see FnDef
 -- @see Input
 -- @see base.match.val
@@ -18,7 +18,7 @@
 -- @see Error
 
 import Op from require 'core.base.op'
-import Action from require 'core.base.action'
+import Builtin from require 'core.base.builtin'
 import FnDef from require 'core.base.fndef'
 import Input from require 'core.base.input'
 import val, evt from require 'core.base.match'
@@ -28,7 +28,7 @@ import Error from require 'core.error'
 
 {
   :Op
-  :Action
+  :Builtin
   :FnDef
   :Input
   :val, :evt

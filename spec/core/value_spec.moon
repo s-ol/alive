@@ -1,12 +1,12 @@
 import ValueStream, Result, Scope, SimpleRegistry from require 'core'
-import Op, Action from require 'core.base'
+import Op, Builtin from require 'core.base'
 import Logger from require 'logger'
 Logger.init 'silent'
 
 class TestOp extends Op
   new: (...) => super ...
 
-class TestAction extends Action
+class TestBuiltin extends Builtin
   new: (...) =>
 
 reg = SimpleRegistry!
@@ -38,10 +38,10 @@ describe 'ValueStream', ->
       assert.is.equal TestOp, got.value
 
     it 'wraps Bultins', ->
-      got = ValueStream.wrap TestAction
+      got = ValueStream.wrap TestBuiltin
 
       assert.is.equal 'builtin', got.type
-      assert.is.equal TestAction, got.value
+      assert.is.equal TestBuiltin, got.value
 
     it 'wraps Scopes', ->
       sub = Scope!

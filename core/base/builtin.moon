@@ -5,12 +5,12 @@
 -- up `Op`s, updating the current `Scope`, etc.
 -- See `builtin` and `invoke` for examples.
 --
--- @classmod Action
+-- @classmod Builtin
 
-class Action
---- Action interface.
+class Builtin
+--- Builtin interface.
 --
--- methods that have to be implemented by `Action` implementations.
+-- methods that have to be implemented by `Builtin` implementations.
 -- @section interface
 
   --- create a new instance.
@@ -39,13 +39,13 @@ class Action
 
   --- setup or copy state from previous instance of same type.
   --
-  -- `prev` is only passed if Action types of prev and current expression match.
+  -- `prev` is only passed if Builtin types of prev and current expression match.
   -- Otherwise, or when no previous expression exists, `nil` is passed.
   --
-  -- @tparam ?Action prev the previous Action instance
+  -- @tparam ?Builtin prev the previous Builtin instance
   setup: (prev) =>
 
-  --- the `Cell` this Action was created for.
+  --- the `Cell` this Builtin was created for.
   -- @tfield Cell cell
 
   --- the evaluated head of `cell`.
@@ -57,11 +57,11 @@ class Action
 --- static functions
 -- @section static
 
-  --- create and setup an `Action` for a given tag, then evaluate it.
+  --- create and setup a `Builtin` for a given tag, then evaluate it.
   --
   -- Create a new instance using `tag` and `head` and call `setup` on it.
   -- If a previous instance with the same `tag` exists and has the same `head`,
-  -- it pass it to `setup`. Register the `Action` with `tag`, evaluate it
+  -- it pass it to `setup`. Register the `Builtin` with `tag`, evaluate it
   -- and return the `Result`.
   --
   -- @tparam Cell cell the `Cell` being evaluated
@@ -79,18 +79,18 @@ class Action
     else
       "initializing #{cell.tag} <#{@__name} #{head}>"
 
-    action = @ cell, head
+    builtin = @ cell, head
     if compatible
-      action\setup last
+      builtin\setup last
     else
       last\destroy! if last
-      action\setup nil
+      builtin\setup nil
 
-    action\eval scope, cell\tail!
+    builtin\eval scope, cell\tail!
 
   __tostring: => "<#{@@__name} #{@head}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
 
 {
-  :Action
+  :Builtin
 }

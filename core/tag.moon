@@ -1,5 +1,5 @@
 ----
--- Identity provider for `Cell`s and `Action`s.
+-- Identity provider for `Cell`s and `Builtin`s.
 --
 -- Tags are one of:
 -- - 'blank' (`[?]`, to be auto-assigned by the Copilot)

@@ -59,20 +59,20 @@ class Cell
   --- evaluate this Cell.
   --
   -- `AST:eval`uates the head of the expression, and finds the appropriate
-  -- `Action` to invoke:
+  -- `Builtin` to invoke:
   --
   -- - if head is an `opdef`, use `invoke.op_invoke`
   -- - if head is a `fndef`, use `invoke.fn_invoke`
   -- - if head is a `builtin`, unwrap it
   --
-  -- then calls `Action:eval_cell` on it.
+  -- then calls `Builtin:eval_cell` on it.
   --
   -- @tparam Scope scope the scope to evaluate in
   -- @treturn Result the evaluation result
   eval: (scope) =>
     head = assert @head!, Error 'syntax', "cannot evaluate empty expr"
     head = (head\eval scope)\const!
-    Action = switch head.type
+    Builtin = switch head.type
       when 'opdef'
         -- scope\get 'op-invoke'
         op_invoke
@@ -84,7 +84,7 @@ class Cell
       else
         error Error 'type', "#{head} is not an opdef, fndef or builtin"
 
-    Action\eval_cell @, scope, head
+    Builtin\eval_cell @, scope, head
 
   --- quote this Cell, preserving its identity.
   --

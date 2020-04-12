@@ -1,11 +1,11 @@
 ----
--- Builtin `Action`s and `Op`s.
+-- Builtin `Builtin`s and `Op`s.
 --
 -- Please see the [reference](../../reference/index.html#builtins) for
 -- documentation.
 --
 -- @module builtin
-import Action, Op, FnDef, Input, val, evt from require 'core.base'
+import Builtin, Op, FnDef, Input, val, evt from require 'core.base'
 import ValueStream, LiteralValue from require 'core.stream.value'
 import Result from require 'core.result'
 import Cell from require 'core.cell'
@@ -20,7 +20,7 @@ doc = ValueStream.meta
     examples: { '(doc sym)' }
     description: "Print the documentation for `sym` to the console"
 
-  value: class extends Action
+  value: class extends Builtin
     format_meta = =>
       str = @summary
       if @examples
@@ -47,7 +47,7 @@ def = ValueStream.meta
 Define the symbols `sym1`, `sym2`, … to resolve to the values of `val-expr1`,
 `val-expr2`, …."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       assert #tail > 1, "'def' requires at least 2 arguments"
@@ -72,7 +72,7 @@ use = ValueStream.meta
 Copy all symbol definitions from `scope1`, `scope2`, … to the current scope.
 All arguments have to be evaltime constant."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       for child in *tail
@@ -89,7 +89,7 @@ require_ = ValueStream.meta
     examples: { '(require name)' }
     description: "Load a module and return its scope."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope,  tail) =>
       L\trace "evaling #{@}"
       assert #tail == 1, "'require' takes exactly one parameter"
@@ -110,7 +110,7 @@ import_ = ValueStream.meta
 Requires modules `sym1`, `sym2`, … and define them as `sym1`, `sym2`, … in the
 current scope."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       assert #tail > 0, "'import' requires at least one arguments"
@@ -129,7 +129,7 @@ import_star = ValueStream.meta
     description: "
 Requires modules `sym1`, `sym2`, … and merges them into the current scope."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       assert #tail > 0, "'import' requires at least one arguments"
@@ -151,7 +151,7 @@ fn = ValueStream.meta
 The symbols `p1`, `p2`, ... will resolve to the arguments passed when the
 function is invoked."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       assert #tail == 2, "'fn' takes exactly two arguments"
@@ -179,7 +179,7 @@ Declare a function and define it as `name-sym` in the current scope.
 The symbols `p1`, `p2`, ... will resolve to the arguments passed when the
 function is invoked."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       assert #tail == 3, "'defn' takes exactly three arguments"
@@ -210,7 +210,7 @@ do_expr = ValueStream.meta
     description: "
 Evaluate `expr1`, `expr2`, … and return the value of the last expression."
 
-  value: class  extends Action
+  value: class  extends Builtin
     eval: (scope, tail) =>
       scope = Scope scope
       Result children: [expr\eval scope for expr in *tail]
@@ -224,7 +224,7 @@ if_ = ValueStream.meta
 `bool` has to be an evaltime constant. If it is truthy, this expression is equivalent
 to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherwise."
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       assert #tail >= 2, "'if' needs at least two parameters"
@@ -246,7 +246,7 @@ trace_ = ValueStream.meta
     summary: "Trace an expression's value at evaltime."
     examples: { '(trace! expr)' }
 
-  value: class extends Action
+  value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       assert #tail == 1, "'trace!' takes exactly one parameter"
@@ -260,7 +260,7 @@ trace = ValueStream.meta
     summary: "Trace an expression's values at runtime."
     examples: { '(trace expr)' }
 
-  value: class extends Action
+  value: class extends Builtin
     class traceOp extends Op
       setup: (inputs) =>
         super

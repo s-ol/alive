@@ -168,15 +168,15 @@ There are three types of `Stream`s that can be created:
 Op's main logic will go. Generally here it should be checked which input(s)
 changed, and then internal state and the output value may be updated.
 
-## defining `Action`s
-Actions are more powerful than Ops, because they control whether, which and
+## defining `Builtin`s
+Builtins are more powerful than Ops, because they control whether, which and
 how their arguments are evaluated. They roughly correspond to *macros* in Lisps.
-There is less of a concrete guideline for implementing Actions because there
-are a lot more options, and it really depends a lot on what the Action should
-achieve. Nevertheless, a good starting point is to read the `Action` class
-documentation, take a look at the builtin `Action`s in `core/builtin.moon` and
-get familiar with the relevant internal interfaces (especially `AST`, `Result`
-, and `Scope`).
+There is less of a concrete guideline for implementing Builtins because there
+are a lot more options, and it really depends a lot on what the Builtin should
+achieve. Nevertheless, a good starting point is to read the `Builtin` class
+documentation, take a look at `Builtin`s in `core/builtin.moon` and get
+familiar with the relevant internal interfaces (especially `AST`, `Result`, and
+`Scope`).
 
 ## defining `IOStream`s
 `IOStream`s are `EventStream`s that can 'magically' create events out of

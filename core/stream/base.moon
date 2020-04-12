@@ -35,7 +35,7 @@ class Stream
   -- - `bool` - booleans, `value` is a Lua boolean
   -- - `bang` - trigger signals, `value` is a Lua boolean
   -- - `opdef` - `value` is an `Op` subclass
-  -- - `builtin` - `value` is an `Action` subclass
+  -- - `builtin` - `value` is a `Builtin` subclass
   -- - `fndef` - `value` is a `FnDef` instance
   -- - `scope` - `value` is a `Scope` instance
   --

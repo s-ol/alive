@@ -81,7 +81,7 @@ class ValueStream extends Stream
   -- - `bool` - booleans, `value` is a Lua boolean
   -- - `bang` - trigger signals, `value` is a Lua boolean
   -- - `opdef` - `value` is an `Op` subclass
-  -- - `builtin` - `value` is an `Action` subclass
+  -- - `builtin` - `value` is a `Builtin` subclass
   -- - `fndef` - `value` is a `FnDef` instance
   -- - `scope` - `value` is a `Scope` instance
   --
@@ -179,7 +179,7 @@ class ValueStream extends Stream
           -- a class
           switch ancestor val
             when base.Op then 'opdef'
-            when base.Action then 'builtin'
+            when base.Builtin then 'builtin'
             else
               error "#{name}: cannot wrap class '#{val.__name}'"
         elseif val.__class
