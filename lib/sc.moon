@@ -7,15 +7,19 @@ unpack or= table.unpack
 play = ValueStream.meta
   meta:
     name: 'play'
-    summary: 'Play a SuperCollider SynthDef.'
-    examples: { '(play socket synth trig [param val…])' }
+    summary: 'Play a SuperCollider SynthDef on bangs.'
+    examples: { '(play [socket] synth trig [param val…])' }
     description: "
 Plays the synth `synth` on the `udp/socket` `socket` whenever `trig` is live.
-Any number of parameter-value pairs can be specified and are captured and sent
-together with the note when triggered."
+
+- `socket` should be a `udp/socket` value. This argument can be omitted and the
+  value be passed as a dynamic definition in `*sock*` instead.
+- `synth` is the SC synthdef name. It should be a string-value.
+- `trig` is the trigger signal. It should be a stream of bang-events.
+- `param` is the name of a synthdef parameter. It should be a string-value."
   value: class extends Op
-    pattern = val['udp/socket'] + val.str + evt.bang + (val.str + val.num)\rep 0
-    setup: (inputs) =>
+    pattern = -val['udp/socket'] + val.str + evt.bang + (val.str + val.num)\rep 0
+    setup: (inputs, scope) =>
       { socket, synth, trig, ctrls } = pattern\match inputs
 
       flat_ctrls = {}
@@ -25,7 +29,7 @@ together with the note when triggered."
 
       super
         trig:   Input.hot trig
-        socket: Input.cold socket
+        socket: Input.cold socket or scope\get '*sock*'
         synth:  Input.cold synth
         ctrls: [Input.cold v for v in *flat_ctrls]
 
