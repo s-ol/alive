@@ -49,12 +49,19 @@ import ValueStream, EventStream from require 'core.stream'
 
 local Repeat, Sequence, Choice, Optional
 
+typestr = (result) ->
+  str = result\type!
+  str ..= '!' if result\metatype! == 'event'
+  str
+
 class Pattern
   match: (seq) =>
     @reset!
     num, cap = @capture seq, 1
-    assert num == #seq, do
-      Error 'argument', "couldn't match arguments against pattern #{@}"
+    if num != #seq
+      args = table.concat [typestr arg for arg in *seq], ' '
+      msg = "couldn't match arguments (#{args}) against pattern #{@}"
+      error Error 'argument', msg
     cap
 
   remember: (key) =>
@@ -68,8 +75,8 @@ class Pattern
   reset: => @recalled = nil
 
   __call: => @
-  __mul: (num) => Repeat @, 1, if num ~= 0 then num
-  __pow: (num) => Repeat @, 0, if num ~= 0 then num
+  __mul: (num) => Repeat @, 1, if num != 0 then num
+  __pow: (num) => Repeat @, 0, if num != 0 then num
   __add: (other) => Sequence { @, other }
   __div: (other) => Choice { @, other }
   __unm: => Optional @
@@ -106,7 +113,7 @@ class Type extends Pattern
       1, seq[i]
 
   __tostring: =>
-    str = tostring @type
+    str = @type or @metatype
     str ..= '!' if @metatype == 'event'
     str
 
