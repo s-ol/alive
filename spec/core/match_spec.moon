@@ -54,6 +54,10 @@ describe 'val and evt', ->
       assert.has.error -> two_equal_events\match { num, str2 }
       assert.has.error -> two_equal_values\match { str1, str2 }
 
+    it 'stringifies well', ->
+      assert.is.equal 'event!', tostring evt!
+      assert.is.equal 'value', tostring val!
+
   describe 'typed shorthand', ->
     it 'matches by metatype', ->
       str = mk_val 'str'
@@ -84,6 +88,12 @@ describe 'val and evt', ->
       assert.is.equal num, evt.num\match { num }
       assert.has.error -> evt.num\match { str }
       assert.has.error -> evt.str\match { num }
+
+    it 'stringifies well', ->
+      assert.is.equal 'str!', tostring evt.str
+      assert.is.equal 'num!', tostring evt.num
+      assert.is.equal 'str', tostring val.str
+      assert.is.equal 'num', tostring val.num
 
 describe 'choice', ->
   str = mk_val 'str'
@@ -116,11 +126,14 @@ describe 'choice', ->
     assert.has.error -> same\match { str, num }
     assert.has.error -> same\match { num, str }
 
+  it 'stringifies well', ->
+    assert.is.equal '(str | num)', tostring choice
+
 describe 'sequence', ->
   str = mk_val 'str'
   num = mk_val 'num'
-  bool = mk_val 'bool'
-  seq = val.str + val.num + val.bool
+  bool = mk_evt 'bool'
+  seq = val.str + val.num + evt.bool
 
   it 'matches all types in order', ->
     assert.is.same { str, num, bool }, seq\match { str, num, bool }
@@ -149,6 +162,9 @@ describe 'sequence', ->
     assert.is.same { str, {num,num} }, rep\match { str, num, num }
     assert.has.error -> rep\match { str }
     assert.has.error -> rep\match { str, num, num, num }
+
+  it 'stringifies well', ->
+    assert.is.equal '(str num bool!)', tostring seq
 
 describe 'repeat', ->
   str = mk_val 'str'
@@ -198,13 +214,19 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 3, str)
     assert.has.error -> rep\match (times 2, num)
 
-describe 'complex nesting', ->
-  it 'just works', ->
-    bang = mk_evt 'bang'
-    str = mk_val 'str'
-    num = mk_val 'num'
+  it 'stringifies well', ->
+    assert.is.equal 'str{1-3}', tostring val.str*3
+    assert.is.equal 'str{1-*}', tostring val.str*0
+    assert.is.equal 'str{0-*}', tostring val.str^0
+    assert.is.equal 'str{2-2}', tostring val.str\rep 2, 2
 
-    pattern = -evt.bang + val.num*4 + (val.str + (val.num / val.str))\named('key', 'val')^0
+describe 'complex nesting', ->
+  bang = mk_evt 'bang'
+  str = mk_val 'str'
+  num = mk_val 'num'
+  pattern = -evt.bang + val.num*4 + (val.str + (val.num / val.str))\named('key', 'val')^0
+
+  it 'just works', ->
     assert.is.same { bang, { num, num }, {} }, pattern\match { bang, num, num }
     assert.is.same { nil, { num }, { { key: str, val: num }, { key: str, val: str } } },
                    pattern\match { num, str, num, str, str }
@@ -213,3 +235,6 @@ describe 'complex nesting', ->
     assert.has.error -> pattern\match { bang, bang, num }
     assert.has.error -> pattern\match { num, str, num, str }
     assert.has.error -> pattern\match { num, str, num, str, mk_val 'bool' }
+
+  it 'stringifies well', ->
+    assert.is.equal '(bang!? num{1-4} (str (num | str)){0-*})', tostring pattern
