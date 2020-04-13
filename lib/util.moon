@@ -1,4 +1,4 @@
-import Op, ValueStream, EventStream, Input, val, evt from require 'core.base'
+import Op, ValueStream, EventStream, Input, val, evt from require 'alv.base'
 
 all_same = (list) ->
   for v in *list[2,]

@@ -44,8 +44,8 @@
 --     -- returns { {key='a', value=1}, {key='b', value=2}, ...}
 --
 -- @module base.match
-import Error from require 'core.error'
-import ValueStream, EventStream from require 'core.stream'
+import Error from require 'alv.error'
+import ValueStream, EventStream from require 'alv.stream'
 
 local Repeat, Sequence, Choice, Optional
 

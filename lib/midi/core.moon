@@ -1,4 +1,4 @@
-import ValueStream, IOStream, Op, Input, Error, val from require 'core.base'
+import ValueStream, IOStream, Op, Input, Error, val from require 'alv.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 
 bit = do

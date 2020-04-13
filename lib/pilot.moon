@@ -1,4 +1,4 @@
-import Op, ValueStream, Input, val, evt from require 'core.base'
+import Op, ValueStream, Input, val, evt from require 'alv.base'
 import udp from require 'socket'
 
 local conn

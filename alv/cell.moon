@@ -5,10 +5,10 @@
 -- nodes), a `Tag`, and optionally the internal whitespace as parsed.
 --
 -- @classmod Cell
-import ValueStream from require 'core.stream'
-import Error from require 'core.error'
-import op_invoke, fn_invoke from require 'core.invoke'
-import Tag from require 'core.tag'
+import ValueStream from require 'alv.stream'
+import Error from require 'alv.error'
+import op_invoke, fn_invoke from require 'alv.invoke'
+import Tag from require 'alv.tag'
 
 local RootCell
 

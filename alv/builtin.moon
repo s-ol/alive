@@ -5,13 +5,13 @@
 -- documentation.
 --
 -- @module builtin
-import Builtin, Op, FnDef, Input, val, evt from require 'core.base'
-import ValueStream, LiteralValue from require 'core.stream.value'
-import Result from require 'core.result'
-import Cell from require 'core.cell'
-import Scope from require 'core.scope'
-import Tag from require 'core.tag'
-import op_invoke from require 'core.invoke'
+import Builtin, Op, FnDef, Input, val, evt from require 'alv.base'
+import ValueStream, LiteralValue from require 'alv.stream.value'
+import Result from require 'alv.result'
+import Cell from require 'alv.cell'
+import Scope from require 'alv.scope'
+import Tag from require 'alv.tag'
+import op_invoke from require 'alv.invoke'
 
 doc = ValueStream.meta
   meta:

@@ -1,7 +1,7 @@
 MODULES=$(wildcard lib/*.moon) lib/midi/launchctl.moon
 MODREFS=$(MODULES:lib/%.moon=docs/reference/%.html)
-CORE=$(wildcard core/*.moon core/**/*.moon) $(wildcard core/*.md)
-DEPS=core/version.moon extra/docs.moon extra/layout.moon extra/dom.moon
+CORE=$(wildcard alv/*.moon alv/**/*.moon) $(wildcard alv/*.md)
+DEPS=alv/version.moon extra/docs.moon extra/layout.moon extra/dom.moon
 
 .PHONY: docs reference internals release clean
 
@@ -10,8 +10,8 @@ reference: $(MODREFS) docs/reference/index.html
 internals: docs/internals/index.html
 
 release:
-	rm -f core/version.moon
-	extra/git-version.sh >core/version.moon
+	rm -f alv/version.moon
+	extra/git-version.sh >alv/version.moon
 
 docs/%.html: docs/%.md $(DEPS)
 	@echo "building page $<"
@@ -31,8 +31,8 @@ docs/ldoc.css: docs/style.css
 docs/ldoc.ltp: $(DEPS)
 	moon extra/docs.moon $@ ldoc
 
-docs/internals/index.html: core/config.ld docs/ldoc.ltp docs/ldoc.css $(CORE)
-	ldoc core
+docs/internals/index.html: alv/config.ld docs/ldoc.ltp docs/ldoc.css $(CORE)
+	ldoc alv
 
 clean:
 	rm -rf docs/reference

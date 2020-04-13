@@ -17,14 +17,14 @@
 -- @see Result
 -- @see Error
 
-import Op from require 'core.base.op'
-import Builtin from require 'core.base.builtin'
-import FnDef from require 'core.base.fndef'
-import Input from require 'core.base.input'
-import val, evt from require 'core.base.match'
-import ValueStream, EventStream, IOStream from require 'core.stream'
-import Result from require 'core.result'
-import Error from require 'core.error'
+import Op from require 'alv.base.op'
+import Builtin from require 'alv.base.builtin'
+import FnDef from require 'alv.base.fndef'
+import Input from require 'alv.base.input'
+import val, evt from require 'alv.base.match'
+import ValueStream, EventStream, IOStream from require 'alv.stream'
+import Result from require 'alv.result'
+import Error from require 'alv.error'
 
 {
   :Op

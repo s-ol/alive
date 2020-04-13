@@ -1,4 +1,4 @@
-import Op, ValueStream, Input from require 'core.base'
+import Op, ValueStream, Input from require 'alv.base'
 
 str = ValueStream.meta
   meta:

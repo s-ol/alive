@@ -1,4 +1,4 @@
-import ValueStream, Error, Op, Input, val, evt from require 'core.base'
+import ValueStream, Error, Op, Input, val, evt from require 'alv.base'
 
 apply_range = (range, val) ->
   if range\type! == 'str'

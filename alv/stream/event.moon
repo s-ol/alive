@@ -2,10 +2,10 @@
 -- Stream of momentary events.
 --
 -- @classmod EventStream
-import Stream from require 'core.stream.base'
-import Result from require 'core.result'
-import Error from require 'core.error'
-import scope, base, registry from require 'core.cycle'
+import Stream from require 'alv.stream.base'
+import Result from require 'alv.result'
+import Error from require 'alv.error'
+import scope, base, registry from require 'alv.cycle'
 
 class EventStream extends Stream
 --- members

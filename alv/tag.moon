@@ -7,7 +7,7 @@
 -- - cloned (`[X.Y]`, obtained by cloning Y with parent X)
 --
 -- @classmod Tag
-import Registry from require 'core.registry'
+import Registry from require 'alv.registry'
 
 local ClonedTag
 

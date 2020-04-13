@@ -2,8 +2,8 @@
 -- Update scheduling policy for `Op` arguments.
 --
 -- @classmod Input
-import ValueStream, EventStream, IOStream from require 'core.stream'
-import Result from require 'core.result'
+import ValueStream, EventStream, IOStream from require 'alv.stream'
+import Result from require 'alv.result'
 
 inherits = (klass, frm) ->
   assert klass, "cant find the ancestor of nil"

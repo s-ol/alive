@@ -1,4 +1,4 @@
-import ValueStream, EventStream, Op, Input, val, evt from require 'core.base'
+import ValueStream, EventStream, Op, Input, val, evt from require 'alv.base'
 import apply_range, bit from require 'lib.midi.core'
 import bor, lshift from bit
 

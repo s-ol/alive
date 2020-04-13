@@ -3,12 +3,12 @@
 -- this module provides a proxy for resolving values from modules which cannot
 -- be loaded due to cyclic dependencies. Instead of
 --
--- import Something from require 'core.somewhere'
+-- import Something from require 'alv.somewhere'
 -- Something ...
 --
 -- use
 --
--- import somewhere from require 'core.cycle'
+-- import somewhere from require 'alv.cycle'
 -- somewhere.Something ...
 --
 -- Make sure cycle:load() is called before you access or dereference
@@ -16,7 +16,7 @@
 
 load = =>
   for name, module in pairs @
-    for k, v in pairs require "core.#{name}"
+    for k, v in pairs require "alv.#{name}"
       module[k] = v
 
 setmetatable {}, __index: (key) =>

@@ -2,10 +2,10 @@
 -- Builtins for invoking `Op`s and `FnDef`s.
 --
 -- @module invoke
-import Result from require 'core.result'
-import Builtin from require 'core.base'
-import Scope from require 'core.scope'
-import Error from require 'core.error'
+import Result from require 'alv.result'
+import Builtin from require 'alv.base'
+import Scope from require 'alv.scope'
+import Error from require 'alv.error'
 
 get_name = (value, raw) ->
   meta = if value.meta then value.meta.name

@@ -2,9 +2,9 @@
 -- Mapping from `sym`s to `Result`s.
 --
 -- @classmod Scope
-import ValueStream from require 'core.stream'
-import Result from require 'core.result'
-import Error from require 'core.error'
+import ValueStream from require 'alv.stream'
+import Result from require 'alv.result'
+import Error from require 'alv.error'
 
 class Scope
 --- members

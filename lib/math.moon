@@ -1,4 +1,4 @@
-import Op, ValueStream, Error, Input, val from require 'core.base'
+import Op, ValueStream, Error, Input, val from require 'alv.base'
 unpack or= table.unpack
 
 class ReduceOp extends Op

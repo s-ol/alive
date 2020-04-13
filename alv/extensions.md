@@ -15,7 +15,7 @@ The lua module should return a `Scope` or a table that will be converted using
 which attaches a `meta` table to the value that is used for error messages,
 documentation generation and [`(doc)`][builtins-doc].
 
-    import ValueStream from require 'core.base'
+    import ValueStream from require 'alv.base'
 
     two = ValueStream.meta
       meta:
@@ -43,7 +43,7 @@ Most extensions will want to define a number of *Op*s to be used by the user.
 They are implemented by deriving from the `Op` class and implementing at least
 the `Op:setup` and `Op:tick` methods.
 
-    import ValueStream, Op, Input, evt from require 'core.base'
+    import ValueStream, Op, Input, evt from require 'alv.base'
 
     total_sum = ValueStream.meta
       meta:
@@ -84,7 +84,7 @@ and `base.match.evt` are used to build complex patterns that can parse and
 validate the Op arguments into complex structures (see the module documentation
 for more information).
 
-    import val, evt from require 'core.base'
+    import val, evt from require 'alv.base'
 
     pattern = evt.bang + val.str + val.num*3 + -evt!
     { trig, str, numbers, optional } = pattern\match inputs
@@ -174,7 +174,7 @@ how their arguments are evaluated. They roughly correspond to *macros* in Lisps.
 There is less of a concrete guideline for implementing Builtins because there
 are a lot more options, and it really depends a lot on what the Builtin should
 achieve. Nevertheless, a good starting point is to read the `Builtin` class
-documentation, take a look at `Builtin`s in `core/builtin.moon` and get
+documentation, take a look at `Builtin`s in `alv/builtin.moon` and get
 familiar with the relevant internal interfaces (especially `AST`, `Result`, and
 `Scope`).
 
@@ -187,7 +187,7 @@ will be necessary.
 To implement a custom IOStream, create it as a class that inherits from the
 `IOStream` base and implement the constructor and `IOStream:tick`:
 
-    import IOStream from require 'core.base'
+    import IOStream from require 'alv.base'
     
     class UnreliableStream extends IOStream
       new: => super 'bang'

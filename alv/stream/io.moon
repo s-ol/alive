@@ -7,7 +7,7 @@
 -- updates, which ripple through the `Result` tree.
 --
 -- @classmod IOStream
-import EventStream from require 'core.stream.event'
+import EventStream from require 'alv.stream.event'
 
 class IOStream extends EventStream
 --- IOStream interface.

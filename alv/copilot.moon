@@ -1,5 +1,13 @@
+----
+-- File watcher and CLI entrypoint.
+--
+-- @classmod Copilot
 lfs = require 'lfs'
-import parse, globals, Scope, Error, Registry from require 'core'
+import Scope from require 'alv.scope'
+import Registry from require 'alv.registry'
+import Error from require 'alv.error'
+import program from require 'alv.parsing'
+globals = Scope.from_table require 'alv.builtin'
 
 slurp = (file) ->
   file = io.open file, 'r'
@@ -12,6 +20,12 @@ spit = (file, str) ->
   file\close!
 
 class Copilot
+--- static functions
+-- @section static
+
+  --- create a new Copilot.
+  -- @classmethod
+  -- @tparam string file name/path of the alive file to watch and execute
   new: (@file) =>
     @registry = Registry!
 
@@ -21,6 +35,10 @@ class Copilot
     if mode != 'file'
       error "not a file: #{@file}"
 
+--- members
+-- @section members
+
+  --- poll for changes and tick.
   tick: =>
     @poll!
 
@@ -35,9 +53,9 @@ class Copilot
 
   eval: =>
     @registry\begin_eval!
-    ok, ast = Error.try "parsing '#{@file}'", parse, slurp @file
-    if not ok
-      print ast
+    ok, ast = Error.try "parsing '#{@file}'", program\match, slurp @file
+    if not (ok and ast)
+      print ast or Error 'syntax', "failed to parse"
       @registry\rollback_eval!
       return
 

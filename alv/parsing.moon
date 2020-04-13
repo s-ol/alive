@@ -2,9 +2,9 @@
 -- Lpeg Grammar for parsing `alive` code.
 --
 -- @module parsing
-import ValueStream from require 'core.stream'
-import Cell from require 'core.cell'
-import Tag from require 'core.tag'
+import ValueStream from require 'alv.stream'
+import Cell from require 'alv.cell'
+import Tag from require 'alv.tag'
 import R, S, P, V, C, Ct from require 'lpeg'
 
 -- whitespace

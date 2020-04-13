@@ -2,22 +2,29 @@
 -- `alive` public API.
 --
 -- @module init
-L or= setmetatable {}, __index: => ->
+if _VERSION == 'Lua 5.1'
+  export assert
+  assert = (a, msg, ...) ->
+    if not a
+      error msg
+    a, msg, ...
 
-import ValueStream, EventStream, IOStream from require 'core.stream'
-import Result from require 'core.result'
-import Scope from require 'core.scope'
-import Error from require 'core.error'
-import Registry, SimpleRegistry from require 'core.registry'
-import Tag from require 'core.tag'
+import Logger from require 'alv.logger'
+import ValueStream, EventStream, IOStream from require 'alv.stream'
+import Result from require 'alv.result'
+import Scope from require 'alv.scope'
+import Error from require 'alv.error'
+import Registry, SimpleRegistry from require 'alv.registry'
+import Tag from require 'alv.tag'
 
-import Cell from require 'core.cell'
-import cell, program from require 'core.parsing'
+import Cell, RootCell from require 'alv.cell'
+import program from require 'alv.parsing'
 
-with require 'core.cycle'
+with require 'alv.cycle'
   \load!
 
-globals = Scope.from_table require 'core.builtin'
+import Copilot from require 'alv.copilot'
+globals = Scope.from_table require 'alv.builtin'
 
 --- exports
 -- @table exports
@@ -31,6 +38,8 @@ globals = Scope.from_table require 'core.builtin'
 -- @tfield Error Error
 -- @tfield Registry Registry
 -- @tfield Tag Tag
+-- @tfield Copilot Copilot
+-- @tfield Logger Logger
 -- @tfield Scope globals global definitons
 -- @tfield parse function to turn a `string` into a root `Cell`
 {
@@ -41,6 +50,8 @@ globals = Scope.from_table require 'core.builtin'
   :Registry, :SimpleRegistry, :Tag
 
   :globals
+
+  :Copilot, :Logger
 
   parse: (str) ->
     assert (program\match str), Error 'syntax', "failed to parse"

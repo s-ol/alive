@@ -1,7 +1,7 @@
 import
   ValueStream, EventStream, IOStream,
   Error, Op, Input, val, evt
-from require 'core.base'
+from require 'alv.base'
 import monotime from require 'system'
 
 class Clock extends IOStream

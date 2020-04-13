@@ -1,4 +1,4 @@
-version = require 'core.version'
+version = require 'alv.version'
 import compile from require 'discount'
 
 render_meta = (meta) ->

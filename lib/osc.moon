@@ -1,4 +1,4 @@
-import Op, ValueStream, Input, val, evt from require 'core.base'
+import Op, ValueStream, Input, val, evt from require 'alv.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 

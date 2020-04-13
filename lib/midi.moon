@@ -1,4 +1,4 @@
-import ValueStream, EventStream, Op, Input, val, evt from require 'core.base'
+import ValueStream, EventStream, Op, Input, val, evt from require 'alv.base'
 import input, output, inout, apply_range from require 'lib.midi.core'
 
 gate = ValueStream.meta

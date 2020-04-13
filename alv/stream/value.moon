@@ -4,10 +4,10 @@
 -- Implements the `Stream` and `AST` intefaces.
 --
 -- @classmod ValueStream
-import Stream from require 'core.stream.base'
-import Result from require 'core.result'
-import Error from require 'core.error'
-import scope, base, registry from require 'core.cycle'
+import Stream from require 'alv.stream.base'
+import Result from require 'alv.result'
+import Error from require 'alv.error'
+import scope, base, registry from require 'alv.cycle'
 
 ancestor = (klass) ->
   assert klass, "cant find the ancestor of nil"
