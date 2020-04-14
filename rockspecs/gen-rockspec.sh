@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION="$1"
+VERSION="${1:-scm}"
 REVISION="${2:-1}"
 
 if [ "$VERSION" = scm ]; then
@@ -61,17 +61,6 @@ $(list_modules alv-lib)
     bin = {
       "bin/alv",
       "bin/alv-copilot"
-    },
-  },
-
-  platforms = {
-    win32 = {
-      install = {
-        bin = {
-          "bin/alv",
-          "bin/alv-copilot.bat",
-        },
-      },
     },
   },
 }

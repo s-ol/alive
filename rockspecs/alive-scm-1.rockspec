@@ -78,15 +78,4 @@ build = {
       "bin/alv-copilot"
     },
   },
-
-  platforms = {
-    win32 = {
-      install = {
-        bin = {
-          "bin/alv",
-          "bin/alv-copilot.bat",
-        },
-      },
-    },
-  },
 }
