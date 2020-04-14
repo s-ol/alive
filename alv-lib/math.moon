@@ -99,7 +99,7 @@ mod = ValueStream.meta
     summary: 'Modulo operator.'
     examples: { '(% num div)', '(mod num div)' }
     description: "Calculate remainder of division by `div`."
-  value: func_op 2, (a, b) -> a % b
+  value: func_op ((a, b) -> a % b), val.num + val.num
 
 even = ValueStream.meta
   meta:
@@ -125,7 +125,7 @@ mix = ValueStream.meta
     summary: 'Linearly interpolate.'
     examples: { '(mix a b i)' }
     description: "Interpolate between `a` and `b` using `i` in range 0-1."
-  value: func_op 3, (a, b, i) -> i*b + (1-i)*a
+  value: func_op ((a, b, i) -> i*b + (1-i)*a), val.num + val.num + val.num
 
 min = ValueStream.meta
   meta:
@@ -133,7 +133,7 @@ min = ValueStream.meta
     summary: "Find the minimum."
     examples: { '(min a b [c…])' }
     description: "Return the lowest of arguments."
-  value: func_op '*', math.min
+  value: func_op math.min, val.num*0
 
 max = ValueStream.meta
   meta:
@@ -141,7 +141,7 @@ max = ValueStream.meta
     summary: "Find the maximum."
     examples: { '(max a b [c…])' }
     description: "Return the highest of arguments."
-  value: func_op '*', math.min
+  value: func_op math.max, val.num*0
 
 cos = func_def 'cos', 'alpha', math.cos, "Cosine function (radians)."
 sin = func_def 'sin', 'alpha', math.sin, "Sine function (radians)."
@@ -149,7 +149,7 @@ tan = func_def 'tan', 'alpha', math.tan, "Tangent function (radians)."
 acos = func_def 'acos', 'cos', math.acos, "Inverse cosine function (radians)."
 asin = func_def 'asin', 'sin', math.asin, "Inverse sine function (radians)."
 atan = func_def 'atan', 'tan', math.atan, "Inverse tangent function (radians)."
-atan2 = func_def 'atan2', 'y x', math.atan2, "Inverse tangent function (two argument version).", val.num\rep(2, 2)
+atan2 = func_def 'atan2', 'y x', math.atan2, "Inverse tangent function (two argument version).", val.num + val.num
 cosh = func_def 'cosh', 'alpha', math.cosh, "Hyperbolic cosine function (radians)."
 sinh = func_def 'sinh', 'alpha', math.sinh, "Hyperbolic sine function (radians)."
 tanh = func_def 'tanh', 'alpha', math.tanh, "Hyperbolic tangent function (radians)."
@@ -159,7 +159,7 @@ ceil = func_def 'ceil', 'val', math.ceil, "Round towards positive infinity."
 abs = func_def 'abs', 'val', math.abs, "Get the absolute value."
 
 exp = func_def 'exp', 'exp', math.floor, "*e* number raised to a power."
-log = func_def 'log', 'val [base]', math.log, "Logarithm with given base.", val.num*2
+log = func_def 'log', 'val [base]', math.log, "Logarithm with given base.", val.num + -val.num
 log10 = func_def 'log10', 'val', math.log10, "Logarithm with base 10."
 sqrt = func_def 'sqrt', 'val', math.sqrt, "Square root function."
 
