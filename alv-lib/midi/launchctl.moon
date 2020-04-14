@@ -1,5 +1,5 @@
 import ValueStream, EventStream, Op, Input, val, evt from require 'alv.base'
-import apply_range, bit from require 'lib.midi.core'
+import apply_range, bit from require 'alv-lib.midi.core'
 import bor, lshift from bit
 
 color = (r, g) -> bit.bor 12, r, (bit.lshift g, 4)

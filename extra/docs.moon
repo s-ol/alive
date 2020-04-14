@@ -58,7 +58,7 @@ spit OUT, switch command
           p autoref "These modules can be imported using [require][], " ..
             "[import][] and [import*][]."
           ul for file in *arg[3,]
-            path = file\match '^lib/(.*)%.moon$'
+            path = file\match '^alv%-lib/(.*)%.moon$'
             name = path\gsub '/', '.'
             li a (code name), href: "#{path}.html"
         }

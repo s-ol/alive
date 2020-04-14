@@ -1,5 +1,5 @@
 import ValueStream, EventStream, Op, Input, val, evt from require 'alv.base'
-import input, output, inout, apply_range from require 'lib.midi.core'
+import input, output, inout, apply_range from require 'alv-lib.midi.core'
 
 gate = ValueStream.meta
   meta:

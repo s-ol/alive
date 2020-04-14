@@ -2,9 +2,9 @@
 
 Extensions for `alive` are implemented in [Lua][lua] or [MoonScript][moonscript]
 (which runs as Lua). When an `alive` module is [`(require)`][builtins-req]d,
-alive looks for a Lua module `lib.[module]`. You can simply add a new file with
-extension `.lua` or `.moon` in the `lib` directory of your alive installation or
-somewhere else in your `LUA_PATH`.
+alive looks for a Lua module `alv-lib.[module]`. You can simply add a new file
+with extension `.lua` or `.moon` in the `alv-lib` directory of your alive
+installation or somewhere else in your `LUA_PATH`.
 
 To write extensions, a number of classes and utilities are required. All of
 these are exported in the `base` module.

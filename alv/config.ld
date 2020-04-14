@@ -1,5 +1,5 @@
-project = 'alive internals'
 title = 'developer docs'
+project = 'alive internals'
 
 description = "`alive` developer documentation"
 full_description = [[This section documents the *implementation* of the alive
@@ -12,5 +12,5 @@ If you are looking for the language reference for users, head over to the
 format = 'discount'
 style = 'docs'
 template = 'docs'
-topics={'alv/extensions.md'}
 dir = 'docs/internals'
+topics = {'alv/extensions.md'}

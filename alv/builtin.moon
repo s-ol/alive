@@ -98,7 +98,7 @@ require_ = ValueStream.meta
       name = result\const!
 
       L\trace @, "loading module #{name}"
-      scope = ValueStream.wrap require "lib.#{name\unwrap 'str'}"
+      scope = ValueStream.wrap require "alv-lib.#{name\unwrap 'str'}"
       Result :value
 
 import_ = ValueStream.meta
@@ -117,8 +117,8 @@ current scope."
 
       for child in *tail
         name = (child\quote scope)\unwrap 'sym'
-        value = ValueStream.wrap require "lib.#{name}"
-        scope\set name, Result :value -- (require "lib.#{name})\unwrap 'scope'
+        value = ValueStream.wrap require "alv-lib.#{name}"
+        scope\set name, Result :value
       Result!
 
 import_star = ValueStream.meta
@@ -137,8 +137,8 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
 
       for child in *tail
         name = (child\quote scope)\unwrap 'sym'
-        value = ValueStream.wrap require "lib.#{name}"
-        scope\use value\unwrap 'scope' -- (require "lib.#{name}")\unwrap 'scope'
+        value = ValueStream.wrap require "alv-lib.#{name}"
+        scope\use value\unwrap 'scope'
 
       Result!
 

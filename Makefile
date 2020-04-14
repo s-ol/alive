@@ -1,5 +1,5 @@
-MODULES=$(wildcard lib/*.moon) lib/midi/launchctl.moon
-MODREFS=$(MODULES:lib/%.moon=docs/reference/%.html)
+MODULES=$(wildcard alv-lib/*.moon) alv-lib/midi/launchctl.moon
+MODREFS=$(MODULES:alv-lib/%.moon=docs/reference/%.html)
 CORE=$(wildcard alv/*.moon alv/**/*.moon) $(wildcard alv/*.md)
 DEPS=alv/version.moon extra/docs.moon extra/layout.moon extra/dom.moon
 
@@ -17,10 +17,10 @@ docs/%.html: docs/%.md $(DEPS)
 	@echo "building page $<"
 	moon extra/docs.moon $@ markdown $<
 
-docs/reference/%.html: lib/%.moon $(DEPS) 
+docs/reference/%.html: alv-lib/%.moon $(DEPS) 
 	@echo "building docs for $<"
 	@mkdir -p `dirname $@`
-	moon extra/docs.moon $@ module lib.$(subst /,.,$*) $(subst /,.,$*)
+	moon extra/docs.moon $@ module alv-lib.$(subst /,.,$*) $(subst /,.,$*)
 
 docs/reference/index.html: $(MODREFS) $(DEPS)
 	moon extra/docs.moon $@ reference $(MODULES)
