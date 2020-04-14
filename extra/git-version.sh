@@ -1,8 +1,8 @@
 #!/bin/sh
 
-TAG=`git describe --abbrev=0 HEAD`
-# REV_SHORT=`git rev-parse --short HEAD`
-# REV_LONG=`git rev-parse HEAD`
+TAG=$(git describe --abbrev=0 HEAD)
+# REV_SHORT=$(git rev-parse --short HEAD)
+# REV_LONG=$(git rev-parse HEAD)
 
 cat <<EOF
 ----

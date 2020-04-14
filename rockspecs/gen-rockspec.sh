@@ -5,19 +5,20 @@ REVISION="${2:-1}"
 if [ "$VERSION" = scm ]; then
   WHERE=
 else
-  WHERE=$'\n'"  tag = \"$VERSION\","
+  WHERE="
+  tag = \"$VERSION\","
   VERSION="${VERSION#v}"
-  VERSION="${VERSION//-/}"
+  VERSION=$(echo "$VERSION" | tr -d -)
 fi
 
 list_modules() {
-  for file in $(find $1 -type f -name '*.moon'); do
-    MODULE=$(echo $file | sed -e 's/\.moon$//' -e 's/\//./g')
-    echo "      [\"$MODULE\"] = \"$file\","
-  done
+  find "$1" -type f -name '*.moon' -exec sh -c '
+      MODULE=$(echo "$1" | sed -e "s/\.moon$//" -e "s/\//./g")
+      echo "      [\"$MODULE\"] = \"$1\","
+    ' sh {} \;
 }
 
-cat <<STOP > rockspecs/alive-$VERSION-$REVISION.rockspec
+cat <<STOP > "rockspecs/alive-$VERSION-$REVISION.rockspec"
 package = "alive"
 version = "$VERSION-$REVISION"
 
