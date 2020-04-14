@@ -1,5 +1,5 @@
-import val, evt from require 'core.base.match'
-import Result, ValueStream, EventStream from require 'core'
+import val, evt from require 'alv.base.match'
+import Result, ValueStream, EventStream from require 'alv'
 
 mk_val = (type, const) ->
   value = ValueStream type

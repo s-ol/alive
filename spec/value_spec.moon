@@ -1,6 +1,6 @@
-import ValueStream, Result, Scope, SimpleRegistry from require 'core'
-import Op, Builtin from require 'core.base'
-import Logger from require 'logger'
+import ValueStream, Result, Scope, SimpleRegistry from require 'alv'
+import Op, Builtin from require 'alv.base'
+import Logger from require 'alv.logger'
 Logger.init 'silent'
 
 class TestOp extends Op

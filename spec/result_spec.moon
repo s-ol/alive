@@ -1,6 +1,6 @@
-import Result, Scope, SimpleRegistry from require 'core'
-import Input, Op, ValueStream, EventStream, IOStream from require 'core.base'
-import Logger from require 'logger'
+import Result, Scope, SimpleRegistry from require 'alv'
+import Input, Op, ValueStream, EventStream, IOStream from require 'alv.base'
+import Logger from require 'alv.logger'
 Logger.init 'silent'
 
 op_with_inputs = (inputs) ->

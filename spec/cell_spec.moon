@@ -1,6 +1,6 @@
-import Cell, RootCell from require 'core.cell'
-import ValueStream, Scope, Tag, SimpleRegistry, globals from require 'core'
-import Logger from require 'logger'
+import Cell, RootCell from require 'alv.cell'
+import ValueStream, Scope, Tag, SimpleRegistry, globals from require 'alv'
+import Logger from require 'alv.logger'
 Logger.init 'silent'
 
 hello_world = Cell.parse (Tag.parse '2'), { '', (ValueStream.sym 'hello'), ' ', (ValueStream.str 'world'), '' }

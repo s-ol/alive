@@ -1,6 +1,6 @@
-import Scope, ValueStream, Result from require 'core'
-import Op from require 'core.base'
-import Logger from require 'logger'
+import Scope, ValueStream, Result from require 'alv'
+import Op from require 'alv.base'
+import Logger from require 'alv.logger'
 Logger.init 'silent'
 
 class TestOp extends Op

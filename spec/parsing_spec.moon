@@ -1,7 +1,7 @@
 import space, atom, expr, explist, cell, program, comment
-  from require 'core.parsing'
-import ValueStream from require 'core'
-import Logger from require 'logger'
+  from require 'alv.parsing'
+import ValueStream from require 'alv'
+import Logger from require 'alv.logger'
 Logger.init 'silent'
 
 verify_parse = (parser, str) ->

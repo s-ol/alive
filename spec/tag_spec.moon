@@ -1,6 +1,6 @@
-import Tag from require 'core.tag'
-import Registry from require 'core.registry'
-import Logger from require 'logger'
+import Tag from require 'alv.tag'
+import Registry from require 'alv.registry'
+import Logger from require 'alv.logger'
 Logger.init 'silent'
 
 reg = Registry!

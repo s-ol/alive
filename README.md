@@ -49,7 +49,7 @@ tests, simply start busted in the main directory:
 To run individual test files, for example to speed up execution during
 development, simply pass the files as arguments:
 
-    $ busted spec/core/value_spec.moon
+    $ busted spec/value_spec.moon
 
 [moonscript]: https://moonscript.org/
 [lfs]:        https://keplerproject.github.io/luafilesystem/

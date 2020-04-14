@@ -1,6 +1,6 @@
-import Input, Result, ValueStream, EventStream, IOStream from require 'core.base'
-import SimpleRegistry from require 'core'
-import Logger from require 'logger'
+import Input, Result, ValueStream, EventStream, IOStream from require 'alv.base'
+import SimpleRegistry from require 'alv'
+import Logger from require 'alv.logger'
 Logger.init 'silent'
 
 reg = SimpleRegistry!
