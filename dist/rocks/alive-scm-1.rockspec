@@ -2,7 +2,7 @@ package = "alive"
 version = "scm-1"
 
 source = {
-  url = "git://github.com/s-ol/alivecoding.git",
+  url = "git://github.com/s-ol/alive.git",
 }
 
 description = {

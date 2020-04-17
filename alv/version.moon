@@ -11,7 +11,7 @@
 -- @tfield string release the web URL of this release
 {
   tag: "v0.1-rc2"
-  web: "https://github.com/s-ol/alivecoding"
-  repo: "https://github.com/s-ol/alivecoding.git"
-  release: "https://github.com/s-ol/alivecoding/releases/tag/v0.1-rc2"
+  web: "https://github.com/s-ol/alive"
+  repo: "https://github.com/s-ol/alive.git"
+  release: "https://github.com/s-ol/alive/releases/tag/v0.1"
 }

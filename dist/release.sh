@@ -6,12 +6,13 @@ REVISION="${2:-1}"
 
 if [ "$VERSION" = scm ]; then
   WHERE=
+  TAG=
   VERSION="scm"
 else
   VERSION="${TAG#v}"
   VERSION=$(echo "$VERSION" | tr -d -)
 
-  if [ ! -z "$(git status --porcelain)" ]; then
+  if [ ! -z "$(git status --porcelain -uno)" ]; then
     echo "working directory not clean!"
     exit 2
   fi
@@ -30,18 +31,14 @@ else
 -- @tfield string release the web URL of this release
 {
   tag: "${TAG}"
-  web: "https://github.com/s-ol/alivecoding"
-  repo: "https://github.com/s-ol/alivecoding.git"
-  release: "https://github.com/s-ol/alivecoding/releases/tag/${TAG}"
+  web: "https://github.com/s-ol/alive"
+  repo: "https://github.com/s-ol/alive.git"
+  release: "https://github.com/s-ol/alive/releases/tag/${TAG}"
 }
 EOF
 
   WHERE="
   tag = \"$TAG\","
-
-  git add "alv/version.moon"
-  git commit -m "relase $TAG"
-  git tag -am "version $TAG" "$TAG"
 fi
 
 list_modules() {
@@ -56,7 +53,7 @@ package = "alive"
 version = "$VERSION-$REVISION"
 
 source = {
-  url = "git://github.com/s-ol/alivecoding.git",$WHERE
+  url = "git://github.com/s-ol/alive.git",$WHERE
 }
 
 description = {
@@ -98,3 +95,9 @@ $(list_modules alv-lib)
   },
 }
 STOP
+
+if [ -n "$TAG" ]; then
+  git add "alv/version.moon" "dist/rocks/alive-$VERSION-$REVISION.rockspec"
+  git commit -m "release $TAG"
+  git tag -am "version $TAG" "$TAG"
+fi

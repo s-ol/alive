@@ -43,11 +43,11 @@ https://alive.s-ol.nu/internals/topics/extensions.md.html
 EOF
 
 cat <<EOF >"dist/$BUNDLE/README.md"
-alivecoding $TAG
-================
+alive $TAG
+==========
 
 https://alive.s-ol.nu
-https://github.com/s-ol/alivecoding
+https://github.com/s-ol/alive
 
 License
 -------

@@ -61,7 +61,7 @@ required.
 After installing the dependencies, you can download the `alive` source code
 from the [releases page][:*release*:], or clone the [git repository][:*web*:]:
 
-    $ git clone https://github.com/s-ol/alivecoding.git
+    $ git clone https://github.com/s-ol/alive.git
 
 To run the copilot, open a shell and navigate into the repository. You can now
 run the `hello.alv` example script using the following command:
