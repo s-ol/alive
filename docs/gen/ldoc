@@ -1,93 +1,21 @@
-import ValueStream, Scope from require 'alv'
-import render, layout, autoref from require 'extra.layout'
-import section, h1, h2, h3, p, ul, li, a, code, r from require 'extra.dom'
+#!/usr/bin/env moon
+import layout from require 'docs.gen.layout'
 
-export OUT, BASE, require
-{ OUT, command } = arg
-
-slurp = (file) ->
-  file = io.open file, 'r'
-  with file\read '*all'
-    file\close!
+export OUT, BASE 
 
 spit = (file, str) ->
   file = io.open file, 'w'
   file\write str
   file\close!
 
-spit OUT, switch command
-  when 'module'
-    { _, _, module, name } = arg
+{ OUT } = arg
+BASE = '$(base)'
 
-    require = do
-      old_require = require
-      blacklist = {k, true for k in *{'osc', 'socket', 'system', 'luartmidi'}}
-      (mod, ...) ->
-        return {} if blacklist[mod]
-        old_require mod, ...
-
-    name or= module
-    module = Scope.from_table require module
-
-    layout
-      title: "#{name} reference"
-      body: section {
-        h2 (code name), ' module reference'
-        h3 'index'
-        ul for key, res in opairs module.values
-          li render key, res.value, nil, true
-        h3 'details'
-        ul for key, res in opairs module.values
-          li render key, res.value
-      }
-
-  when 'reference'
-    layout
-      title: 'reference'
-      body: {
-        h1 (code 'alive'), " language reference"
-        p "This section documents all builtins and modules that are currently
-          available in the alive programming language."
-        p autoref "If you are new to alive, the [getting started guide][:../guide/:] is
-          the recommended place to start. If you are looking for
-          information on adding your own module or contributing to alive, check
-          out the [developer documentation][:../internals/index/:]."
-        section {
-          id: 'modules'
-          h2 a "module index", href: '#modules'
-          p autoref "These modules can be imported using [require][], " ..
-            "[import][] and [import*][]."
-          ul for file in *arg[3,]
-            path = file\match '^alv%-lib/(.*)%.moon$'
-            name = path\gsub '/', '.'
-            li a (code name), href: "#{path}.html"
-        }
-        section {
-          id: 'builtins'
-          h2 a "builtins", href: '#builtins'
-          p "These definitions are automatically loaded into the global Scope of
-            every alive session."
-          ul for key, val in opairs require 'alv.builtin'
-            li render key, ValueStream.wrap val
-        }
-      }
-
-  when 'markdown'
-    import compile from require 'discount'
-
-    { _, _, file } = arg
-    contents = slurp file
-    require 'discount'
-
-    layout compile (autoref contents), 'githubtags', 'fencedcode'
-
-  when 'ldoc'
-    BASE = '$(base)'
-    layout
-      style: '$(ldoc.css)'
-      title: '$(ldoc.title)'
-      class: 'ldoc'
-      preamble: '
+spit OUT, layout
+  style: '$(ldoc.css)'
+  title: '$(ldoc.title)'
+  class: 'ldoc'
+  preamble: '
 # local iter = ldoc.modules.iter
 # local M = ldoc.markup
 # local function display_name(item)
@@ -99,9 +27,9 @@ spit OUT, switch command
 #   if #ls > 1 then return "<li>","</li>" else return "","" end
 # end
 # local base = module and "../../" or "../"'
-      body: {
-        class: 'ldoc'
-        '
+  body: {
+    class: 'ldoc'
+    '
 # if ldoc.body then
   $(ldoc.body)
 # elseif not module then
@@ -265,6 +193,4 @@ spit OUT, switch command
 # end
 # end
 '
-      }
-  else
-    error "unknown command '#{command}'"
+  }

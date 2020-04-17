@@ -1,8 +1,9 @@
 version = require 'alv.version'
+dom = require 'docs.gen.dom'
 import compile from require 'discount'
 
 render_meta = (meta) ->
-  import p, code from require 'extra.dom'
+  import p, code from dom
   contents = {}
   if meta.examples
     -- table.insert contents, h4 'signature'
@@ -16,7 +17,7 @@ render_meta = (meta) ->
 
 -- render an ALV Value to a HTML string
 render = (name, value, prefix=nil, index=false) ->
-  import div, label, code, ul, li, i, a, pre from require 'extra.dom'
+  import div, label, code, ul, li, i, a, pre from dom
 
   id = if prefix then "#{prefix}/#{name}" else name
   type = i value.type
@@ -66,17 +67,15 @@ link = (ref) ->
   mod, sym = ref\match '^(.+)/(.*)$'
   abs "reference/#{mod or 'index'}.html##{sym or ref}"
 
-escape = (str) ->
-  (str\gsub '([*`])', '\\%1')
-
 -- link to a reference
 r = (text, ref) ->
-  import a, code from require 'extra.dom'
+  import a, code from dom
   href = link ref or text
   if ref
     a text, :href
   else
     text = text\gsub '/$', ''
+    escape = ESCAPE or (i) -> i
     a (code escape text), :href
 
 -- substitute markdown-style reference links
@@ -98,7 +97,7 @@ aopts = (href, pat) ->
 --  - style
 --  - body (str or table)
 layout = (opts) ->
-  import header, footer, nav, div, span, b, code, a, article from require 'extra.dom'
+  import header, footer, nav, div, span, b, code, a, article from dom
 
   head = header nav {
     span {

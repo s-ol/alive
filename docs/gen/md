@@ -1,0 +1,23 @@
+#!/usr/bin/env moon
+import layout, autoref from require 'docs.gen.layout'
+import compile from require 'discount'
+
+export OUT, ESCAPE
+
+slurp = (file) ->
+  file = io.open file, 'r'
+  with file\read '*all'
+    file\close!
+
+spit = (file, str) ->
+  file = io.open file, 'w'
+  file\write str
+  file\close!
+
+ESCAPE = (str) ->
+  (str\gsub '([*`])', '\\%1')
+
+{ OUT, file } = arg
+
+contents = slurp file
+spit OUT, layout compile (autoref contents), 'githubtags', 'fencedcode'

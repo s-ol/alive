@@ -1,35 +1,40 @@
 MODULES=$(wildcard alv-lib/*.moon) alv-lib/midi/launchctl.moon
 MODREFS=$(MODULES:alv-lib/%.moon=docs/reference/%.html)
 CORE=$(wildcard alv/*.moon alv/**/*.moon) $(wildcard alv/*.md)
-DEPS=alv/version.moon extra/docs.moon extra/layout.moon extra/dom.moon
+DEPS=alv/version.moon $(wildcard docs/gen/*.moon)
 
-.PHONY: docs reference internals release clean
+.PHONY: docs test release clean reference internals
 
 docs: docs/index.html docs/guide.html reference internals
-reference: $(MODREFS) docs/reference/index.html
-internals: docs/internals/index.html
+	
+test:
+	busted
 
 release:
 	rm -f alv/version.moon
-	extra/git-version.sh >alv/version.moon
+	docs/gen/git-version >alv/version.moon
+
+# docs parts
+reference: $(MODREFS) docs/reference/index.html
+internals: docs/internals/index.html
 
 docs/%.html: docs/%.md $(DEPS)
 	@echo "building page $<"
-	moon extra/docs.moon $@ markdown $<
+	docs/gen/md $@ $<
 
 docs/reference/%.html: alv-lib/%.moon $(DEPS) 
 	@echo "building docs for $<"
 	@mkdir -p `dirname $@`
-	moon extra/docs.moon $@ module alv-lib.$(subst /,.,$*) $(subst /,.,$*)
+	docs/gen/module $@ alv-lib.$(subst /,.,$*) $(subst /,.,$*)
 
 docs/reference/index.html: $(MODREFS) $(DEPS)
-	moon extra/docs.moon $@ reference $(MODULES)
+	docs/gen/index $@ $(MODULES)
 
 docs/ldoc.css: docs/style.css
 	cp $< $@
 	
 docs/ldoc.ltp: $(DEPS)
-	moon extra/docs.moon $@ ldoc
+	docs/gen/ldoc $@
 
 docs/internals/index.html: alv/config.ld docs/ldoc.ltp docs/ldoc.css $(CORE)
 	ldoc alv

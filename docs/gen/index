@@ -1,0 +1,48 @@
+#!/usr/bin/env moon
+import ValueStream from require 'alv'
+import render, layout, autoref from require 'docs.gen.layout'
+import section, h1, h2, p, ul, li, a, code from require 'docs.gen.dom'
+
+export OUT
+
+slurp = (file) ->
+  file = io.open file, 'r'
+  with file\read '*all'
+    file\close!
+
+spit = (file, str) ->
+  file = io.open file, 'w'
+  file\write str
+  file\close!
+
+{ OUT } = arg
+
+spit OUT, layout
+  title: 'reference'
+  body: {
+    h1 (code 'alive'), " language reference"
+    p "This section documents all builtins and modules that are currently
+      available in the alive programming language."
+    p autoref "If you are new to alive, the [getting started guide][:../guide/:] is
+      the recommended place to start. If you are looking for
+      information on adding your own module or contributing to alive, check
+      out the [developer documentation][:../internals/index/:]."
+    section {
+      id: 'modules'
+      h2 a "module index", href: '#modules'
+      p autoref "These modules can be imported using [require][], " ..
+        "[import][] and [import*][]."
+      ul for file in *arg[2,]
+        path = file\match '^alv%-lib/(.*)%.moon$'
+        name = path\gsub '/', '.'
+        li a (code name), href: "#{path}.html"
+    }
+    section {
+      id: 'builtins'
+      h2 a "builtins", href: '#builtins'
+      p "These definitions are automatically loaded into the global Scope of
+        every alive session."
+      ul for key, val in opairs require 'alv.builtin'
+        li render key, ValueStream.wrap val
+    }
+  }

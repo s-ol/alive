@@ -1,0 +1,40 @@
+#!/usr/bin/env moon
+import Scope from require 'alv'
+import render, layout from require 'docs.gen.layout'
+import section, h2, h3, ul, li, code from require 'docs.gen.dom'
+
+export OUT, require
+
+require = do
+  old_require = require
+  blacklist = {k, true for k in *{'osc', 'socket', 'system', 'luartmidi'}}
+  (mod, ...) ->
+    return {} if blacklist[mod]
+    old_require mod, ...
+
+slurp = (file) ->
+  file = io.open file, 'r'
+  with file\read '*all'
+    file\close!
+
+spit = (file, str) ->
+  file = io.open file, 'w'
+  file\write str
+  file\close!
+  
+{ OUT, module, name } = arg
+
+name or= module
+module = Scope.from_table require module
+
+spit OUT, layout
+  title: "#{name} reference"
+  body: section {
+    h2 (code name), ' module reference'
+    h3 'index'
+    ul for key, res in opairs module.values
+      li render key, res.value, nil, true
+    h3 'details'
+    ul for key, res in opairs module.values
+      li render key, res.value
+  }
