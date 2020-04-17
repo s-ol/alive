@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 VERSION="${1:-scm}"
 REVISION="${2:-1}"
 
@@ -40,7 +42,7 @@ list_modules() {
     ' sh {} \;
 }
 
-cat <<STOP >"dist/rockspecs/alive-$VERSION-$REVISION.rockspec"
+cat <<STOP >"dist/rocks/alive-$VERSION-$REVISION.rockspec"
 package = "alive"
 version = "$VERSION-$REVISION"
 

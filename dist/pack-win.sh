@@ -10,13 +10,15 @@ if [ -d "dist/$BUNDLE.zip" ]; then
   exit 2
 fi
 
+# luarocks --tree lua/lua install --deps-mode none ../../alive-scm-1.all.rock
+
 git archive "$VERSION:" -o "dist/$BUNDLE.zip" --prefix "$BUNDLE/alive/"
 
 cd dist
 unzip "$BUNDLE.zip"
 cd "$BUNDLE"
 
-cp -r ../docs .
+cp -r ../../docs .
 mv alive/hello.alv .
 rm -rf docs/*.md docs/*.ltp docs/gen
 rm -rf alive/dist
@@ -32,7 +34,7 @@ moon %~dp0\alive\init.moon %*
 exit /b %ERRORLEVEL%
 EOF
 
-cat <<EOF >README.txt
+cat <<EOF >README.md
 alivecoding $VERSION
 ====================
 
@@ -42,13 +44,13 @@ https://github.com/s-ol/alivecoding
 License
 -------
 alive is licensed under the GPLv3 free and open-source license, a copy of which
-you can find in the file `alive/LICENSE`.
+you can find in the file \`alive/LICENSE\`.
 
 This binary distribution of alive contains the Lua interpreter, LuaRocks package
 manager, and a number of Lua modules licensed under various terms. Lua and
 LuaRocks are both licensed under the MIT license, while the packages can be
-found within the `lua/lua` directory while their individual licensing
-information may be viewed using `luarocks.bat`:
+found within the \`lua/lua\` directory while their individual licensing
+information may be viewed using \`luarocks.bat\`:
 
     cmd.exe> luarocks.bat list
     cmd.exe> luarocks.bat show moonscript
@@ -57,4 +59,4 @@ EOF
 
 cd ..
 rm "$BUNDLE.zip"
-zip -rm "$BUNDLE.zip" "$BUNDLE"
+# zip -rm "$BUNDLE.zip" "$BUNDLE"
