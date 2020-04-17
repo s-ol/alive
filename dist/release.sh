@@ -1,13 +1,20 @@
 #!/bin/sh
 set -e
 
-VERSION="${1:-scm}"
+TAG="${1:-scm}"
 REVISION="${2:-1}"
 
 if [ "$VERSION" = scm ]; then
   WHERE=
+  VERSION="scm"
 else
-  git tag "$VERSION"
+  VERSION="${TAG#v}"
+  VERSION=$(echo "$VERSION" | tr -d -)
+
+  if [ ! -z "$(git status --porcelain)" ]; then
+    echo "working directory not clean!"
+    exit 2
+  fi
 
   cat <<EOF >"alv/version.moon"
 ----
@@ -22,17 +29,19 @@ else
 -- @tfield string repo the git repo URL
 -- @tfield string release the web URL of this release
 {
-  tag: "${VERSION}"
+  tag: "${TAG}"
   web: "https://github.com/s-ol/alivecoding"
   repo: "https://github.com/s-ol/alivecoding.git"
-  release: "https://github.com/s-ol/alivecoding/releases/tag/${VERSION}"
+  release: "https://github.com/s-ol/alivecoding/releases/tag/${TAG}"
 }
 EOF
 
   WHERE="
-  tag = \"$VERSION\","
-  VERSION="${VERSION#v}"
-  VERSION=$(echo "$VERSION" | tr -d -)
+  tag = \"$TAG\","
+
+  git add "alv/version.moon"
+  git commit -m "relase $TAG"
+  git tag -am "version $TAG" "$TAG"
 fi
 
 list_modules() {
