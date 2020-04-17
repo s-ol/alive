@@ -10,10 +10,6 @@ docs: docs/index.html docs/guide.html reference internals
 test:
 	busted
 
-release:
-	rm -f alv/version.moon
-	docs/gen/git-version >alv/version.moon
-
 # docs parts
 reference: $(MODREFS) docs/reference/index.html
 internals: docs/internals/index.html
