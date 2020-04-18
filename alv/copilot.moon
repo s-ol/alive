@@ -48,21 +48,21 @@ class Copilot
         @root\tick_io!
         @root\tick!
       if not ok
-        print error
+        L\print error
       @registry\end_tick!
 
   eval: =>
     @registry\begin_eval!
     ok, ast = Error.try "parsing '#{@file}'", program\match, slurp @file
     if not (ok and ast)
-      print ast or Error 'syntax', "failed to parse"
+      L\print ast or Error 'syntax', "failed to parse"
       @registry\rollback_eval!
       return
 
     scope = Scope globals
     ok, root = Error.try "evaluating '#{@file}'", ast\eval, scope, @registry
     if not ok
-      print root
+      L\print root
       @registry\rollback_eval!
       return
 
@@ -76,8 +76,10 @@ class Copilot
       return
 
     if @last_modification < modification
+      L.stream = io.stderr
       L\log "#{@file} changed at #{modification}"
       @eval!
+      L.stream = io.stdout
       @last_modification = os.time!
 
 {

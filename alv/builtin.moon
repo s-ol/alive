@@ -296,9 +296,9 @@ print = ValueStream.meta
     tick: =>
       if @inputs.value\metatype! == 'event'
         for msg in *@inputs.value!
-          print msg
+          L\print msg
       else
-        print @inputs.value!
+        L\print @inputs.value!
 
 {
   :doc

@@ -10,10 +10,9 @@ CONF=$tmpdir/conf
 
 cat > "$CONF" << 'EOF'
 split
+screen -t evaltime sh -c 'tty > "$FIFO"; read done < "$FIFO"; screen -X quit'
 focus
-screen -t evaltime sh -c 'tty > "$FIFO"; read done < "$FIFO"'
-focus
-screen -t runtime sh -c 'read tty < "$FIFO";  "alv" $ARGS 2> "$tty";  echo "[press enter to exit]"; read prompt;  echo done > "$FIFO"'
+screen -t runtime sh -c 'read tty < "$FIFO"; "alv" $ARGS 2> "$tty"; echo "[press enter to exit]"; read prompt; screen -X quit'
 EOF
 
 mkfifo "$FIFO"

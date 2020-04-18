@@ -37,26 +37,30 @@ class Logger
     else
       error unpack res
 
+  --- the stream to write to.
+  -- @tfield file stream
+
 --- static functions
 -- @section static
 
   --- create a new Logger.
   -- @classmethod
   -- @tparam string level the log-level to log at.
-  new: (level='log') =>
+  -- @tparam file stream the stream to write to.
+  new: (level='log', @stream=io.stdout) =>
     @level = levels[level] or level
     @prefix = ''
 
     for name, level in pairs levels
-      @[name] = (first, ...) =>
+      @[name] = (msg) =>
         return unless @level <= level
 
-        where = debug.traceback '', 2
+        msg = tostring msg
+        @stream\write @prefix, msg, '\n'
         if level == levels.error or @level == levels.debug
-          print @prefix .. first, ...
-          print where
-        else
-          print @prefix .. first, ...
+          where = debug.traceback '', 2
+          @stream\write where, '\n'
+        @stream\flush!
 
     if level == levels.print
       @push = (fn, ...) => fn ...
@@ -74,6 +78,7 @@ class Logger
   -- - `'silent'`
   --
   -- @tparam ?string level the level to initialize the logger at.
+  -- @tparam ?file stream the output stream (stdout).
   @init: (...) ->
     L = Logger ...
 
