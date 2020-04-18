@@ -17,22 +17,22 @@ class Registry
 
   --- set the current registration.
   --
-  -- @tparam string\number index the registration index
+  -- @tparam Tag tag the Tag to register
   -- @tparam any expr the registration value
   -- @tparam[default=false] boolean ignore_dup ignore duplicate registrations
-  register: (index, expr, ignore_dup=false) =>
-    L\trace "reg: setting #{index} to #{expr}"
-    if not ignore_dup and @map[index]
-      error Error 'tag', "duplicate tags [#{index}]!"
-    @map[index] = expr
+  register: (tag, expr, ignore_dup=false) =>
+    index = tag\index!
 
-  --- request identity and registration for blank tag.
-  --
-  -- @tparam Tag tag the blank tag
-  -- @tparam any expr the registration value
-  init: (tag, expr) =>
-    L\trace "reg: init pending to #{expr}"
-    table.insert @pending, { :tag, :expr }
+    if index and (not @map[index] or ignore_dup)
+      L\trace "reg: setting #{index} to #{expr}"
+      @map[index] = expr
+    else
+      if index
+        L\warn "duplicate tag [#{index}], reassigning repeated occurance"
+        tag\set nil
+      else
+        L\trace "reg: init #{tag} to #{expr}"
+      table.insert @pending, { :tag, :expr }
 
 --- members
 -- @section members
@@ -45,7 +45,6 @@ class Registry
   -- All calls go `begin_eval` must be matched with either a call to
   -- `end_eval` or `rollback_eval`.
   begin_eval: =>
-    @latest_map = @last_map
     @begin_tick!
     @map, @pending = {}, {}
 

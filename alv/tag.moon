@@ -37,11 +37,7 @@ class Tag
   -- Will mark blank tags for auto-assignment at the end of the eval cycle.
   --
   -- @tparam any expr the value to register
-  register: (expr) =>
-    if index = @index!
-      Registry.active!\register index, expr
-    else
-      Registry.active!\init @, expr
+  register: (expr) => Registry.active!\register @, expr
 
   --- create a copy of this tag scoped to a `parent` tag.
   --
@@ -52,10 +48,7 @@ class Tag
   clone: (parent) =>
     -- ensure this tag is registered for the current eval cycle,
     -- even if it is blank and has no associated value
-    if index = @index!
-      Registry.active!\register index, dummy, true
-    else
-      Registry.active!\init @, dummy
+    Registry.active!\register @, dummy, true
 
     assert parent, "need parent to clone!"
     ClonedTag @, parent
@@ -77,9 +70,13 @@ class Tag
   index: => @value
 
   --- callback to set value for blank tags.
-  -- @tparam number value
+  --
+  -- `value` may be blank to reassign duplicate tags.
+  --
+  -- @tparam ?number value
   set: (value) =>
-    assert not @value, "#{@} is not blank"
+    either_or = (@value or value) and not (@value and value)
+    assert either_or, "unexpected :set #{value} on #{@}"
     @value = value
 
 --- static functions
