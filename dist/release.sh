@@ -4,9 +4,9 @@ set -e
 TAG="${1:-scm}"
 REVISION="${2:-1}"
 
-if [ "$VERSION" = scm ]; then
-  WHERE=
-  TAG=
+if [ "$TAG" = scm ]; then
+  WHERE=""
+  TAG=""
   VERSION="scm"
 else
   VERSION="${TAG#v}"
@@ -42,10 +42,10 @@ EOF
 fi
 
 list_modules() {
-  find "$1" -type f -name '*.moon' -exec sh -c '
-      MODULE=$(echo "$1" | sed -e "s/\.moon$//" -e "s/\//./g")
-      echo "      [\"$MODULE\"] = \"$1\","
-    ' sh {} \;
+  for FILE in $(git ls-files "$1" | grep '\.moon$'); do
+    MODULE=$(echo "$FILE" | sed -e "s/\.moon$//" -e "s/\//./g")
+    echo "      [\"$MODULE\"] = \"$FILE\","
+  done
 }
 
 cat <<STOP >"dist/rocks/alive-$VERSION-$REVISION.rockspec"
@@ -100,4 +100,11 @@ if [ -n "$TAG" ]; then
   git add "alv/version.moon" "dist/rocks/alive-$VERSION-$REVISION.rockspec"
   git commit -m "release $TAG"
   git tag -am "version $TAG" "$TAG"
+
+  luarocks make "dist/rocks/alive-$VERSION-$REVISION.rockspec" \
+    --pack-binary-rock \
+    --sign \
+    --pin
+  mv "alive-$VERSION-$REVISION.all.rock" "alive-$VERSION-$REVISION.all.rock.asc" dist/rocks
+  dist/pack-win.sh "$TAG" "$VERSION-$REVISION"
 fi
