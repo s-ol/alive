@@ -101,10 +101,12 @@ if [ -n "$TAG" ]; then
   git commit -m "release $TAG"
   git tag -am "version $TAG" "$TAG"
 
+  luarocks pack "dist/rocks/alive-$VERSION-$REVISION.rockspec" \
+    --sign
+  mv "alive-$VERSION-$REVISION.src.rock" "alive-$VERSION-$REVISION.src.rock.asc" dist/rocks
   luarocks make "dist/rocks/alive-$VERSION-$REVISION.rockspec" \
     --pack-binary-rock \
-    --sign \
-    --pin
+    --sign
   mv "alive-$VERSION-$REVISION.all.rock" "alive-$VERSION-$REVISION.all.rock.asc" dist/rocks
   dist/pack-win.sh "$TAG" "$VERSION-$REVISION"
 fi
