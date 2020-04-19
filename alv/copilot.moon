@@ -26,20 +26,26 @@ class Copilot
   --- create a new Copilot.
   -- @classmethod
   -- @tparam string file name/path of the alive file to watch and execute
-  new: (@file) =>
+  new: (file) =>
     @registry = Registry!
+    @eval_stream, @run_stream = io.stderr, io.stdout
+    @open file if file
+
+  open: (file) =>
+    mode = lfs.attributes file, 'mode'
+    if mode != 'file'
+      error "not a file: #{file}"
 
     @last_modification = 0
-
-    mode = lfs.attributes @file, 'mode'
-    if mode != 'file'
-      error "not a file: #{@file}"
+    @file = file
 
 --- members
 -- @section members
 
   --- poll for changes and tick.
   tick: =>
+    return unless @file
+
     @poll!
 
     if @root
@@ -76,10 +82,10 @@ class Copilot
       return
 
     if @last_modification < modification
-      L.stream = io.stderr
+      L.stream = @eval_stream
       L\log "#{@file} changed at #{modification}"
       @eval!
-      L.stream = io.stdout
+      L.stream = @run_stream
       @last_modification = os.time!
 
 {

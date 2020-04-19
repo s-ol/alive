@@ -90,7 +90,7 @@ $(list_modules alv-lib)
     },
     bin = {
       "bin/alv",
-      "bin/alv-copilot"
+      "bin/alv-wx"
     },
   },
 }

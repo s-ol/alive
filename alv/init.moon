@@ -9,6 +9,7 @@ if _VERSION == 'Lua 5.1'
       error msg
     a, msg, ...
 
+version = require 'alv.version'
 import Logger from require 'alv.logger'
 import ValueStream, EventStream, IOStream from require 'alv.stream'
 import Result from require 'alv.result'
@@ -28,6 +29,7 @@ globals = Scope.from_table require 'alv.builtin'
 
 --- exports
 -- @table exports
+-- @tfield version version
 -- @tfield ValueStream ValueStream
 -- @tfield EventStream EventStream
 -- @tfield IOStream IOStream
@@ -43,6 +45,8 @@ globals = Scope.from_table require 'alv.builtin'
 -- @tfield Scope globals global definitons
 -- @tfield parse function to turn a `string` into a root `Cell`
 {
+  :version
+
   :ValueStream, :EventStream, :IOStream
   :Cell, :RootCell
   :Result, :Scope, :Error
