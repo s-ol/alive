@@ -7,11 +7,14 @@
 -- @module builtin
 import Builtin, Op, FnDef, Input, val, evt from require 'alv.base'
 import ValueStream, LiteralValue from require 'alv.stream.value'
+import Error from require 'alv.error'
 import Result from require 'alv.result'
 import Cell from require 'alv.cell'
 import Scope from require 'alv.scope'
 import Tag from require 'alv.tag'
 import op_invoke from require 'alv.invoke'
+import load from require 'alv.cycle'
+lfs = require 'lfs'
 
 doc = ValueStream.meta
   meta:
@@ -82,6 +85,16 @@ All arguments have to be evaltime constant."
 
       Result!
 
+load_module = (name, tag) ->
+  Error.wrap "loading module '#{name}'", ->
+    ok, lua = pcall require, "alv-lib.#{name}"
+    if ok
+      ValueStream.wrap lua
+    else
+      result,_ = load.loadfile "#{name}.alv"
+      assert result, "empty return value"
+      result.value
+
 require_ = ValueStream.meta
   meta:
     name: 'require'
@@ -95,11 +108,10 @@ require_ = ValueStream.meta
       assert #tail == 1, "'require' takes exactly one parameter"
 
       result = L\push tail[1]\eval, scope
-      name = result\const!
+      name = result\const!\unwrap 'str'
 
       L\trace @, "loading module #{name}"
-      scope = ValueStream.wrap require "alv-lib.#{name\unwrap 'str'}"
-      Result :value
+      Result value: load_module name, @tag
 
 import_ = ValueStream.meta
   meta:
@@ -115,10 +127,9 @@ current scope."
       L\trace "evaling #{@}"
       assert #tail > 0, "'import' requires at least one arguments"
 
-      for child in *tail
-        name = (child\quote scope)\unwrap 'sym'
-        value = ValueStream.wrap require "alv-lib.#{name}"
-        scope\set name, Result :value
+      for i, child in ipairs tail
+        name = child\quote(scope)\unwrap 'sym'
+        scope\set name, Result value: load_module name, @tag\clone Tag i
       Result!
 
 import_star = ValueStream.meta
@@ -134,13 +145,52 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
       L\trace "evaling #{@}"
       assert #tail > 0, "'import' requires at least one arguments"
 
-
-      for child in *tail
-        name = (child\quote scope)\unwrap 'sym'
-        value = ValueStream.wrap require "alv-lib.#{name}"
+      for i, child in ipairs tail
+        value = load_module child\quote(scope)\unwrap('sym'), @tag\clone Tag i
         scope\use value\unwrap 'scope'
 
       Result!
+
+export_ = ValueStream.meta
+  meta:
+    name: 'export'
+    summary: "Evaluate definitions in a new scope and return it."
+    examples: { '(export expr1 [expr2…])' }
+    description: "
+Evaluate `expr1`, `expr2`, … in a new Scope and return scope."
+
+  value: class  extends Builtin
+    eval: (scope, tail) =>
+      scope = Scope scope
+      children = [expr\eval scope for expr in *tail]
+      Result :children, value: ValueStream.wrap scope
+
+export_star = ValueStream.meta
+  meta:
+    name: 'export*'
+    summary: "Export specific symbol definitions as a module/scope."
+    examples: { '(export* sym1 [sym2…])', '(export*)' }
+    description: "
+Creates a scope containing the symbols `sym1`, `sym2`, … and returns it.
+
+Copies the containing scope if no symbols are given."
+
+  value: class extends Builtin
+    eval: (scope, tail) =>
+      L\trace "evaling #{@}"
+      new_scope = Scope!
+
+      children = if #tail == 0
+        for k,result in pairs scope.values
+          new_scope\set k, result
+          result
+      else
+        for child in *tail
+          name = child\quote(scope)\unwrap 'sym'
+          with result = scope\get name
+            new_scope\set name, result
+
+      Result :children, value: ValueStream.wrap new_scope
 
 fn = ValueStream.meta
   meta:
@@ -185,7 +235,7 @@ function is invoked."
       assert #tail == 3, "'defn' takes exactly three arguments"
       { name, params, body } = tail
 
-      name = (name\quote scope)\unwrap 'sym'
+      name = name\quote(scope)\unwrap 'sym'
       assert params.__class == Cell, "'defn's second argument has to be an expression"
       param_symbols = for param in *params.children
         assert param.type == 'sym', "function parameter declaration has to be a symbol"
@@ -204,7 +254,7 @@ function is invoked."
 
 do_expr = ValueStream.meta
   meta:
-    name: 'do_expr'
+    name: 'do'
     summary: "Evaluate multiple expressions in a new scope."
     examples: { '(do expr1 [expr2…])' }
     description: "
@@ -213,7 +263,8 @@ Evaluate `expr1`, `expr2`, … and return the value of the last expression."
   value: class  extends Builtin
     eval: (scope, tail) =>
       scope = Scope scope
-      Result children: [expr\eval scope for expr in *tail]
+      children = [expr\eval scope for expr in *tail]
+      Result :children, value: children[#children].value
 
 if_ = ValueStream.meta
   meta:
@@ -300,7 +351,7 @@ print = ValueStream.meta
       else
         L\print @inputs.value!
 
-{
+Scope.from_table {
   :doc
   :trace, 'trace!': trace_, :print
 
@@ -308,6 +359,8 @@ print = ValueStream.meta
   require: require_
   import: import_
   'import*': import_star
+  export: export_
+  'export*': export_star
 
   true: ValueStream.meta
     meta:

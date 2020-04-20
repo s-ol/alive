@@ -6,13 +6,7 @@ lfs = require 'lfs'
 import Scope from require 'alv.scope'
 import Registry from require 'alv.registry'
 import Error from require 'alv.error'
-import program from require 'alv.parsing'
-globals = Scope.from_table require 'alv.builtin'
-
-slurp = (file) ->
-  file = io.open file, 'r'
-  with file\read '*all'
-    file\close!
+import loadfile from require 'alv.load'
 
 spit = (file, str) ->
   file = io.open file, 'w'
@@ -59,14 +53,7 @@ class Copilot
 
   eval: =>
     @registry\begin_eval!
-    ok, ast = Error.try "parsing '#{@file}'", program\match, slurp @file
-    if not (ok and ast)
-      L\print ast or Error 'syntax', "failed to parse"
-      @registry\rollback_eval!
-      return
-
-    scope = Scope globals
-    ok, root = Error.try "evaluating '#{@file}'", ast\eval, scope, @registry
+    ok, root, ast = Error.try "running '#{@file}'", loadfile, @file
     if not ok
       L\print root
       @registry\rollback_eval!

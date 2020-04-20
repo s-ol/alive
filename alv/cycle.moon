@@ -11,16 +11,21 @@
 -- import somewhere from require 'alv.cycle'
 -- somewhere.Something ...
 --
--- Make sure cycle:load() is called before you access or dereference
+-- Make sure cycle:resolve() is called before you access or dereference
 -- `somewhere`.
 
-load = =>
-  for name, module in pairs @
+unresolved = {}
+
+resolve = =>
+  for name, module in pairs unresolved
     for k, v in pairs require "alv.#{name}"
       module[k] = v
 
+  unresolved = {}
+
 setmetatable {}, __index: (key) =>
-  return load if key == 'load'
+  return resolve if key == 'resolve'
 
   with v = {}
+    rawset unresolved, key, v
     rawset @, key, v

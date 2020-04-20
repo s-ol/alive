@@ -88,7 +88,7 @@ class Builtin
 
     builtin\eval scope, cell\tail!
 
-  __tostring: => "<#{@@__name} #{@head}>"
+  __tostring: => "<#{@@__name}[#{@tag}] #{@head}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring
 
 {

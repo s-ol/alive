@@ -42,7 +42,7 @@ spit OUT, layout
       h2 a "builtins", href: '#builtins'
       p "These definitions are automatically loaded into the global Scope of
         every alive session."
-      ul for key, val in opairs require 'alv.builtin'
-        li render key, ValueStream.wrap val
+      ul for key, val in opairs (require 'alv.builtin').values
+        li render key, val.value
     }
   }

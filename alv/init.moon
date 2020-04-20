@@ -9,6 +9,8 @@ if _VERSION == 'Lua 5.1'
       error msg
     a, msg, ...
 
+cycle = require 'alv.cycle'
+
 version = require 'alv.version'
 import Logger from require 'alv.logger'
 import ValueStream, EventStream, IOStream from require 'alv.stream'
@@ -21,11 +23,13 @@ import Tag from require 'alv.tag'
 import Cell, RootCell from require 'alv.cell'
 import program from require 'alv.parsing'
 
-with require 'alv.cycle'
-  \load!
+cycle\resolve!
+
+globals = require 'alv.builtin'
+
+cycle\resolve!
 
 import Copilot from require 'alv.copilot'
-globals = Scope.from_table require 'alv.builtin'
 
 --- exports
 -- @table exports
@@ -61,10 +65,10 @@ globals = Scope.from_table require 'alv.builtin'
     assert (program\match str), Error 'syntax', "failed to parse"
 
   eval: (str, inject) ->
-      scope = Scope nil, globals
-      scope\use inject if inject
+    scope = Scope globals
+    scope\use inject if inject
 
-      ast = assert (program\match str), "failed to parse"
-      result = ast\eval scope
-      result\const!
+    ast = assert (program\match str), "failed to parse"
+    result = ast\eval scope
+    result\const!
 }

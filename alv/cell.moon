@@ -173,6 +173,11 @@ class RootCell extends Cell
   head: => ValueStream.sym 'do'
   tail: => @children
 
+  clone: (parent) =>
+    tag = @tag\clone parent
+    children = [child\clone parent for child in *@children]
+    RootCell tag, children, @white
+
   stringify: =>
     buf = ''
     buf ..= @white[0]
