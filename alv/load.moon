@@ -10,7 +10,7 @@ import program from require 'alv.parsing'
 builtin = require 'alv.builtin'
 
 slurp = (file) ->
-  file = io.open file, 'r'
+  file = assert (io.open file, 'r'), Error 'io', "couldn't open '#{file}'"
   with file\read '*all'
     file\close!
 
