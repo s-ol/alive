@@ -27,7 +27,10 @@ class ValueStream extends Stream
   --- update this stream's value.
   --
   -- Marks this stream as dirty for the remainder of the current tick.
-  set: (@value) => @updated = COPILOT.T
+  set: (value) =>
+    if value != @value
+      @value = value
+      @updated = COPILOT.T
 
   --- unwrap to the Lua type.
   --
