@@ -1,7 +1,6 @@
+import do_setup from require 'spec.test_setup'
 import ValueStream, Result, Scope, SimpleRegistry from require 'alv'
 import Op, Builtin from require 'alv.base'
-import Logger from require 'alv.logger'
-Logger\init 'silent'
 
 class TestOp extends Op
   new: (...) => super ...
@@ -9,9 +8,7 @@ class TestOp extends Op
 class TestBuiltin extends Builtin
   new: (...) =>
 
-reg = SimpleRegistry!
-setup -> reg\grab!
-teardown -> reg\release!
+setup do_setup
 
 describe 'ValueStream', ->
   describe '.wrap', ->
@@ -174,7 +171,7 @@ describe 'ValueStream', ->
       assert.is.true b\dirty!
       assert.is.true bb\dirty!
 
-      reg\next_tick!
+      COPILOT\next_tick!
       aa\set 4
 
       assert.is.equal 3, a!

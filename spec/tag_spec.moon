@@ -1,11 +1,8 @@
+import do_setup from require 'spec.test_setup'
 import Tag from require 'alv.tag'
 import Registry from require 'alv.registry'
-import Logger from require 'alv.logger'
-Logger\init 'silent'
 
-reg = Registry!
-setup -> reg\begin_eval!
-teardown -> reg\end_eval!
+setup do_setup
 
 describe 'Tag', ->
   describe 'should be constructable', ->

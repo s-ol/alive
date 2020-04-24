@@ -1,11 +1,7 @@
+import do_setup from require 'spec.test_setup'
 import Input, Result, ValueStream, EventStream, IOStream from require 'alv.base'
-import SimpleRegistry from require 'alv'
-import Logger from require 'alv.logger'
-Logger\init 'silent'
 
-reg = SimpleRegistry!
-setup -> reg\grab!
-teardown -> reg\release!
+setup do_setup
 
 class MyIO extends IOStream
   new: => super 'my-io'
@@ -65,7 +61,7 @@ describe 'Input.hot', ->
       assert.is.false input\dirty!
       input\finish_setup!
 
-      reg\next_tick!
+      COPILOT\next_tick!
       stream\add 1
 
       assert.is.true input\dirty!
@@ -97,7 +93,7 @@ describe 'Input.hot', ->
       assert.is.false input\dirty!
       input\finish_setup!
 
-      reg\next_tick!
+      COPILOT\next_tick!
       stream.is_dirty = true
 
       assert.is.true input\dirty!
@@ -133,7 +129,7 @@ describe 'Input.hot', ->
         newinput\finish_setup!
 
       it 'is not dirty when equal', ->
-        newval = ValueStream.num 1
+        newval = ValueStream.num!
         newval\set 1
 
         assert.is.true newval\dirty!
@@ -148,6 +144,6 @@ describe 'Input.hot', ->
         assert.is.true stream\dirty!
         assert.is.true input\dirty!
 
-        reg\next_tick!
+        COPILOT\next_tick!
         assert.is.false stream\dirty!
         assert.is.false input\dirty!

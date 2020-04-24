@@ -1,7 +1,8 @@
+import do_setup from require 'spec.test_setup'
 import Result, Scope, SimpleRegistry from require 'alv'
 import Input, Op, ValueStream, EventStream, IOStream from require 'alv.base'
-import Logger from require 'alv.logger'
-Logger\init 'silent'
+
+setup do_setup
 
 op_with_inputs = (inputs) ->
   with Op!
@@ -10,10 +11,6 @@ op_with_inputs = (inputs) ->
 result_with_sideinput = (value, input) ->
   with Result :value
     .side_inputs = { [value]: input }
-
-reg = SimpleRegistry!
-setup -> reg\grab!
-teardown -> reg\release!
 
 class DirtyIO extends IOStream
   new: => super 'dirty-io'
