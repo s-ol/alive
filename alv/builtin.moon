@@ -13,7 +13,6 @@ import Cell from require 'alv.cell'
 import Scope from require 'alv.scope'
 import Tag from require 'alv.tag'
 import op_invoke from require 'alv.invoke'
-import load from require 'alv.cycle'
 lfs = require 'lfs'
 
 doc = ValueStream.meta
@@ -85,16 +84,6 @@ All arguments have to be evaltime constant."
 
       Result!
 
-load_module = (name, tag) ->
-  Error.wrap "loading module '#{name}'", ->
-    ok, lua = pcall require, "alv-lib.#{name}"
-    if ok
-      ValueStream.wrap lua
-    else
-      result,_ = load.loadfile "#{name}.alv"
-      assert result, "empty return value"
-      result.value
-
 require_ = ValueStream.meta
   meta:
     name: 'require'
@@ -111,7 +100,7 @@ require_ = ValueStream.meta
       name = result\const!\unwrap 'str'
 
       L\trace @, "loading module #{name}"
-      Result value: load_module name, @tag
+      COPILOT\require name
 
 import_ = ValueStream.meta
   meta:
@@ -127,10 +116,11 @@ current scope."
       L\trace "evaling #{@}"
       assert #tail > 0, "'import' requires at least one arguments"
 
-      for i, child in ipairs tail
+      children = for i, child in ipairs tail
         name = child\quote(scope)\unwrap 'sym'
-        scope\set name, Result value: load_module name, @tag\clone Tag i
-      Result!
+        with COPILOT\require name
+          scope\set name, \make_ref!
+      Result :children
 
 import_star = ValueStream.meta
   meta:
@@ -145,11 +135,10 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
       L\trace "evaling #{@}"
       assert #tail > 0, "'import' requires at least one arguments"
 
-      for i, child in ipairs tail
-        value = load_module child\quote(scope)\unwrap('sym'), @tag\clone Tag i
-        scope\use value\unwrap 'scope'
-
-      Result!
+      children = for i, child in ipairs tail
+        with COPILOT\require child\quote(scope)\unwrap 'sym'
+          scope\use .value\unwrap 'scope'
+      Result :children
 
 export_ = ValueStream.meta
   meta:

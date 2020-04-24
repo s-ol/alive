@@ -45,12 +45,23 @@ class Registry
   -- `end_eval` or `rollback_eval`.
   begin_eval: =>
     @grab!
+    assert not @map, "unfinished evaluation cycle"
     @map, @pending = {}, {}
+
+  --- abort an evaluation cycle.
+  --
+  -- Unset the active Registry.
+  rollback_eval: =>
+    for { :tag, :expr } in *@pending
+      expr\destroy!
+
+    @map, @pending = nil, nil
 
   --- end an evaluation cycle.
   --
   -- Register all pending `Tag`s and destroy all orphaned registrations.
   -- Unset the active Registry.
+  -- @treturn bool whether any changes to the AST were made
   end_eval: =>
     for tag, val in pairs @last_map
       val\destroy! unless @map[tag]
@@ -65,14 +76,10 @@ class Registry
       tag\set next_tag
       @map[tag\index!] = expr
 
-    @last_map = @map
-    @release!
+    dirty = #@pending > 0
+    @last_map, @map, @pending = @map, nil, nil
 
-  --- abort an evaluation cycle.
-  --
-  -- Unset the active Registry.
-  rollback_eval: =>
-    @release!
+    dirty
 
   --- set the active Registry.
   grab: =>
@@ -84,13 +91,22 @@ class Registry
     assert @ == Registry.active_registry, "not the active registry!"
     Registry.active_registry, @prev = @prev, nil
 
+  --- destroy this Registry and all associated Registrations.
+  -- needs to be called *after* `:eval`.
+  destroy: =>
+    assert not @tag, "unfinished evaluation cycle"
+    for tag, val in pairs @last_map
+      val\destroy!
+
+    @last_map = {}
+
 --- static functions
 -- @section static
 
   --- create a new Registry.
   -- @classmethod
   new: =>
-    @last_map, @map = {}, {}
+    @last_map = {}
 
   --- get the active Registry.
   --

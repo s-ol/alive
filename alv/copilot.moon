@@ -4,14 +4,10 @@
 -- @classmod Copilot
 lfs = require 'lfs'
 import Scope from require 'alv.scope'
-import Registry from require 'alv.registry'
+import Module from require 'alv.module'
 import Error from require 'alv.error'
-import loadfile from require 'alv.load'
-
-spit = (file, str) ->
-  file = io.open file, 'w'
-  file\write str
-  file\close!
+import Result from require 'alv.result'
+import ValueStream from require 'alv.stream'
 
 export COPILOT
 
@@ -24,7 +20,7 @@ class Copilot
   -- @tparam string file name/path of the alive file to watch and execute
   new: (file) =>
     @T = 0
-    @registry = Registry!
+    @last_modules = {}
     @open file if file
 
 --- members
@@ -36,27 +32,44 @@ class Copilot
   --- change the running script.
   -- @tparam string file
   open: (file) =>
-    mode = lfs.attributes file, 'mode'
-    if mode != 'file'
-      error "not a file: #{file}"
+    if old = @last_modules.__root
+      old\destroy!
 
-    @last_modification = 0
-    @file = file
+    @last_modules.__root = Module file
+
+  --- require a module.
+  -- @tparam string name
+  -- @treturn Result result
+  require: (name) =>
+    Error.wrap "loading module '#{name}'", ->
+      ok, lua = pcall require, "alv-lib.#{name}"
+      if ok
+        Result value: ValueStream.wrap lua
+      else
+        assert @modules, "no current eval cycle?"
+        if mod = @modules[name]
+          mod.root\make_ref!
+        else
+          @modules[name] = @last_modules[name] or Module "#{name}.alv"
+          @modules[name]\eval!
+          @modules[name].root
 
   --- poll for changes and tick.
   tick: =>
     assert not COPILOT, "another Copilot is already running!"
+    return unless @last_modules.__root
+
     COPILOT = @
     @T += 1
 
-    return unless @file
     @poll!
 
-    if @root
+    root = @last_modules.__root
+    if root and root.root
       L\set_time 'run'
       ok, error = Error.try "updating", ->
-        @root\tick_io!
-        @root\tick!
+        root.root\tick_io!
+        root.root\tick!
       if not ok
         L\print error
 
@@ -67,28 +80,34 @@ class Copilot
   -- Call `eval` if there are any, and write changed and newly added modules
   -- back to disk.
   poll: =>
-    { :mode, :modification } = (lfs.attributes @file) or {}
-    if mode != 'file'
-      return
+    dirty = {}
+    for name, mod in pairs @last_modules
+      if mod\poll!
+        table.insert dirty, mod
 
-    if @last_modification < modification
-      L\set_time 'eval'
-      L\log "#{@file} changed at #{modification}"
-      @eval!
-      @last_modification = os.time!
+    return if #dirty == 0
 
-  --- perform an eval-cycle.
-  eval: =>
-    @registry\begin_eval!
-    ok, root, ast = Error.try "running '#{@file}'", loadfile, @file
+    L\set_time 'eval'
+    L\print "changed to files: #{table.concat [m.file for m in *dirty], ', '}"
+
+    @modules = { __root: @last_modules.__root }
+    ok, err = Error.try "processing changes", @modules.__root\eval
+
     if not ok
-      L\print root
-      @registry\rollback_eval!
+      for name, mod in pairs @modules
+        mod\rollback!
+      @modules = {}
+      L\error err
       return
 
-    @registry\end_eval!
-    @root = root
-    spit @file, ast\stringify!
+    for name, mod in pairs @last_modules
+      if not @modules[name]
+        mod\destroy!
+
+    for name, mod in pairs @modules
+      mod\finish!
+
+    @last_modules, @modules = @modules, nil
 
 {
   :Copilot
