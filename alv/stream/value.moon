@@ -124,11 +124,6 @@ class ValueStream extends Stream
       else
         error "cannot evaluate #{@}"
 
-  --- quote this literal constant.
-  --
-  -- @treturn ValueStream self
-  quote: => @
-
   --- stringify this literal constant.
   --
   -- Throws an error if `raw` is not set.

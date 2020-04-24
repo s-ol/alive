@@ -58,7 +58,7 @@ Define the symbols `sym1`, `sym2`, … to resolve to the values of `val-expr1`,
       children = L\push ->
         return for i=1,#tail,2
           name, val_expr = tail[i], tail[i+1]
-          name = (name\quote scope)\unwrap 'sym'
+          name = name\unwrap 'sym'
 
           with val_expr\eval scope
             scope\set name, \make_ref!
@@ -117,7 +117,7 @@ current scope."
       assert #tail > 0, "'import' requires at least one arguments"
 
       children = for i, child in ipairs tail
-        name = child\quote(scope)\unwrap 'sym'
+        name = child\unwrap 'sym'
         with COPILOT\require name
           scope\set name, \make_ref!
       Result :children
@@ -136,7 +136,7 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
       assert #tail > 0, "'import' requires at least one arguments"
 
       children = for i, child in ipairs tail
-        with COPILOT\require child\quote(scope)\unwrap 'sym'
+        with COPILOT\require child\unwrap 'sym'
           scope\use .value\unwrap 'scope'
       Result :children
 
@@ -150,9 +150,9 @@ Evaluate `expr1`, `expr2`, … in a new Scope and return scope."
 
   value: class  extends Builtin
     eval: (scope, tail) =>
-      scope = Scope scope
-      children = [expr\eval scope for expr in *tail]
-      Result :children, value: ValueStream.wrap scope
+      new_scope = Scope scope
+      children = [expr\eval new_scope for expr in *tail]
+      Result :children, value: ValueStream.wrap new_scope
 
 export_star = ValueStream.meta
   meta:
@@ -175,7 +175,7 @@ Copies the containing scope if no symbols are given."
           result
       else
         for child in *tail
-          name = child\quote(scope)\unwrap 'sym'
+          name = child\unwrap 'sym'
           with result = scope\get name
             new_scope\set name, result
 
@@ -199,9 +199,8 @@ function is invoked."
       assert params.__class == Cell, "'fn's first argument has to be an expression"
       param_symbols = for param in *params.children
         assert param.type == 'sym', "function parameter declaration has to be a symbol"
-        param\quote scope
+        param
 
-      body = body\quote scope
       Result value: with ValueStream.wrap FnDef param_symbols, body, scope
         .meta = {
           summary: "(user defined function)"
@@ -224,13 +223,11 @@ function is invoked."
       assert #tail == 3, "'defn' takes exactly three arguments"
       { name, params, body } = tail
 
-      name = name\quote(scope)\unwrap 'sym'
+      name = name\unwrap 'sym'
       assert params.__class == Cell, "'defn's second argument has to be an expression"
       param_symbols = for param in *params.children
         assert param.type == 'sym', "function parameter declaration has to be a symbol"
-        param\quote scope
-
-      body = body\quote scope
+        param
 
       value = with ValueStream.wrap FnDef param_symbols, body, scope
         .meta =

@@ -13,8 +13,8 @@ class FnDef
   --- create a new instance
   --
   -- @classmethod
-  -- @tparam {Value,...} params (`AST:quote`d) naming the function parameters
-  -- @tparam AST body (`AST:quote`d) expression the function evaluates to
+  -- @tparam {Value,...} params (unevaluated) naming the function parameters
+  -- @tparam AST body (unevaluated) expression the function evaluates to
   -- @tparam Scope scope the lexical scope the function was defined in (closure)
   new: (@params, @body, @scope) =>
 

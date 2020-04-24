@@ -86,17 +86,6 @@ class Cell
 
     Builtin\eval_cell @, scope, head
 
-  --- quote this Cell, preserving its identity.
-  --
-  -- Recursively quotes children, but preserves identity (i.e, shares the
-  -- `Tag`). A quoted Cell may only be 'used' once. If you want to `eval` a
-  -- `Cell` multiple times, use `clone`.
-  --
-  -- @treturn Cell
-  quote: =>
-    children = [child\quote scope for child in *@children]
-    Cell @tag, children, @white
-
   --- create a clone with its own identity.
   --
   -- creates a clone of this Cell with its own identity by prepending a `parent`

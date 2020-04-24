@@ -11,25 +11,6 @@ setup -> reg\grab!
 teardown -> reg\release!
 
 describe 'Cell', ->
-  describe 'when quoted', ->
-    with hello_world\quote!
-      it 'stays equal', ->
-        assert.is.equal Cell, .__class
-        assert.is.equal (ValueStream.sym 'hello'), \head!
-        assert.is.same { ValueStream.str 'world' }, \tail!
-
-      it 'shares the tag', ->
-        assert.is.equal hello_world.tag, .tag
-
-    with two_plus_two\quote!
-      it 'stays equal', ->
-        assert.is.equal Cell, .__class
-        assert.is.equal (ValueStream.sym '+'), \head!
-        assert.is.same { (ValueStream.num 2), (ValueStream.num 2) }, \tail!
-
-      it 'shares the tag', ->
-        assert.is.equal two_plus_two.tag, .tag
-
   describe 'when cloned', ->
     parent = Tag.blank '1'
     with hello_world\clone parent

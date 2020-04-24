@@ -135,13 +135,6 @@ describe 'ValueStream', ->
       assert_eval 'hello', ValueStream.str "world"
       assert_eval 'goodbye', ValueStream.sym "again"
 
-  it ':quote s literals as themselves', ->
-    assert_noop = (val) -> assert.is.equal val, val\quote!
-
-    assert_noop ValueStream.num 2
-    assert_noop ValueStream.str 'hello'
-    assert_noop ValueStream.sym 'world'
-
   it ':clone sliterals as themselves', ->
     assert_noop = (val) -> assert.is.equal val, val\clone!
 

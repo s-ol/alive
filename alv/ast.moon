@@ -16,13 +16,6 @@
   -- @tparam Scope scope the scope to evaluate in
   -- @treturn Result the evaluation result
 
-  --- quote this AST Node, preserving its identity.
-  --
-  --- Returns a mutable copy of this Node that shares its identity.
-  --
-  -- @function quote
-  -- @treturn AST
-
   --- create a clone with its own identity.
   --
   -- creates a clone of this Cell with its own identity by prepending a `parent`
