@@ -96,7 +96,7 @@ class Copilot
     if not ok
       for name, mod in pairs @modules
         mod\rollback!
-      @modules = {}
+      @modules = nil
       L\error err
       return
 

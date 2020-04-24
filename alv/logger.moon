@@ -65,7 +65,7 @@ class Logger
     for name, level in pairs levels
       @[name] = (msg) =>
         return unless @level <= level
-        @put if level == levels.error or @level == levels.debug
+        @put if @level == levels.debug
           where = debug.traceback '', 2
           "#{msg}\n#{where}"
         else

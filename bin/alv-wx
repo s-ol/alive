@@ -98,7 +98,7 @@ built using #{wxlua.wxLUA_VERSION_STRING} on #{wx.wxVERSION_STRING}",
       @update_status!
 
   do_idle: (event) =>
-    if @file and not @paused
+    if not @paused
       event\RequestMore true
       @tick!
 
