@@ -67,6 +67,8 @@ class Module
   destroy: =>
     @registry\destroy!
 
+  __tostring: => "<Module #{@file}>"
+
   --- the last updated AST tree for this module.
   -- @tfield ?AST ast
 

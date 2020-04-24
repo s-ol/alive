@@ -36,6 +36,7 @@ class Copilot
       old\destroy!
 
     @last_modules.__root = Module file
+    @active_module = @last_modules.__root
 
   --- require a module.
   -- @tparam string name
@@ -50,9 +51,16 @@ class Copilot
         if mod = @modules[name]
           mod.root\make_ref!
         else
-          @modules[name] = @last_modules[name] or Module "#{name}.alv"
-          @modules[name]\eval!
-          @modules[name].root
+          last = @active_module
+          prefix = @active_module.file\match('(.*)/[^/]*$') .. '/' or ''
+          mod = @last_modules[name] or Module "#{prefix}#{name}.alv"
+          @active_module = mod
+          ok, err = pcall mod\eval
+          @active_module = last
+          if ok
+            mod.root
+          else
+            error err
 
   --- poll for changes and tick.
   tick: =>
@@ -88,7 +96,7 @@ class Copilot
     return if #dirty == 0
 
     L\set_time 'eval'
-    L\print "changed to files: #{table.concat [m.file for m in *dirty], ', '}"
+    L\print "changes to files: #{table.concat [m.file for m in *dirty], ', '}"
 
     @modules = { __root: @last_modules.__root }
     ok, err = Error.try "processing changes", @modules.__root\eval
