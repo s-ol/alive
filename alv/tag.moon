@@ -30,14 +30,14 @@ class Tag
   -- @treturn ?any
   last: =>
     if index = @index!
-      Registry.active!\last index
+      COPILOT.active_module.registry\last index
 
   --- register `expr` for this tag for the current eval cycle.
   --
   -- Will mark blank tags for auto-assignment at the end of the eval cycle.
   --
   -- @tparam any expr the value to register
-  register: (expr) => Registry.active!\register @, expr
+  register: (expr) => COPILOT.active_module.registry\register @, expr
 
   --- create a copy of this tag scoped to a `parent` tag.
   --
@@ -48,7 +48,7 @@ class Tag
   clone: (parent) =>
     -- ensure this tag is registered for the current eval cycle,
     -- even if it is blank and has no associated value
-    Registry.active!\register @, dummy, true
+    COPILOT.active_module.registry\register @, dummy, true
 
     assert parent, "need parent to clone!"
     ClonedTag @, parent

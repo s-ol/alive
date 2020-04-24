@@ -40,19 +40,15 @@ class Registry
 
   --- begin an evaluation cycle.
   --
-  -- Set the active Registry and clear out pending registrations.
-  --
   -- All calls go `begin_eval` must be matched with either a call to
   -- `end_eval` or `rollback_eval`.
   begin_eval: =>
-    @grab!
     assert not @map, "unfinished evaluation cycle"
     @map, @pending = {}, {}
 
   --- abort an evaluation cycle.
-  --
-  -- Unset the active Registry.
   rollback_eval: =>
+    assert @map, "no eval cycle to abort"
     for { :tag, :expr } in *@pending
       expr\destroy!
 
@@ -61,11 +57,10 @@ class Registry
   --- end an evaluation cycle.
   --
   -- Register all pending `Tag`s and destroy all orphaned registrations.
-  -- Unset the active Registry.
   -- @treturn bool whether any changes to the AST were made
   end_eval: =>
     for tag, val in pairs @last_map
-      val\destroy! unless @map[tag]
+      val\destroy!
 
     for { :tag, :expr } in *@pending
       -- tag was solved by another pending registration
@@ -81,16 +76,6 @@ class Registry
     @last_map, @map, @pending = @map, nil, nil
 
     dirty
-
-  --- set the active Registry.
-  grab: =>
-    assert not @prev, "already have a previous registry? #{@prev}"
-    @prev, Registry.active_registry = Registry.active_registry, @
-
-  --- unset the active Registry.
-  release: =>
-    assert @ == Registry.active_registry, "not the active registry!"
-    Registry.active_registry, @prev = @prev, nil
 
   --- destroy this Registry and all associated Registrations.
   -- needs to be called *after* `:eval`.
@@ -109,13 +94,6 @@ class Registry
   new: =>
     @last_map = {}
 
-  --- get the active Registry.
-  --
-  -- Raises an error when there is no active Registry.
-  --
-  -- @treturn Registry
-  @active: -> assert Registry.active_registry, "no active Registry!"
-
 class SimpleRegistry extends Registry
   new: =>
     @cnt = 1
@@ -126,11 +104,6 @@ class SimpleRegistry extends Registry
 
   last: (index) =>
   register: (index, expr) =>
-
-  wrap: (fn) => (...) ->
-    @grab!
-    with fn ...
-      @release!
 
 {
   :Registry

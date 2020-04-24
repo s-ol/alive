@@ -83,7 +83,6 @@ class Builtin
     if compatible
       builtin\setup last
     else
-      last\destroy! if last
       builtin\setup nil
 
     builtin\eval scope, cell\tail!

@@ -32,6 +32,7 @@ class op_invoke extends Builtin
   setup: (prev) =>
     if prev
       @op = prev.op\fork!
+      prev.forked = COPILOT.T
     else
       def = @head\unwrap 'opdef', "cant op-invoke #{@head}"
       @op = def!
@@ -39,7 +40,9 @@ class op_invoke extends Builtin
   --- `Builtin:destroy` implementation.
   --
   -- calls `op`:@{Op:destroy|destroy}.
-  destroy: => @op\destroy!
+  destroy: =>
+    if @forked ~= COPILOT.T
+      @op\destroy!
 
   --- perform an `Op` invocation.
   --

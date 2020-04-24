@@ -26,7 +26,6 @@ class Module
   -- @classmethod
   new: (@file) =>
     @registry = Registry!
-    @last_modification = 0
 
 --- members
 -- @section members
@@ -36,23 +35,19 @@ class Module
   poll: =>
     { :mode, :modification } = (lfs.attributes @file) or {}
     assert mode == 'file', Error 'io', "not a file: '#{file}'"
-
-    if @last_modification < modification
-      true
+    modification
 
   --- start an evaluation cycle.
   --
   -- If the module has already been evaluated this tick, this is a noop.
   -- Otherwise, register the module with the `Copilot`. Updates `root`.
   eval: =>
-    @last_modification = os.time!
+    @registry\begin_eval!
     @ast = Error.wrap "parsing '#{@file}'", -> program\match slurp @file
     assert @ast, Error 'syntax', "failed to parse"
 
     scope = Scope builtin
-    @registry\begin_eval!
     @root = Error.wrap "evaluating '#{@file}'", @ast\eval, scope, @registry
-    @registry\release!
 
   --- rollback the last evaluation cycle.
   rollback: => @registry\rollback_eval!

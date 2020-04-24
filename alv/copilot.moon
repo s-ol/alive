@@ -20,6 +20,7 @@ class Copilot
   -- @tparam string file name/path of the alive file to watch and execute
   new: (file) =>
     @T = 0
+    @last_modification = 0
     @last_modules = {}
     @open file if file
 
@@ -54,8 +55,11 @@ class Copilot
           last = @active_module
           prefix = @active_module.file\match('(.*)/[^/]*$') .. '/' or ''
           mod = @last_modules[name] or Module "#{prefix}#{name}.alv"
+          L\trace "entering module #{mod}"
+          @modules[name] = mod
           @active_module = mod
           ok, err = pcall mod\eval
+          L\trace "returning to module #{mod}"
           @active_module = last
           if ok
             mod.root
@@ -90,11 +94,12 @@ class Copilot
   poll: =>
     dirty = {}
     for name, mod in pairs @last_modules
-      if mod\poll!
+      if mod\poll! > @last_modification
         table.insert dirty, mod
 
     return if #dirty == 0
 
+    @last_modification = os.time!
     L\set_time 'eval'
     L\print "changes to files: #{table.concat [m.file for m in *dirty], ', '}"
 
@@ -115,6 +120,7 @@ class Copilot
     for name, mod in pairs @modules
       mod\finish!
 
+    @last_modification = os.time!
     @last_modules, @modules = @modules, nil
 
 {
