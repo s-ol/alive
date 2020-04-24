@@ -1,7 +1,7 @@
 ----
 -- AST Node Interface.
 --
--- implemented by `Value` and `Cell`.
+-- implemented by `ValueStream` and `Cell`.
 --
 -- @classmod AST
 

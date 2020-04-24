@@ -41,7 +41,7 @@ class op_invoke extends Builtin
   -- calls `op`:@{Op:destroy|destroy}.
   destroy: => @op\destroy!
 
-  --- evaluate an `Op` invocation.
+  --- perform an `Op` invocation.
   --
   -- `AST:eval`s the tail, and passes the result to `op`:@{Op:setup|setup}. Then
   -- checks if any of `op`:@{Op:all_inputs|all_inputs} are @{Input:dirty|dirty},
@@ -83,8 +83,8 @@ class fn_invoke extends Builtin
   --- evaluate a user-function invocation.
   --
   -- Creates a new `Scope` that inherits from `FnDef.scope` and has
-  -- `outer_scope` as an additional parent for dynamic symbol resolution.
-  -- Then `AST:eval`s the tail in `outer_scope`, and defines the results to the
+  -- `caller_scope` as an additional parent for dynamic symbol resolution.
+  -- Then `AST:eval`s the tail in `caller_scope`, and defines the results to the
   -- names in `FnDef.params` in the newly created scope. Lastly, `AST:clone`s
   -- `FnDef.body` with the prefix `Builtin.tag`, and `AST:eval`s it in the newly
   -- created `Scope`.
@@ -93,24 +93,25 @@ class fn_invoke extends Builtin
   -- are all the `Result`s from evaluating the tail as well as the cloned
   -- `AST`s.
   --
-  -- @tparam Scope outer_scope the active scope
+  -- @tparam Scope caller_scope the active scope
   -- @tparam {AST,...} tail the arguments to this expression
   -- @treturn Result the result of this evaluation
-  eval: (outer_scope, tail) =>
+  eval: (caller_scope, tail) =>
     name = get_name @head, @cell\head!
     frame = "invoking function #{name} at [#{@tag}]"
 
-    { :params, :body, :scope } = @head\unwrap 'fndef', "cant fn-invoke #{@head}"
+    fndef = @head\unwrap 'fndef', "cant fn-invoke #{@head}"
+    { :params, :body } = fndef
     if #params != #tail
       err = Error 'argument', "expected #{#params} arguments, found #{#tail}"
       err\add_frame frame
       error err
 
-    fn_scope = Scope scope, outer_scope
+    fn_scope = Scope fndef.scope, caller_scope
 
     children = for i=1,#params
       name = params[i]\unwrap 'sym'
-      with L\push tail[i]\eval, outer_scope
+      with L\push tail[i]\eval, caller_scope
         fn_scope\set name, \make_ref!
 
     clone = body\clone @tag

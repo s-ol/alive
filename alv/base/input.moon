@@ -108,8 +108,9 @@ class Input
   --
   -- Behaviour depends on what kind of `Stream` `value` is:
   --
-  -- - `ValueStream`: Marked dirty for the eval-tick if old and new `ValueStream` differ.
-  -- - `EventStream` and `IOStream`: Marked dirty only if the current `EventStream` is dirty.
+  -- - `ValueStream`: Marked dirty only if old and new `ValueStream` differ.
+  -- - `EventStream` and `IOStream`: Marked dirty only if the current
+  --   `EventStream` is dirty.
   --
   -- This is the most common `Input` strategy.
   --

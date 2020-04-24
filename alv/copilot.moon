@@ -68,7 +68,7 @@ class Copilot
     if root and root.root
       L\set_time 'run'
       ok, error = Error.try "updating", ->
-        root.root\tick_io!
+        root.root\poll_io!
         root.root\tick!
       if not ok
         L\print error

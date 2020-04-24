@@ -11,9 +11,8 @@ class Clock extends IOStream
     return unless monotime
     @last = monotime!
     @dt = 0
-    @is_dirty = false
 
-  tick: =>
+  poll: =>
     time = monotime!
     @dt = time - @last
     if @dt >= @frametime

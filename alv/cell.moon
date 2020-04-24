@@ -74,10 +74,8 @@ class Cell
     head = (head\eval scope)\const!
     Builtin = switch head.type
       when 'opdef'
-        -- scope\get 'op-invoke'
         op_invoke
       when 'fndef'
-        -- scope\get 'fn-invoke'
         fn_invoke
       when 'builtin'
         head\unwrap!

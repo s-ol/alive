@@ -37,7 +37,7 @@ class MidiPort extends IOStream
     @inp = inp and find_port RtMidiIn, inp
     @out = out and find_port RtMidiOut, out
 
-  tick: =>
+  poll: =>
     return unless @inp
     while true
       delta, bytes = @inp\getmessage!

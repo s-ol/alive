@@ -23,15 +23,16 @@ class Registry
   register: (tag, expr, ignore_dup=false) =>
     index = tag\index!
 
-    if index and (not @map[index] or ignore_dup)
-      L\trace "reg: setting #{index} to #{expr}"
-      @map[index] = expr
-    else
-      if index
-        L\warn "duplicate tag [#{index}], reassigning repeated occurance"
-        tag\set nil
+    if index
+      if not @map[index] or ignore_dup
+        L\trace "reg: setting #{index} to #{expr}"
+        @map[index] = expr
       else
-        L\trace "reg: init #{tag} to #{expr}"
+        L\warn "duplicate tag [#{index}], reassigning repeated occurrence"
+        tag\set nil
+        table.insert @pending, { :tag, :expr }
+    else
+      L\trace "reg: init #{tag} to #{expr}"
       table.insert @pending, { :tag, :expr }
 
 --- members

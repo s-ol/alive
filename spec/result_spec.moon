@@ -170,15 +170,15 @@ describe 'Result', ->
 
       assert.spy(s).was_not_called!
 
-  describe ':tick_io', ->
-    it 'ticks IOs referenced in side_inputs', ->
+  describe ':poll_io', ->
+    it 'polls IOs referenced in side_inputs', ->
       io = DirtyIO!
       input = Input.hot io
       op = op_with_inputs { input }
       result = Result :op
 
-      s = spy.on io, 'tick'
+      s = spy.on io, 'poll'
       assert.is.same { [io]: input }, result.side_inputs
-      result\tick_io!
+      result\poll_io!
 
       assert.spy(s).was_called_with match.ref io

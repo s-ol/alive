@@ -34,13 +34,13 @@ class IOStream extends EventStream
   --- poll for changes.
   --
   -- Called every frame by the main event loop to update internal state.
-  tick: =>
+  poll: =>
 
   --- check whether this adapter requires processing.
   --
   -- Must return a boolean indicating whether `Op`s that refer to this instance
   -- via `Input.hot` should be notified (via `Op:tick`). May be called multiple
-  -- times. May be called before `tick` on the first frame after construction.
+  -- times. May be called before `poll` on the first frame after construction.
   --
   -- If this is not overrided, the `EventStream` interface can be used, see
   -- `EventStream.add`, `EventStream.unwrap`, and `EventStream.dirty`.

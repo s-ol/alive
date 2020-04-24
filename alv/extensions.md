@@ -156,7 +156,7 @@ There are three types of `Stream`s that can be created:
 - `EventStream`s transmit *momentary events*. They can transmit multiple events
   in a single tick. `EventStream`s do not keep a value set on the last tick on
   the next tick. They are updated using `EventStream:add`.
-- `IOStream`s are like `EventStream`s, but their `IOStream:tick` method is
+- `IOStream`s are like `EventStream`s, but their `IOStream:poll` method is
   polled by the event loop at the start of every tick. This gives them a chance
   to effectively create changes 'out of thin air' and kickstart the execution
   of the dataflow engine. All *runtime* execution is due to an `IOStream`
@@ -185,14 +185,14 @@ bring events into alive from an external protocol or application, an IOStream
 will be necessary.
 
 To implement a custom IOStream, create it as a class that inherits from the
-`IOStream` base and implement the constructor and `IOStream:tick`:
+`IOStream` base and implement the constructor and `IOStream:poll`:
 
     import IOStream from require 'alv.base'
     
     class UnreliableStream extends IOStream
       new: => super 'bang'
       
-      tick: =>
+      poll: =>
         if math.random! < 0.1
           @add true
 
@@ -200,7 +200,7 @@ In the constructor, you should call the super-constructor `EventStream.new` to
 set the event type. Often this will be a custom event that is only used inside
 your extension (such as e.g. the `midi/port` type in the [midi][modules-midi]
 module), but it can also be a primitive type like `'num'` in this example. In
-`:tick`, your IOStream is given a chance to communicate with the external world
+`:poll`, your IOStream is given a chance to communicate with the external world
 and create any resulting events. The example stream above randomly sends bang
 events out, with a 10% chance each 'tick' of the system. Note that there is no
 guarantee about when or how often ticks occur, so you really shouldn't rely on

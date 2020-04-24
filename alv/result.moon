@@ -38,11 +38,11 @@ class Result
     with Result value: @value
       .side_inputs = @side_inputs
 
-  --- tick all IOStream instances that are effecting this (sub)tree.
+  --- poll all IOStream instances that are effecting this (sub)tree.
   -- should be called once per frame on the root, right before tick.
-  tick_io: =>
+  poll_io: =>
     for stream, input in pairs @side_inputs
-      stream\tick! if input.io
+      stream\poll! if input.io
 
   --- in depth-first order, tick all Ops which have dirty Inputs.
   --
@@ -64,8 +64,8 @@ class Result
       -- we have to check self_dirty here, because Inputs from children may
       -- have become dirty due to \tick
       self_dirty = false
-      for stream in @op\all_inputs!
-        if stream\dirty!
+      for input in @op\all_inputs!
+        if input\dirty!
           self_dirty = true
 
       return unless self_dirty
