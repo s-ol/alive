@@ -22,7 +22,6 @@ class Copilot
   -- @tparam string file name/path of the alive file to watch and execute
   new: (file) =>
     @registry = Registry!
-    @eval_stream, @run_stream = io.stderr, io.stdout
     @open file if file
 
   open: (file) =>
@@ -43,6 +42,7 @@ class Copilot
     @poll!
 
     if @root
+      L\set_time 'run'
       @registry\begin_tick!
       ok, error = Error.try "updating", ->
         @root\tick_io!
@@ -69,10 +69,9 @@ class Copilot
       return
 
     if @last_modification < modification
-      L.stream = @eval_stream
+      L\set_time 'eval'
       L\log "#{@file} changed at #{modification}"
       @eval!
-      L.stream = @run_stream
       @last_modification = os.time!
 
 {

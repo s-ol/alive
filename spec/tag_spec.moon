@@ -1,7 +1,7 @@
 import Tag from require 'alv.tag'
 import Registry from require 'alv.registry'
 import Logger from require 'alv.logger'
-Logger.init 'silent'
+Logger\init 'silent'
 
 reg = Registry!
 setup -> reg\begin_eval!

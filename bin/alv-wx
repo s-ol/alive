@@ -10,14 +10,18 @@ from wx
 
 STARTSTOP = 100
 
-class GUIStream
-  new: (@ctrl) =>
+class GUILogger extends Logger
+  new: (level, @eval_ctrl, @run_ctrl) =>
+    super level
 
-  write: (...) =>
-    message = table.concat {...}, ''
-    @ctrl\AppendText message
-
-  flush: =>
+  set_time: (time) =>
+    @ctrl = switch time
+      when 'eval' then @eval_ctrl
+      when 'run' then @run_ctrl
+      else error "invalid time '#{time}'"
+ 
+  put: (message) =>
+    @ctrl\AppendText message .. '\n'
 
 class GUICopilot extends Copilot
   new: (...) =>
@@ -48,11 +52,9 @@ class GUICopilot extends Copilot
 
     splitter = wxSplitterWindow @frame, wx.wxID_ANY
 
-    eval, ctrl = @mkPanel splitter, 'eval-time messages'
-    @eval_stream = GUIStream ctrl
+    eval, @eval_ctrl = @mkPanel splitter, 'eval-time messages'
 
-    run, ctrl = @mkPanel splitter, 'run-time messages'
-    @run_stream = GUIStream ctrl
+    run, @run_ctrl = @mkPanel splitter, 'run-time messages'
 
     splitter\SetMinimumPaneSize 60
     splitter\SplitHorizontally eval, run, 0
@@ -136,5 +138,5 @@ for a in *arg
     table.insert arguments, a
 
 copilot = GUICopilot arguments[1]
-Logger.init arguments.log, copilot.eval_stream
+GUILogger\init arguments.log, copilot.eval_ctrl, copilot.run_ctrl
 copilot.app\MainLoop!

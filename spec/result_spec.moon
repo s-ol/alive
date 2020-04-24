@@ -1,7 +1,7 @@
 import Result, Scope, SimpleRegistry from require 'alv'
 import Input, Op, ValueStream, EventStream, IOStream from require 'alv.base'
 import Logger from require 'alv.logger'
-Logger.init 'silent'
+Logger\init 'silent'
 
 op_with_inputs = (inputs) ->
   with Op!

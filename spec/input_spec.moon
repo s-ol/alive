@@ -1,7 +1,7 @@
 import Input, Result, ValueStream, EventStream, IOStream from require 'alv.base'
 import SimpleRegistry from require 'alv'
 import Logger from require 'alv.logger'
-Logger.init 'silent'
+Logger\init 'silent'
 
 reg = SimpleRegistry!
 setup -> reg\grab!

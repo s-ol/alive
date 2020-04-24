@@ -2,7 +2,7 @@ import space, atom, expr, explist, cell, program, comment
   from require 'alv.parsing'
 import ValueStream from require 'alv'
 import Logger from require 'alv.logger'
-Logger.init 'silent'
+Logger\init 'silent'
 
 verify_parse = (parser, str) ->
   with assert parser\match str

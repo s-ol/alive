@@ -13,7 +13,7 @@ for a in *arg
   else
     table.insert arguments, a
 
-Logger.init arguments.log
+Logger\init arguments.log
 
 assert arguments[1], "no filename given"
 copilot = Copilot arguments[1]

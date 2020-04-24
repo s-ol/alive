@@ -37,8 +37,19 @@ class Logger
     else
       error unpack res
 
-  --- the stream to write to.
-  -- @tfield file stream
+  --- set the output time (runtime/evaltime).
+  -- @tparam string time (`'eval'` or `'run'`)
+  set_time: (time) =>
+    @stream = switch time
+      when 'eval' then io.stderr
+      when 'run' then io.stdout
+      else error "invalid time '#{time}'"
+
+  --- write out a message (for internal use).
+  -- @tparam string message
+  put: (message) =>
+    @stream\write message, '\n'
+    @stream\flush!
 
 --- static functions
 -- @section static
@@ -46,21 +57,19 @@ class Logger
   --- create a new Logger.
   -- @classmethod
   -- @tparam string level the log-level to log at.
-  -- @tparam file stream the stream to write to.
-  new: (level='log', @stream=io.stdout) =>
+  new: (level='log') =>
     @level = levels[level] or level
     @prefix = ''
+    @set_time 'eval'
 
     for name, level in pairs levels
       @[name] = (msg) =>
         return unless @level <= level
-
-        msg = tostring msg
-        @stream\write @prefix, msg, '\n'
-        if level == levels.error or @level == levels.debug
+        @put if level == levels.error or @level == levels.debug
           where = debug.traceback '', 2
-          @stream\write where, '\n'
-        @stream\flush!
+          "#{msg}\n#{where}"
+        else
+          tostring msg
 
     if level == levels.print
       @push = (fn, ...) => fn ...
@@ -78,9 +87,8 @@ class Logger
   -- - `'silent'`
   --
   -- @tparam ?string level the level to initialize the logger at.
-  -- @tparam ?file stream the output stream (stdout).
-  @init: (...) ->
-    L = Logger ...
+  @init: (...) =>
+    L = @ ...
 
 {
   :Logger

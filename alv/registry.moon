@@ -113,7 +113,7 @@ class Registry
 
   --- get the active Registry.
   --
-  -- Raises an erro when there is no active Regsitry.
+  -- Raises an error when there is no active Registry.
   --
   -- @treturn Registry
   @active: -> assert Registry.active_registry, "no active Registry!"

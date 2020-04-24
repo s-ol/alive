@@ -1,7 +1,7 @@
 import Cell, RootCell from require 'alv.cell'
 import ValueStream, Scope, Tag, SimpleRegistry, globals from require 'alv'
 import Logger from require 'alv.logger'
-Logger.init 'silent'
+Logger\init 'silent'
 
 hello_world = Cell.parse (Tag.parse '2'), { '', (ValueStream.sym 'hello'), ' ', (ValueStream.str 'world'), '' }
 two_plus_two = Cell.parse (Tag.parse '3'), { '', (ValueStream.sym '+'), ' ', (ValueStream.num 2), ' ', (ValueStream.num 2), '' }

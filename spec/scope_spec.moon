@@ -1,7 +1,7 @@
 import Scope, ValueStream, Result from require 'alv'
 import Op from require 'alv.base'
 import Logger from require 'alv.logger'
-Logger.init 'silent'
+Logger\init 'silent'
 
 class TestOp extends Op
   new: (...) => super ...
