@@ -39,13 +39,12 @@ class Registry
 
   --- begin an evaluation cycle.
   --
-  -- Begin an evaltime cycle (and tick).
   -- Set the active Registry and clear out pending registrations.
   --
   -- All calls go `begin_eval` must be matched with either a call to
   -- `end_eval` or `rollback_eval`.
   begin_eval: =>
-    @begin_tick!
+    @grab!
     @map, @pending = {}, {}
 
   --- end an evaluation cycle.
@@ -67,30 +66,13 @@ class Registry
       @map[tag\index!] = expr
 
     @last_map = @map
-    @end_tick!
+    @release!
 
   --- abort an evaluation cycle.
   --
   -- Unset the active Registry.
   rollback_eval: =>
-    @end_tick!
-
-  --- begin a run cycle.
-  --
-  -- Increment the tick index and set the active Registry.
-  begin_tick: =>
-    @grab!
-    @next_tick!
-
-  --- end a run cycle.
-  --
-  -- Unset the active Registry.
-  end_tick: =>
     @release!
-
-  --- manually increment the tick index (for testing).
-  next_tick: =>
-    @tick += 1
 
   --- set the active Registry.
   grab: =>
@@ -109,7 +91,6 @@ class Registry
   -- @classmethod
   new: =>
     @last_map, @map = {}, {}
-    @tick = 0
 
   --- get the active Registry.
   --
@@ -121,10 +102,6 @@ class Registry
 class SimpleRegistry extends Registry
   new: =>
     @cnt = 1
-    @tick = 0
-
-  next_tick: =>
-    @tick += 1
 
   init: (tag, expr) =>
     tag\set @cnt

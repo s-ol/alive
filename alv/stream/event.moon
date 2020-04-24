@@ -5,7 +5,7 @@
 import Stream from require 'alv.stream.base'
 import Result from require 'alv.result'
 import Error from require 'alv.error'
-import scope, base, registry from require 'alv.cycle'
+import scope, base from require 'alv.cycle'
 
 class EventStream extends Stream
 --- members
@@ -14,7 +14,7 @@ class EventStream extends Stream
   --- return whether this stream was changed in the current tick.
   --
   -- @treturn bool
-  dirty: => @updated == registry.Registry.active!.tick
+  dirty: => @updated == COPILOT.T
 
   --- push an event value into the stream.
   --
@@ -25,7 +25,7 @@ class EventStream extends Stream
     if not @dirty!
       @events = {}
 
-    @updated = registry.Registry.active!.tick
+    @updated = COPILOT.T
     table.insert @events, event
 
   --- get the sequence of current events (if any).

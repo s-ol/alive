@@ -7,7 +7,7 @@
 import Stream from require 'alv.stream.base'
 import Result from require 'alv.result'
 import Error from require 'alv.error'
-import scope, base, registry from require 'alv.cycle'
+import scope, base from require 'alv.cycle'
 
 ancestor = (klass) ->
   assert klass, "cant find the ancestor of nil"
@@ -22,12 +22,12 @@ class ValueStream extends Stream
   --- return whether this stream was changed in the current tick.
   --
   -- @treturn bool
-  dirty: => @updated == registry.Registry.active!.tick
+  dirty: => @updated == COPILOT.T
 
   --- update this stream's value.
   --
   -- Marks this stream as dirty for the remainder of the current tick.
-  set: (@value) => @updated = registry.Registry.active!.tick
+  set: (@value) => @updated = COPILOT.T
 
   --- unwrap to the Lua type.
   --

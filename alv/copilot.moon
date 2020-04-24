@@ -13,6 +13,8 @@ spit = (file, str) ->
   file\write str
   file\close!
 
+export COPILOT
+
 class Copilot
 --- static functions
 -- @section static
@@ -21,9 +23,18 @@ class Copilot
   -- @classmethod
   -- @tparam string file name/path of the alive file to watch and execute
   new: (file) =>
+    @T = 0
     @registry = Registry!
     @open file if file
 
+--- members
+-- @section members
+
+  --- current tick
+  -- @tfield number T
+
+  --- change the running script.
+  -- @tparam string file
   open: (file) =>
     mode = lfs.attributes file, 'mode'
     if mode != 'file'
@@ -32,25 +43,41 @@ class Copilot
     @last_modification = 0
     @file = file
 
---- members
--- @section members
-
   --- poll for changes and tick.
   tick: =>
-    return unless @file
+    assert not COPILOT, "another Copilot is already running!"
+    COPILOT = @
+    @T += 1
 
+    return unless @file
     @poll!
 
     if @root
       L\set_time 'run'
-      @registry\begin_tick!
       ok, error = Error.try "updating", ->
         @root\tick_io!
         @root\tick!
       if not ok
         L\print error
-      @registry\end_tick!
 
+    COPILOT = nil
+
+  --- poll all loaded modules for changes.
+  --
+  -- Call `eval` if there are any, and write changed and newly added modules
+  -- back to disk.
+  poll: =>
+    { :mode, :modification } = (lfs.attributes @file) or {}
+    if mode != 'file'
+      return
+
+    if @last_modification < modification
+      L\set_time 'eval'
+      L\log "#{@file} changed at #{modification}"
+      @eval!
+      @last_modification = os.time!
+
+  --- perform an eval-cycle.
   eval: =>
     @registry\begin_eval!
     ok, root, ast = Error.try "running '#{@file}'", loadfile, @file
@@ -62,17 +89,6 @@ class Copilot
     @registry\end_eval!
     @root = root
     spit @file, ast\stringify!
-
-  poll: =>
-    { :mode, :modification } = (lfs.attributes @file) or {}
-    if mode != 'file'
-      return
-
-    if @last_modification < modification
-      L\set_time 'eval'
-      L\log "#{@file} changed at #{modification}"
-      @eval!
-      @last_modification = os.time!
 
 {
   :Copilot
