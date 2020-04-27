@@ -1,9 +1,9 @@
-# writing `alive` extensions
+# writing `alv` extensions
 
-Extensions for `alive` are implemented in [Lua][lua] or [MoonScript][moonscript]
-(which runs as Lua). When an `alive` module is [`(require)`][builtins-req]d,
-alive looks for a Lua module `alv-lib.[module]`. You can simply add a new file
-with extension `.lua` or `.moon` in the `alv-lib` directory of your alive
+Extensions for `alv` are implemented in [Lua][lua] or [MoonScript][moonscript]
+(which runs as Lua). When an `alv` module is [`(require)`][builtins-req]d,
+alv looks for a Lua module `alv-lib.[module]`. You can simply add a new file
+with extension `.lua` or `.moon` in the `alv-lib` directory of your alv
 installation or somewhere else in your `LUA_PATH`.
 
 To write extensions, a number of classes and utilities are required. All of
@@ -180,8 +180,8 @@ familiar with the relevant internal interfaces (especially `AST`, `Result`, and
 
 ## defining `IOStream`s
 `IOStream`s are `EventStream`s that can 'magically' create events out of
-nothing. They are the source of all processing in alive. Whenever you want to
-bring events into alive from an external protocol or application, an IOStream
+nothing. They are the source of all processing in alv. Whenever you want to
+bring events into alv from an external protocol or application, an IOStream
 will be necessary.
 
 To implement a custom IOStream, create it as a class that inherits from the

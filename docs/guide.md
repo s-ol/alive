@@ -1,21 +1,21 @@
 % getting started
 % - 
 % -
-# getting started with alive
-`alive` is a language for creating and changing realtime programs while they
-are running continuously. It can be used to create music, visuals or
-installations, but by itself creates neither sound nor video. Rather, `alive` is
+# getting started with alv
+`alv` ("alive") is a language for creating and changing realtime programs while
+they are running continuously. It can be used to create music, visuals or
+installations, but by itself creates neither sound nor video. Rather, `alv` is
 used together with other tools and synthesizers (for example
 [SuperCollider][supercollider] or [Pilot][pilot]). In such an ensemble of
 tools, `alive` takes the role of a 'conductor', telling the other tools what to
 play when by sending commands to them using a variety of protocols, such as OSC
 and MIDI.
 
-Before we get to making sound though, we should learn a bit about the `alive`
+Before we get to making sound though, we should learn a bit about the `alv`
 programming language, and how to install and use it.
 
 ## installation
-`alive` is written in the Lua programming language, and is compatible with both
+`alv` is written in the Lua programming language, and is compatible with both
 Lua 5.3 and luajit.
 
 ### unix/linux and mac os
@@ -39,7 +39,7 @@ Similarily, you should be able to run `luarocks`, `luarocks53` or `luarocks5.3`:
 Again, double check your installation or try adding `--lua-version 5.3` if the
 displayed version is not 5.3.
 
-With everything reacdy to go, you can now install the dependencies for `alive`:
+With everything reacdy to go, you can now install the dependencies for `alv`:
 
     $ luarocks install moonscript
     $ luarocks install luasystem
@@ -47,9 +47,9 @@ With everything reacdy to go, you can now install the dependencies for `alive`:
     $ luarocks install luasocket
     $ luarocks install https://raw.githubusercontent.com/s-ol/lua-rtmidi/master/lua-rtmidi-dev-1.rockspec
 
-While `moonscript` and `luasystem` are required by the core of `alive`, the
+While `moonscript` and `luasystem` are required by the core of `alv`, the
 other packages (`osc`, `luasocket` and `lua-rtmidi`) are specific to some
-modules of the alive language, and as long as you don't need to use these
+modules of the alv language, and as long as you don't need to use these
 modules their installation is optional.
 
 In a later part of this guide, we will be using modules that require `osc` and
@@ -58,7 +58,7 @@ possible to follow a large portion of the guide without any of them. There will
 be a note marking the parts of the guide where specific dependencies are
 required.
 
-After installing the dependencies, you can download the `alive` source code
+After installing the dependencies, you can download the `alv` source code
 from the [releases page][:*release*:], or clone the [git repository][:*web*:]:
 
     $ git clone https://github.com/s-ol/alive.git
@@ -77,8 +77,8 @@ You can stop it by pressing `^C` (control-C).
 
 ### windows
 For Windows, a binary package is available from the latest
-[github release][:*release*:]. It includes not only the `alive` source code, but
-also a compiled version of Lua 5.3 as well as Luarocks and all of `alive`'s
+[github release][:*release*:]. It includes not only the `alv` source code, but
+also a compiled version of Lua 5.3 as well as Luarocks and all of `alv`'s
 dependencies.
 
 To use the binary package, simply extract the archive and move the folder
@@ -100,12 +100,12 @@ To get started writing your own code, create an empty file in the text editor
 you want to use, and save it as `test.alv` in the same folder as `hello.alv`.
 Now restart the copilot as described above, but substituting the new file.
 
-You should see a note indicating that `alive` processed the file. From now on,
-whenever you change `test.alv` and save the file, `alive` will reload it and
+You should see a note indicating that `alv` processed the file. From now on,
+whenever you change `test.alv` and save the file, `alv` will reload it and
 execute your new code. When you are done, you can stop the copilot at any time
 using `^C` (control-C).
 
-`alive`'s syntax is very similar to Lisp. Expressions take the form of
+`alv`'s syntax is very similar to Lisp. Expressions take the form of
 parenthesized lists like `(head a b c...)`, where the first element of the list
 (`head`) is the name of an operator or function, which defines what the
 expression as a whole will do, while the other elements are parameters whose
@@ -136,7 +136,7 @@ The code should now look like this:
     ([1]print "hello world")
 
 The `[1]` that the copilot added to our expression is that expression's `tag`.
-In `alive`, every expression has a tag that helps the copilot to identify the
+In `alv`, every expression has a tag that helps the copilot to identify the
 individual expressions as you make changes to your code. The copilot will make
 sure that all expressions are tagged by adding missing tags when you save the
 file, but you have to watch out not to duplicate a tag when copying and pasting
@@ -146,7 +146,7 @@ square brackets) and let the copilot generate a new one for you the next time
 you save the file.
 
 ## syntax
-As we just saw, *expressions* in alive take the form of parenthesized lists.
+As we just saw, *expressions* in alv take the form of parenthesized lists.
 Elements of an expression have to be separated by whitespace, but any type of
 and amount of whitespace is valid: feel free to use spaces, tabs, and newlines
 to format code to your liking. The following are all equal and valid examples:
@@ -163,7 +163,7 @@ to format code to your liking. The following are all equal and valid examples:
       ( print "hello world" )
 
 It is however recommended to follow the [clojure style guide][clojure-style] as
-much as it does apply to alive. All further examples in this guide will respect
+much as it does apply to alv. All further examples in this guide will respect
 this guideline.
 
 ### basic types
@@ -183,7 +183,7 @@ The following are all valid strings:
     ''
 
 Aside from strings, there are two more types of values that you can use when
-writing alive programs: numbers and booleans. Numbers use the digits 0-9 and
+writing alv programs: numbers and booleans. Numbers use the digits 0-9 and
 can be integers, contain a decimal point, or start or end with a decimal point.
 Numbers can start with a negetive sign. The following are all valid numbers:
 
@@ -217,7 +217,7 @@ This will print the following:
     trace <ValueStream sym: true>: <ValueStream bool: true>
 
 ### comments
-To annotate your code, you can use comments. In `alive`, comments begin with
+To annotate your code, you can use comments. In `alv`, comments begin with
 `#(` and end on a matching `)`. This way you can comment out a complete
 expression simply by adding a `#` character in front.
 
@@ -229,19 +229,19 @@ expression simply by adding a `#` character in front.
       It ends after this sentence.)
 
 You can put comments anywhere in your program where whitespace is allowed and
-it will simply be ignored by `alive`.
+it will simply be ignored by `alv`.
 
 ### importing modules
-Apart from [trace][], there are only very little builtin operators in `alive` -
+Apart from [trace][], there are only very little builtin operators in `alv` -
 you can see all of them in the *builtins* section of the [reference][:/:].
-All of the 'real' functionality of `alive` is grouped into *modules*, that have
+All of the 'real' functionality of `alv` is grouped into *modules*, that have
 to be loaded individually. *Modules* help organize all of the operators so that
 it is less overwhelming to look for a concrete feature. It is also possible to
 create your own plugins as new modules, which will be covered in another guide
 soon.
 
 Let's try using the [`+` operator][:math/+:] from the [math/][] module. To use
-operators from a module, we need to tell `alive` to load it first: We can load
+operators from a module, we need to tell `alv` to load it first: We can load
 *all* the operators from the [math/][] module into the current scope using the
 [import*][] builtin:
 
@@ -260,13 +260,13 @@ it with a prefix. This is what the [import][] builtin is for:
     (trace (math/+ 1 2))
 
 ### defining symbols
-Another element of code in `alive` that we haven't discussed in detail yet are
+Another element of code in `alv` that we haven't discussed in detail yet are
 *symbols*. *Symbols* (like `trace`, `import*` or `math/+`) are names that serve
 as placeholders for previously *defined* values. When code is evaluated, symbols
 are looked up in the current *scope* and replaced with the corresponding value
 found there.
 
-When an `alive` file starts running, a number of symbols are defined in the
+When an `alv` file starts running, a number of symbols are defined in the
 default scope: These are the *builtins* mentioned above, and of which we have
 already been using [trace][], [import][], and [import*][].
 
@@ -295,7 +295,7 @@ symbols starting and ending with asterisks (`*clock*`):
   are looked up in a different way inside user-defined functions. This will be
   covered in detail later.
 - The two special formats can be mixed: when evaluating `*hello*/world`,
-  `alive` will look for the symbol `world` within the scope found by dynamically
+  `alv` will look for the symbol `world` within the scope found by dynamically
   resolving `*hello*`.
 
 Both [import][] and [import*][] are actually shorthands and what they
@@ -343,7 +343,7 @@ arguments:
          osc  (require "osc"))
 
 It is common to have an [import][] and [import*][] expression at the top of an
-`alive` program to load all of the modules that will be used later, but the
+`alv` program to load all of the modules that will be used later, but the
 modules don't necessarily have to be loaded at the very beginning, as long as
 all symbols are defined before they are being used.
 
@@ -356,7 +356,7 @@ Once a symbol is defined, it cannot be changed or removed:
 It is, however, possible to 'shadow' a symbol by re-defining it in a nested
 scope: So far, all symbols we have defined - using `def`, [import][] and
 [import*][] - have been defined in the *global scope*, the scope that is active
-in the whole `alive` program. The [do][] builtin can be used to create a new
+in the whole `alv` program. The [do][] builtin can be used to create a new
 scope and evaluate some expressions in it:
 
     (import string)
@@ -428,7 +428,7 @@ and the output of both is:
     trace (+ a b): <Value num: 3>
     trace (+ a b): <Value num: 7>
 
-In `alive`, functions are first-class values and can be passed around just like
+In `alv`, functions are first-class values and can be passed around just like
 numbers, strings, etc. However it is very common to define a function with a
 name, so there is the `defn` shorthand, which combines the `def` and `fn`
 builtins into a single expression. Compare this equivalent definition of the
@@ -438,15 +438,15 @@ builtins into a single expression. Compare this equivalent definition of the
       (trace (+ a b)))
 
 ### evaltime and runtime
-So far, `alive` may seem a lot like any other programming language - you write
+So far, `alv` may seem a lot like any other programming language - you write
 some code, save the file, and it runs, printing some output. "What about the
 'continuously running' aspect from the introduction?", you may ask yourself. 
 
-So far, we have only seen *evaltime* execution in alive - but there is also
+So far, we have only seen *evaltime* execution in alv - but there is also
 *runtime* behavior. At *evaltime*, that is whenever there is change to the
-source code, `alive` behaves similar to a Lisp. This is the part we have seen
+source code, `alv` behaves similar to a Lisp. This is the part we have seen
 so far. But once one such *eval cycle* has executed, *runtime* starts, and
-`alive` behaves like a dataflow system like [PureData][pd], [Max/MSP][max] or
+`alv` behaves like a dataflow system like [PureData][pd], [Max/MSP][max] or
 [vvvv][vvvv].
 
 What looked so far like static constants are actually *streams* of values.
@@ -481,7 +481,7 @@ Note that if you leave the [time/tick][]'s *tag* in place when you move it into
 the [def][] expression, it will keep on running steadily even then.
 
 ## making sound
-As mentioned earlier, `alive` doesn't produce sound by itself. Instead, it is
+As mentioned earlier, `alv` doesn't produce sound by itself. Instead, it is
 paired with other tools, and takes the role of a 'Conductor', sending commands
 and sequencing other tools.
 
@@ -492,7 +492,7 @@ command line at the bottom. To verify that everything is working so far,
 try typing in `84c` and hitting enter. This should play a short sound (the note
 4C, played by the 8th default synthesizer voice in Pilot).
 
-To talk to Pilot from `alive`, we will use the [pilot/][] module. Note that for
+To talk to Pilot from `alv`, we will use the [pilot/][] module. Note that for
 this module to work, you have to have the `osc` and `luasocket` dependencies
 installed. To play the same sound we played by entering `84c` above every 0.5
 seconds, we can use [time/every][] to send a `bang` to [pilot/play][]:
@@ -535,7 +535,7 @@ Note that since we are using multiple individual [time/every][] instances,
 the timing of our voices relative to each other is not aligned - each voice
 started playing when the file was first saved with it added, and kept the
 rhythmn since. By deleting all their tags and re-saving the file, we can force
-`alive` to re-instantiate them all at the same time, thereby synchronising
+`alv` to re-instantiate them all at the same time, thereby synchronising
 them.
 
 [supercollider]: https://supercollider.github.io/
