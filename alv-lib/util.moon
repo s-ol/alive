@@ -66,9 +66,9 @@ edge = ValueStream.meta
 
     tick: =>
       now = @inputs.value!
-      if now and not @state.last
-        @out\set true
-        @state.last = now
+      if now and not @state
+        @out\add true
+      @state = now
 
 change = ValueStream.meta
   meta:
