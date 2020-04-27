@@ -18,7 +18,7 @@ text-based language and works without special editor support.]],
 }
 
 dependencies = {
-  "lua >= 5.3",
+  "lua",
   "moonscript >= 0.5.0",
   "lpeg ~> 0.10",
   "luafilesystem",
