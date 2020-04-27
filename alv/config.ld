@@ -10,7 +10,7 @@ If you are looking for the language reference for users, head over to the
 [reference](../reference/index.html) section of the documentation.]]
 
 format = 'discount'
-style = 'docs'
+style = nil
 template = 'docs'
 dir = 'docs/internals'
-topics = {'alv/extensions.md'}
+topics = {'docs/internals/extensions.md'}

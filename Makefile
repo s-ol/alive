@@ -26,16 +26,13 @@ docs/reference/%.html: alv-lib/%.moon $(DEPS)
 docs/reference/index.html: $(MODREFS) $(DEPS)
 	docs/gen/index $@ $(MODULES)
 
-docs/ldoc.css: docs/style.css
-	cp $< $@
-	
 docs/ldoc.ltp: $(DEPS)
 	docs/gen/ldoc $@
 
-docs/internals/index.html: alv/config.ld docs/ldoc.ltp docs/ldoc.css $(CORE)
+docs/internals/index.html: alv/config.ld docs/ldoc.ltp $(CORE)
 	ldoc alv
 
 clean:
 	rm -rf docs/reference
-	rm -rf docs/internals
+	rm -rf docs/internals/*/ docs/internals/*.css docs/internals/*.html
 	rm -f docs/index.html docs/guide.html docs/ldoc.*

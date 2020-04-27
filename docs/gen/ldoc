@@ -12,7 +12,7 @@ spit = (file, str) ->
 BASE = '$(base)'
 
 spit OUT, layout
-  style: '$(ldoc.css)'
+  style: '$(base)style.css'
   title: '$(ldoc.title)'
   class: 'ldoc'
   preamble: '
