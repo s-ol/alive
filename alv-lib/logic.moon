@@ -120,13 +120,13 @@ not_ = ValueStream.meta
     examples: { '(not a)' }
 
   value: class extends Op
-    new: => super 'bool'
+    setup: (inputs) =>
+      @out or= ValueStream 'bool', false
+      value = val!\match inputs
+      super value: Input.hot value
 
-  setup: (inputs) =>
-    { value } = match 'any', inputs
-    super value: Input.hot value
-
-  tick: => @out\set not tobool @inputs.value!
+    tick: =>
+      @out\set not tobool @inputs.value!
 
 bool = ValueStream.meta
   meta:
@@ -138,10 +138,11 @@ bool = ValueStream.meta
   value: class extends Op
     setup: (inputs) =>
       @out or= ValueStream 'bool'
-      { value } = val!\match inputs
+      value = val!\match inputs
       super value: Input.hot value
 
-    tick: => @out\set tobool @inputs\value!
+    tick: =>
+      @out\set tobool @inputs.value!
 
 {
   :eq, '==': eq
