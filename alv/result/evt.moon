@@ -19,7 +19,7 @@ class EvtStream extends Result
   -- Returns `events` if `dirty`, or an empty table otherwise.
   -- Asserts `@type == type` if `type` is given.
   --
-  -- @tparam[opt] string type the type to check for
+  -- @tparam[opt] type.Type type the type to check for
   -- @tparam[optchain] string msg message to throw if type don't match
   -- @treturn {any,...} `events`
   unwrap: (type, msg) =>
@@ -37,8 +37,8 @@ class EvtStream extends Result
   __call: (...) => @unwrap ...
   __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
 
-  --- the type name of this Result's value.
-  -- @tfield string type
+  --- the type of this Result's value.
+  -- @tfield type.Type type
 
   --- the metatype string for this Result.
   -- @tfield string metatype (`!`)
@@ -78,7 +78,7 @@ class EvtStream extends Result
   --- construct a new EvtStream.
   --
   -- @classmethod
-  -- @tparam string type the type name
+  -- @tparam type.Type type the type
   new: (type) => super type
 
 {

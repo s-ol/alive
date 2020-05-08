@@ -18,10 +18,10 @@ class IOStream extends EvtStream
   --- construct a new IOStream.
   --
   -- Must prepare the instance for `dirty` to be called.
-  -- The super-constructor should be called to set `Stream.type`.
+  -- The super-constructor should be called to set `Result.type`.
   --
   -- @classmethod
-  -- @tparam string type the typename of this stream.
+  -- @tparam type.Type type the type of this stream.
   new: (type) => super type
 
   --- create a mutable copy of this stream.

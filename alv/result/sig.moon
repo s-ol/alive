@@ -19,7 +19,7 @@ class SigStream extends Result
   --
   -- Asserts `@type == type` if `type` is given.
   --
-  -- @tparam[opt] string type the type to check for
+  -- @tparam[opt] type.Type type the type to check for
   -- @tparam[optchain] string msg message to throw if type don't match
   -- @treturn any `value`
   unwrap: (type, msg) =>
@@ -43,8 +43,8 @@ class SigStream extends Result
   -- Compares two `SigStream`s by comparing their types and their Lua values.
   __eq: (other) => other.type == @type and other.value == @value
 
-  --- the type name of this Result's value.
-  -- @tfield string type
+  --- the type of this Result's value.
+  -- @tfield type.Type type
 
   --- the metatype string for this Result.
   -- @tfield string metatype (`~`)
@@ -82,7 +82,7 @@ class SigStream extends Result
   --- construct a new SigStream.
   --
   -- @classmethod
-  -- @tparam string type the type name
+  -- @tparam type.Type type the type
   -- @tparam any value the Lua value to be accessed through `unwrap`
   new: (type, @value) => super type
 

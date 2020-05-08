@@ -1,5 +1,5 @@
 -----
---- Type definition classes
+--- Type definitions (`type.Type` and implementations).
 --
 -- @module type
 import opairs from require 'alv.util'

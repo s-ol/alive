@@ -27,8 +27,8 @@ class Result
   __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
   __inherited: (cls) => cls.__base.__tostring or= @__tostring
 
-  --- the type name of this Result's value.
-  -- @tfield string type
+  --- the type of this Result's value.
+  -- @tfield type.Type type
 
   --- the metatype string for this Result.
   --
@@ -59,7 +59,7 @@ class Result
   --- construct a new Result.
   --
   -- @classmethod
-  -- @tparam string type the type name
+  -- @tparam type.Type type the type
   -- @tparam ?table meta the `meta` table
   new: (@type, @meta={}) =>
 

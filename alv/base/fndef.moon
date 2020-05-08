@@ -1,5 +1,5 @@
 ----
--- user-function definition (`fndef`).
+-- User-function definition (`fndef`).
 --
 -- When called, expands to its body with params bound to the fn arguments (see
 -- `invoke.fn_invoke`).
