@@ -5,7 +5,7 @@
 import Constant from require 'alv.result'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
-import Primitive from require 'alv.types'
+import Primitive from require 'alv.type'
 
 class Scope
 --- members

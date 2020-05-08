@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtin
-import Builtin, Op, FnDef, Input, val, evt from require 'alv.base'
+import Builtin, Op, Primitive, FnDef, Input, val, evt from require 'alv.base'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
@@ -13,7 +13,6 @@ import Cell from require 'alv.cell'
 import Scope from require 'alv.scope'
 import Tag from require 'alv.tag'
 import op_invoke from require 'alv.invoke'
-import Primitive from require 'alv.types'
 lfs = require 'lfs'
 
 doc = Constant.meta

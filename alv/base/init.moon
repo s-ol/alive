@@ -24,6 +24,7 @@ import FnDef from require 'alv.base.fndef'
 import Input from require 'alv.base.input'
 import val, evt from require 'alv.base.match'
 import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
+import Primitive, Array, Struct from require 'alv.type'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 
@@ -35,6 +36,13 @@ import Error from require 'alv.error'
   :val, :evt
 
   -- redundant exports, to keep anything an extension might need in one import
+
+  -- Results
   :Constant, :SigStream, :EvtStream, :IOStream
-  :RTNode, :Error
+
+  -- Types
+  :Primitive, :Array, :Struct
+
+  :RTNode
+  :Error
 }

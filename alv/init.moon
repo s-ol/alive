@@ -14,6 +14,7 @@ cycle = require 'alv.cycle'
 version = require 'alv.version'
 import Logger from require 'alv.logger'
 
+import Primitive, Struct, Array from require 'alv.type'
 import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
 import RTNode from require 'alv.rtnode'
 import Scope from require 'alv.scope'
@@ -56,6 +57,8 @@ import Copilot from require 'alv.copilot'
   :Constant, :SigStream, :EvtStream, :IOStream
   :Cell, :RootCell
   :RTNode, :Scope, :Error
+
+  :Primitive, :Struct, :Array
 
   :Registry, :SimpleRegistry, :Tag
 

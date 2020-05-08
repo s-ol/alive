@@ -1,8 +1,9 @@
-import do_setup from require 'spec.test_setup'
-import Input, Result, SigStream, EvtStream, IOStream from require 'alv.base'
-import Primitive from require 'alv.types'
+import do_setup, do_teardown from require 'spec.test_setup'
+import Input, Primitive, Result, SigStream, EvtStream, IOStream
+  from require 'alv.base'
 
 setup do_setup
+teardown do_teardown
 
 my_io = Primitive 'my-io'
 

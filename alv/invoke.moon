@@ -5,8 +5,8 @@
 import RTNode from require 'alv.rtnode'
 import Builtin from require 'alv.base'
 import Scope from require 'alv.scope'
+import Primitive from require 'alv.type'
 import Error from require 'alv.error'
-import Primitive from require 'alv.types'
 
 opdef = Primitive 'opdef'
 fndef = Primitive 'fndef'

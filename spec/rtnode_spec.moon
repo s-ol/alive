@@ -1,7 +1,6 @@
 import do_setup from require 'spec.test_setup'
 import RTNode, Scope, SimpleRegistry from require 'alv'
-import Input, Op, Constant, EvtStream, IOStream from require 'alv.base'
-import Primitive from require 'alv.types'
+import Primitive, Input, Op, Constant, EvtStream, IOStream from require 'alv.base'
 
 setup do_setup
 num = Primitive 'num'

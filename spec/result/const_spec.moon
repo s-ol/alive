@@ -1,7 +1,6 @@
 import do_setup from require 'spec.test_setup'
-import Constant, RTNode, Scope, SimpleRegistry from require 'alv'
+import Constant, RTNode, Scope, SimpleRegistry, Primitive from require 'alv'
 import Op, Builtin from require 'alv.base'
-import Primitive from require 'alv.types'
 
 class TestOp extends Op
   new: (...) => super ...

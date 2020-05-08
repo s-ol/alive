@@ -45,7 +45,7 @@
 --
 -- @module base.match
 import Error from require 'alv.error'
-import Primitive from require 'alv.types'
+import Primitive from require 'alv.type'
 
 local Repeat, Sequence, Choice, Optional
 

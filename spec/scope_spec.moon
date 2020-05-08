@@ -1,5 +1,4 @@
-import Scope, Constant, RTNode from require 'alv'
-import Primitive from require 'alv.types'
+import Scope, Primitive, Constant, RTNode from require 'alv'
 import Op from require 'alv.base'
 import Logger from require 'alv.logger'
 Logger\init 'silent'

@@ -5,10 +5,10 @@
 --
 -- @classmod Constant
 import Stream from require 'alv.result.base'
+import Primitive from require 'alv.type'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 import scope, base from require 'alv.cycle'
-import Primitive from require 'alv.types'
 
 num = Primitive 'num'
 str = Primitive 'str'
@@ -24,7 +24,7 @@ ancestor = (klass) ->
 class Constant extends Stream
   --- Whether this Result is dirty.
   --
-  -- @tresult bool always `false`.
+  -- @treturn bool always `false`.
   dirty: => false
 
   --- unwrap to the Lua type.

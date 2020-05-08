@@ -5,10 +5,10 @@
 -- nodes), a `Tag`, and optionally the internal whitespace as parsed.
 --
 -- @classmod Cell
+import Primitive from require 'alv.type'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import op_invoke, fn_invoke from require 'alv.invoke'
-import Primitive from require 'alv.types'
 import Tag from require 'alv.tag'
 
 local RootCell

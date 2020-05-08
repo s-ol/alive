@@ -1,6 +1,5 @@
 import val, evt from require 'alv.base.match'
-import RTNode, SigStream, EvtStream from require 'alv'
-import Primitive from require 'alv.types'
+import RTNode, Primitive, SigStream, EvtStream from require 'alv'
 
 mk_val = (type, const) ->
   value = SigStream Primitive type

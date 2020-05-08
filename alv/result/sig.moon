@@ -3,7 +3,7 @@
 --
 -- @classmod SigStream
 import Stream from require 'alv.result.base'
-import Primitive from require 'alv.types'
+import Primitive from require 'alv.type'
 
 class SigStream extends Stream
 --- members
