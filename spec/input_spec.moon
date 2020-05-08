@@ -1,10 +1,13 @@
 import do_setup from require 'spec.test_setup'
-import Input, Result, ValueStream, EventStream, IOStream from require 'alv.base'
+import Input, Result, SigStream, EvtStream, IOStream from require 'alv.base'
+import Primitive from require 'alv.types'
 
 setup do_setup
 
+my_io = Primitive 'my-io'
+
 class MyIO extends IOStream
-  new: => super 'my-io'
+  new: => super my_io
   dirty: => @is_dirty
 
 basic_tests = (stream, input) ->
@@ -22,7 +25,7 @@ basic_tests = (stream, input) ->
     assert.is.equal stream.metatype, input\metatype!
 
 describe 'Input.cold', ->
-  stream = ValueStream.num 1
+  stream = SigStream.num 1
   input = Input.cold stream
 
   basic_tests stream, input
@@ -36,7 +39,7 @@ describe 'Input.cold', ->
     assert.is.false input\dirty!
     input\finish_setup!
 
-    new_input = Input.cold ValueStream.num 3
+    new_input = Input.cold SigStream.num 3
     new_input\setup input
     assert.is.false new_input\dirty!
     new_input.stream\set 4
@@ -44,8 +47,8 @@ describe 'Input.cold', ->
     input\finish_setup!
 
 describe 'Input.hot', ->
-  describe 'with EventStream', ->
-    stream = EventStream 'num'
+  describe 'with EvtStream', ->
+    stream = EvtStream Primitive 'num'
     input = Input.hot stream
 
     basic_tests stream, input
@@ -53,7 +56,7 @@ describe 'Input.hot', ->
     it 'is marked for lifting', ->
       assert.is.nil input.io
 
-    it 'is dirty when the EventStream is dirty', ->
+    it 'is dirty when the EvtStream is dirty', ->
       assert.is.false input\dirty!
       assert.is.false stream\dirty!
 
@@ -106,8 +109,8 @@ describe 'Input.hot', ->
       assert.is.true input\dirty!
       assert.is.true stream\dirty!
 
-  describe 'with ValueStream', ->
-    stream = ValueStream.num 1
+  describe 'with SigStream', ->
+    stream = SigStream.num 1
     local input
 
     describe 'at evaltime', ->
@@ -120,7 +123,7 @@ describe 'Input.hot', ->
         input\finish_setup!
 
       it 'is dirty when different', ->
-        newval = ValueStream.num 2
+        newval = SigStream.num 2
 
         assert.is.false newval\dirty!
         newinput = Input.hot newval
@@ -129,7 +132,7 @@ describe 'Input.hot', ->
         newinput\finish_setup!
 
       it 'is not dirty when equal', ->
-        newval = ValueStream.num!
+        newval = SigStream.num!
         newval\set 1
 
         assert.is.true newval\dirty!

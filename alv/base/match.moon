@@ -2,7 +2,7 @@
 --- Pattern capturing for Op argument parsing.
 --
 -- There is only one basic buildings block for assembling patterns:
--- `Type`. It can match `ValueStream`s and `EventStream`s depending on its
+-- `Type`. It can match `SigStream`s and `EvtStream`s depending on its
 -- metatype argument and can take an optional type name to match as an argument.
 --
 -- In addition to this primitive, the following modifiers are available:
@@ -21,12 +21,12 @@
 -- - `-pat`: Shorthand for `Optional(pat)`
 --
 -- To perform the actual matching, call the `:match` method on a pattern and
--- pass a sequence of `Result`s. The method will either return the captured
--- `Result`s (or a table structuring them)
+-- pass a sequence of `RTNode`s. The method will either return the captured
+-- `RTNode`s (or a table structuring them)
 --
 -- Any ambiguous pattern can be set to 'recall mode' by invoking it.
--- Recalling patterns will memorize the first Result they match, and
--- only match further Results of the same type. For example
+-- Recalling patterns will memorize the first RTNode they match, and
+-- only match further RTNodes of the same type. For example
 --
 --     arg = (val.num / val.str)!
 --     pattern = arg + arg
@@ -45,14 +45,11 @@
 --
 -- @module base.match
 import Error from require 'alv.error'
-import ValueStream, EventStream from require 'alv.stream'
+import Primitive from require 'alv.types'
 
 local Repeat, Sequence, Choice, Optional
 
-typestr = (result) ->
-  str = result\type!
-  str ..= '!' if result\metatype! == 'event'
-  str
+typestr = (result) -> tostring result.value
 
 class Pattern
   match: (seq) =>
@@ -107,13 +104,17 @@ class Type extends Pattern
   capture: (seq, i) =>
     return unless seq[i]
     type, mt = seq[i]\type!, seq[i]\metatype!
-    return unless @metatype == mt
+    if @metatype == 'event'
+      return unless mt == '!'
+    else
+      return if mt == '!'
+
     match = if @type then type == @type else @remember type
     if match
       1, seq[i]
 
   __tostring: =>
-    str = @type or @metatype
+    str = tostring @type or @metatype
     str ..= '!' if @metatype == 'event'
     str
 
@@ -272,7 +273,7 @@ class Optional extends Pattern
 -- @table val
 val = setmetatable {}, {
   __index: (key) =>
-    with v = Type 'value', key
+    with v = Type 'value', Primitive key
       @[key] = v
 
   __call: (...) => Type 'value', ...
@@ -290,7 +291,7 @@ val = setmetatable {}, {
 -- @table evt
 evt = setmetatable {}, {
   __index: (key) =>
-    with v = Type 'event', key
+    with v = Type 'event', Primitive key
       @[key] = v
 
   __call: (...) => Type 'event', ...

@@ -1,44 +1,47 @@
 import do_setup from require 'spec.test_setup'
-import Result, Scope, SimpleRegistry from require 'alv'
-import Input, Op, ValueStream, EventStream, IOStream from require 'alv.base'
+import RTNode, Scope, SimpleRegistry from require 'alv'
+import Input, Op, Constant, EvtStream, IOStream from require 'alv.base'
+import Primitive from require 'alv.types'
 
 setup do_setup
+num = Primitive 'num'
+bang = Primitive 'bang'
 
 op_with_inputs = (inputs) ->
   with Op!
     \setup inputs if inputs
 
 result_with_sideinput = (value, input) ->
-  with Result :value
+  with RTNode :value
     .side_inputs = { [value]: input }
 
 class DirtyIO extends IOStream
-  new: => super 'dirty-io'
+  new: => super Primitive 'dirty-io'
   dirty: => true
 
-describe 'Result', ->
+describe 'RTNode', ->
   it 'wraps value, children', ->
-    value = ValueStream.num 3
+    value = Constant.num 3
 
-    a = Result!
-    b = Result!
+    a = RTNode!
+    b = RTNode!
     children = { a, b }
 
-    result = Result :value, :children
+    result = RTNode :value, :children
 
     assert.is.equal value, result.value
     assert.is.same children, result.children
 
   it ':type gets type and assets value', ->
-    result = Result value: ValueStream.num 2
-    assert.is.equal 'num', result\type!
+    result = RTNode value: Constant.num 2
+    assert.is.equal num, result\type!
 
-    result = Result!
+    result = RTNode!
     assert.has.error -> result\type!
 
   it ':is_const', ->
-    value = ValueStream.num 2
-    pure = Result :value
+    value = Constant.num 2
+    pure = RTNode :value
     impure = result_with_sideinput value, {}
 
     assert.is.true pure\is_const!
@@ -49,10 +52,10 @@ describe 'Result', ->
     assert.has.error (-> impure\const 'test'), 'test'
 
   it ':make_ref', ->
-    value = ValueStream.num 2
+    value = Constant.num 2
     input = Input.hot value
     op = op_with_inputs { input }
-    thick = Result :value, :op, children: { Result!, Result! }
+    thick = RTNode :value, :op, children: { RTNode!, RTNode! }
     ref = thick\make_ref!
 
     assert ref
@@ -62,43 +65,43 @@ describe 'Result', ->
     assert.is.nil ref.op
 
   it 'lifts up inputs from op', ->
-    event = ValueStream 'bang', false
+    event = Constant bang, false
     event_input = Input.hot event
 
-    value = ValueStream 'num', 4
+    value = Constant num, 4
     value_input = Input.hot value
 
     op = op_with_inputs { event_input, value_input }
-    result = Result op: op, :value
+    result = RTNode op: op, :value
 
     assert.is.equal op, result.op
     assert.is.same { [event]: event_input, [value]: value_input },
                    result.side_inputs
 
   it 'does not lift up op inputs that are also child values', ->
-    event = ValueStream 'bang', false
+    event = Constant bang, false
     event_input = Input.hot event
 
-    value = ValueStream 'num', 4
+    value = Constant num, 4
     value_input = Input.hot value
 
     op = op_with_inputs { event_input, value_input }
-    result = Result op: op, :value, children: { Result :value }
+    result = RTNode op: op, :value, children: { RTNode :value }
 
     assert.is.same { [event]: event_input }, result.side_inputs
 
   it 'lifts up side_inputs from children', ->
-    event_value = ValueStream 'bang', false
+    event_value = Constant bang, false
     event_input = Input.hot event_value
-    event = Result op: op_with_inputs { event_input }
+    event = RTNode op: op_with_inputs { event_input }
     assert.is.same { [event_value]: event_input }, event.side_inputs
 
-    value_value = ValueStream 'num', 4
+    value_value = Constant num, 4
     value_input = Input.hot value_value
-    value = Result op: op_with_inputs { value_input }
+    value = RTNode op: op_with_inputs { value_input }
     assert.is.same { [value_value]: value_input }, value.side_inputs
 
-    result = Result children: { event, value }
+    result = RTNode children: { event, value }
     assert.is.same { [event_value]: event_input, [value_value]: value_input },
                    result.side_inputs
 
@@ -106,11 +109,11 @@ describe 'Result', ->
     local a_value, a_child, a_input
     local b_value, b_child, b_input
     before_each ->
-      a_value = EventStream 'num'
+      a_value = EvtStream num
       a_input = Input.hot a_value
       a_child = result_with_sideinput a_value, a_input
 
-      b_value = EventStream 'num'
+      b_value = EvtStream num
       b_input = Input.hot b_value
       b_child = result_with_sideinput b_value, b_input
 
@@ -122,7 +125,7 @@ describe 'Result', ->
       a = spy.on a_child, 'tick'
       b = spy.on b_child, 'tick'
 
-      result = Result children: { a_child, b_child }
+      result = RTNode children: { a_child, b_child }
       result\tick!
 
       assert.spy(a).was_called_with match.ref a_child
@@ -135,7 +138,7 @@ describe 'Result', ->
       a = spy.on a_child, 'tick'
       b = spy.on b_child, 'tick'
 
-      result = Result children: { a_child, b_child }
+      result = RTNode children: { a_child, b_child }
       result\tick!
 
       assert.spy(a).was_not_called!
@@ -149,7 +152,7 @@ describe 'Result', ->
       op = op_with_inputs a: Input.hot a_value
       s = spy.on op, 'tick'
 
-      result = Result :op, children: { a_child, b_child }
+      result = RTNode :op, children: { a_child, b_child }
       result\tick!
 
       assert.spy(s).was_called_with match.ref op
@@ -162,7 +165,7 @@ describe 'Result', ->
       op = op_with_inputs { Input.hot b_value }
       s = spy.on op, 'tick'
 
-      result = Result :op, children: { a_child, b_child }
+      result = RTNode :op, children: { a_child, b_child }
       result\tick!
 
       assert.spy(s).was_not_called!
@@ -172,7 +175,7 @@ describe 'Result', ->
       io = DirtyIO!
       input = Input.hot io
       op = op_with_inputs { input }
-      result = Result :op
+      result = RTNode :op
 
       s = spy.on io, 'poll'
       assert.is.same { [io]: input }, result.side_inputs

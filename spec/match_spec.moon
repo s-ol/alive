@@ -1,14 +1,15 @@
 import val, evt from require 'alv.base.match'
-import Result, ValueStream, EventStream from require 'alv'
+import RTNode, SigStream, EvtStream from require 'alv'
+import Primitive from require 'alv.types'
 
 mk_val = (type, const) ->
-  value = ValueStream type
-  with Result :value
+  value = SigStream Primitive type
+  with RTNode :value
     .side_inputs = { 'fake' } unless const
 
 mk_evt = (type, const) ->
-  value = EventStream type
-  with Result :value
+  value = EvtStream Primitive type
+  with RTNode :value
     .side_inputs = { 'fake' } unless const
 
 describe 'val and evt', ->

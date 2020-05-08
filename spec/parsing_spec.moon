@@ -1,64 +1,53 @@
 import space, atom, expr, explist, cell, program, comment
   from require 'alv.parsing'
-import ValueStream from require 'alv'
+import Constant from require 'alv'
 import Logger from require 'alv.logger'
 Logger\init 'silent'
 
-verify_parse = (parser, str) ->
-  with assert parser\match str
-    assert.is.equal str, \stringify!
+verify_parse = (parser, val) ->
+  with assert parser\match val
+    assert.is.equal val, \stringify!
 
-verify_parse_nope = (parser, str) ->
-  with assert parser\match str
-    without_nope = str\match '^(.*) nope$'
+verify_parse_nope = (parser, val) ->
+  with assert parser\match val
+    without_nope = val\match '^(.*) nope$'
     assert.is.equal without_nope, \stringify!
 
 describe 'atom parsing', ->
   test 'symbols', ->
     sym = verify_parse_nope atom, 'some-toast nope'
-    assert.is.equal 'sym', sym.type
-    assert.is.equal 'some-toast', sym\unwrap!
-    assert.is.equal 'some-toast', sym\stringify!
+    assert.is.equal (Constant.sym 'some-toast'), sym
 
   describe 'numbers', ->
     it 'parses ints', ->
       num = verify_parse_nope atom, '1234 nope'
-      assert.is.equal 'num', num.type
-      assert.is.equal 1234, num\unwrap!
-      assert.is.equal '1234', num\stringify!
+      assert.is.equal (Constant.num 1234), num
 
     it 'parses floats', ->
       num = verify_parse_nope atom, '0.123 nope'
-      assert.is.equal 'num', num.type
-      assert.is.equal 0.123, num\unwrap!
+      assert.is.equal (Constant.num 0.123), num
 
       num = verify_parse_nope atom, '.123 nope'
-      assert.is.equal 'num', num.type
-      assert.is.equal 0.123, num\unwrap!
+      assert.is.equal (Constant.num 0.123), num
 
       num = verify_parse_nope atom, '0. nope'
-      assert.is.equal 'num', num.type
-      assert.is.equal 0, num\unwrap!
+      assert.is.equal (Constant.num 0), num
 
   describe 'strings', ->
     it 'parses double-quote strings', ->
       str = verify_parse_nope atom, '"help some stuff!" nope'
-      assert.is.equal 'str', str.type
-      assert.is.equal 'help some stuff!', str\unwrap!
+      assert.is.equal (Constant.str 'help some stuff!'), str
 
     it 'parses single-quote strings', ->
       str = verify_parse_nope atom, "'help some stuff!' nope"
-      assert.is.equal 'str', str.type
-      assert.is.equal "help some stuff!", str\unwrap!
+      assert.is.equal (Constant.str "help some stuff!"), str
 
     it 'handles escapes', ->
       str = verify_parse_nope atom, '"string with \\"quote\\"s and \\\\" nope'
-      assert.is.equal 'str', str.type
-      assert.is.equal 'string with \"quote\"s and \\', str\unwrap!
+      assert.is.equal (Constant.str 'string with \"quote\"s and \\'), str
 
       str = verify_parse_nope atom, "'string with \\'quote\\'s and \\\\' nope"
-      assert.is.equal 'str', str.type
-      assert.is.equal "string with \'quote\'s and \\", str\unwrap!
+      assert.is.equal (Constant.str "string with \'quote\'s and \\"), str
 
 describe 'Cell', ->
   test 'basic parsing', ->
@@ -66,9 +55,9 @@ describe 'Cell', ->
                                 "friend" )'
 
     assert.is.equal 3, #node.children
-    assert.is.equal (ValueStream.num 3), node.children[1]
-    assert.is.equal (ValueStream.sym 'ok-yes'), node.children[2]
-    assert.is.equal (ValueStream.str 'friend'), node.children[3]
+    assert.is.equal (Constant.num 3), node.children[1]
+    assert.is.equal (Constant.sym 'ok-yes'), node.children[2]
+    assert.is.equal (Constant.str 'friend'), node.children[3]
 
   test 'tag parsing', ->
     node = verify_parse cell, '([42]tagged 2)'
@@ -89,8 +78,8 @@ describe 'RootCell parsing', ->
       node = verify_parse program, str
 
       assert.is.equal 2, #node.children
-      assert.is.equal (ValueStream.num 3), node.children[1]
-      assert.is.equal (ValueStream.sym 'ok-yes'), node.children[2]
+      assert.is.equal (Constant.num 3), node.children[1]
+      assert.is.equal (Constant.sym 'ok-yes'), node.children[2]
 
     it 'at the front of the string', ->
       verify ' 3\tok-yes'

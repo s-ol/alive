@@ -2,8 +2,8 @@
 -- Update scheduling policy for `Op` arguments.
 --
 -- @classmod Input
-import ValueStream, EventStream, IOStream from require 'alv.stream'
-import Result from require 'alv.result'
+import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
+import RTNode from require 'alv.rtnode'
 
 inherits = (klass, frm) ->
   assert klass, "cant find the ancestor of nil"
@@ -53,7 +53,7 @@ class Input
   --
   -- must return a boolean indicating whether `Op`s that refer to this instance
   -- should be notified (via `Op:tick`). If not overwritten, delegates to
-  -- `stream`:@{ValueStream:dirty|dirty}.
+  -- `stream`:@{SigStream:dirty|dirty}.
   --
   -- @treturn bool whether processing is necessary
   dirty: => @stream\dirty!
@@ -77,7 +77,7 @@ class Input
 
   --- the current value
   --
-  -- @tfield ValueStream stream
+  -- @tfield SigStream stream
 
 --- members
 -- @section members
@@ -98,9 +98,9 @@ class Input
   -- Never marked dirty. Use this for input streams that are only read when
   -- another `Input` is dirty.
   --
-  -- @tparam Stream|Result value
+  -- @tparam Stream|RTNode value
   @cold: (value) ->
-    if value.__class == Result
+    if value.__class == RTNode
       value = assert value.value, "Input from result without value!"
     ColdInput value
 
@@ -108,15 +108,15 @@ class Input
   --
   -- Behaviour depends on what kind of `Stream` `value` is:
   --
-  -- - `ValueStream`: Marked dirty only if old and new `ValueStream` differ.
-  -- - `EventStream` and `IOStream`: Marked dirty only if the current
-  --   `EventStream` is dirty.
+  -- - `SigStream`: Marked dirty only if old and new `SigStream` differ.
+  -- - `EvtStream` and `IOStream`: Marked dirty only if the current
+  --   `EvtStream` is dirty.
   --
   -- This is the most common `Input` strategy.
   --
-  -- @tparam Stream|Result value
+  -- @tparam Stream|RTNode value
   @hot: (value) ->
-    if value.__class == Result
+    if value.__class == RTNode
       value = assert value.value, "Input from result without value!"
 
     InputType = match_parent value, mapping
@@ -137,8 +137,9 @@ class IOInput extends Input
   io: true
 
 mapping = {
-  [ValueStream]: ValueInput
-  [EventStream]: Input
+  [Constant]: ColdInput
+  [SigStream]: ValueInput
+  [EvtStream]: Input
   [IOStream]: IOInput
 }
 

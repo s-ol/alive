@@ -1,13 +1,19 @@
 ----
--- Continuous stream of values.
+-- Constant Value.
 --
--- Implements the `Stream` and `AST` intefaces.
+-- Implements the `Stream` and `AST` inteface.
 --
--- @classmod ValueStream
-import Stream from require 'alv.stream.base'
-import Result from require 'alv.result'
+-- @classmod Constant
+import Stream from require 'alv.result.base'
+import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 import scope, base from require 'alv.cycle'
+import Primitive from require 'alv.types'
+
+num = Primitive 'num'
+str = Primitive 'str'
+sym = Primitive 'sym'
+bool = Primitive 'bool'
 
 ancestor = (klass) ->
   assert klass, "cant find the ancestor of nil"
@@ -15,22 +21,11 @@ ancestor = (klass) ->
     klass = klass.__parent
   klass
 
-class ValueStream extends Stream
---- members
--- @section members
-
-  --- return whether this stream was changed in the current tick.
+class Constant extends Stream
+  --- Whether this Result is dirty.
   --
-  -- @treturn bool
-  dirty: => @updated == COPILOT.T
-
-  --- update this stream's value.
-  --
-  -- Marks this stream as dirty for the remainder of the current tick.
-  set: (value) =>
-    if value != @value
-      @value = value
-      @updated = COPILOT.T
+  -- @tresult bool always `false`.
+  dirty: => false
 
   --- unwrap to the Lua type.
   --
@@ -47,67 +42,25 @@ class ValueStream extends Stream
   --
   -- Used to insulate eval-cycles from each other.
   --
-  -- @treturn ValueStream
-  fork: =>
-    with ValueStream @type, @value, @raw
-      .updated = @updated
+  -- @treturn Constant
+  fork: => @
 
   --- alias for `unwrap`.
   __call: (...) => @unwrap ...
 
   --- compare two values.
   --
-  -- Compares two `ValueStream`s by comparing their types and their Lua values.
+  -- Compares two `SigStream`s by comparing their types and their Lua values.
   __eq: (other) => other.type == @type and other.value == @value
-
-  __tostring: =>
-    value = if @meta.name
-      @meta.name
-    else if 'table' == (type @value) and rawget @value, '__base'
-      @value.__name
-    else
-      tostring @value
-    "<#{@@__name} #{@type}: #{value}>"
 
   --- Stream metatype.
   --
-  -- @tfield string metatype
-  metatype: 'value'
-
-  --- the type name of this stream.
-  --
-  -- the following builtin typenames are used:
-  --
-  -- - `str` - strings, `value` is a Lua string
-  -- - `sym` - symbols, `value` is a Lua string
-  -- - `num` - numbers, `value` is a Lua number
-  -- - `bool` - booleans, `value` is a Lua boolean
-  -- - `bang` - trigger signals, `value` is a Lua boolean
-  -- - `opdef` - `value` is an `Op` subclass
-  -- - `builtin` - `value` is a `Builtin` subclass
-  -- - `fndef` - `value` is a `FnDef` instance
-  -- - `scope` - `value` is a `Scope` instance
-  --
-  -- @tfield string type
-
-  --- the wrapped Lua value.
-  -- @tfield any value
-
-  --- documentation metadata.
-  --
-  -- an optional table containing metadata for error messages and
-  -- documentation. The following keys are recognized:
-  --
-  -- - `name`: optional name
-  -- - `summary`: single-line description (markdown)
-  -- - `examples`: optional list of single-line code examples
-  -- - `description`: optional full-text description (markdown)
-  --
-  -- @tfield ?table meta
+  -- @tfield string metatype (`=`)
+  metatype: '='
 
 --- AST interface
 --
--- `ValueStream` implements the `AST` interface.
+-- `SignStream` implements the `AST` interface.
 -- @section ast
 
   --- evaluate this literal constant.
@@ -117,12 +70,14 @@ class ValueStream extends Stream
   -- Resolves `sym`s in `scope` and returns a reference to them.
   --
   -- @tparam Scope scope the scope to evaluate in
-  -- @treturn Result the evaluation result
+  -- @treturn RTNode the evaluation result
   eval: (scope) =>
+    return RTNode value: @ if @literal
+
     switch @type
-      when 'num', 'str'
-        Result value: @
-      when 'sym'
+      when num, str
+        RTNode value: @
+      when sym
         Error.wrap "resolving symbol '#{@value}'", scope\get, @value
       else
         error "cannot evaluate #{@}"
@@ -132,17 +87,17 @@ class ValueStream extends Stream
   -- Throws an error if `raw` is not set.
   --
   -- @treturn string the exact string this stream was parsed from
-  stringify: => assert @raw, "stringifying ValueStream that wasn't parsed"
+  stringify: => @raw
 
   --- clone this literal constant.
   --
-  -- @treturn ValueStream self
+  -- @treturn SignStream self
   clone: (prefix) => @
 
 --- static functions
 -- @section static
 
-  --- construct a new ValueStream.
+  --- construct a new Constant.
   --
   -- @classmethod
   -- @tparam string type the type name
@@ -157,9 +112,9 @@ class ValueStream extends Stream
   -- @tparam string sep the seperator char (only for `str`)
   @parse: (type, sep) =>
     switch type
-      when 'num' then (match) -> @ 'num', (tonumber match), match
-      when 'sym' then (match) -> @ 'sym', match, match
-      when 'str' then (match) -> @ 'str', (unescape match), sep .. match .. sep
+      when 'num' then (match) -> @ num, (tonumber match), match
+      when 'sym' then (match) -> @ sym, match, match
+      when 'str' then (match) -> @ str, (unescape match), sep .. match .. sep
 
   --- wrap a Lua value.
   --
@@ -167,7 +122,7 @@ class ValueStream extends Stream
   --
   -- @tparam any val the value to wrap
   -- @tparam[opt] string name the name of this value (for error logging)
-  -- @treturn ValueStream
+  -- @treturn Constant
   @wrap: (val, name='(unknown)') ->
     typ = switch type val
       when 'number' then 'num'
@@ -190,46 +145,52 @@ class ValueStream extends Stream
               error "#{name}: cannot wrap '#{val.__class.__name}' instance"
         else
           -- plain table
-          return ValueStream 'scope', scope.Scope.from_table val
+          val = scope.Scope.from_table val
+          'scope'
       else
         error "#{name}: cannot wrap Lua type '#{type val}'"
 
-    ValueStream typ, val
+    Constant (Primitive typ), val
 
   --- create a constant number.
-  -- @tparam number num the number
-  -- @treturn ValueStream
-  @num: (num) -> ValueStream 'num', num, tostring num
+  -- @tparam number val the number
+  -- @treturn Constant
+  @num: (val) -> Constant num, val, tostring val
 
   --- create a constant string.
-  -- @tparam string str the string
-  -- @treturn ValueStream
-  @str: (str) -> ValueStream 'str', str, "'#{str}'"
+  -- @tparam string val the string
+  -- @treturn Constant
+  @str: (val) -> Constant str, val, "'#{val}'"
 
   --- create a constant symbol.
-  -- @tparam string sym the symbol
-  -- @treturn ValueStream
-  @sym: (sym) -> ValueStream 'sym', sym, sym
+  -- @tparam string val the symbol
+  -- @treturn Constant
+  @sym: (val) -> Constant sym, val, val
 
   --- create a constant boolean.
-  -- @tparam boolean bool the boolean
-  -- @treturn ValueStream
-  @bool: (bool) -> ValueStream 'bool', bool, tostring bool
+  -- @tparam boolean val the boolean
+  -- @treturn Constant
+  @bool: (val) -> Constant bool, val, tostring val
+
+  --- create a forced-literal Constant.
+  --
+  -- For internal use in `Builtin`s only.
+  --
+  -- @treturn Constant
+  @literal: (...) ->
+    with Constant ...
+      .literal = true
 
   --- wrap and document a value.
   --
   -- wraps `args.value` using `wrap`, then assigns `meta`.
   --
   -- @tparam table args table with keys `value` and `meta`
-  -- @treturn ValueStream
+  -- @treturn Constant
   @meta: (args) ->
-    with ValueStream.wrap args.value
+    with Constant.wrap args.value
       .meta = args.meta if args.meta
 
-class LiteralValue extends ValueStream
-  eval: => Result value: @
-
 {
-  :ValueStream
-  :LiteralValue
+  :Constant
 }

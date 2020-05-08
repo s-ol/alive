@@ -1,7 +1,7 @@
 ----
 -- base Stream interface.
 --
--- implemented by `ValueStream`, `EventStream`, and `IOStream`.
+-- implemented by `Constant`, `SigStream`, `EvtStream`, and `IOStream`.
 --
 -- @classmod Stream
 
@@ -9,7 +9,7 @@ class Stream
 --- Stream interface.
 --
 -- Methods that have to be implemented by `Stream` implementations
--- (`ValueStream`, `EventStream`, `IOStream`).
+-- (`SigStream`, `EvtStream`, `IOStream`).
 --
 -- @section interface
 
@@ -25,6 +25,9 @@ class Stream
   -- @function fork
   -- @treturn Stream
 
+  __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
+  __inherited: (cls) => cls.__base.__tostring or= @__tostring
+
   --- the type name of this Stream's value.
   --
   -- the following builtin typenames are used:
@@ -38,6 +41,13 @@ class Stream
   -- - `builtin` - `value` is a `Builtin` subclass
   -- - `fndef` - `value` is a `FnDef` instance
   -- - `scope` - `value` is a `Scope` instance
+  --
+  -- @tfield string type
+
+  --- the metatype string for this Stream.
+  --
+  -- one of `=` (`Constant`), `~` (`SigStream`),
+  -- `!` (`EvtStream` and `IOStream`).
   --
   -- @tfield string type
 

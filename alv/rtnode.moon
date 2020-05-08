@@ -1,15 +1,15 @@
 ----
--- Result of evaluating an expression.
+-- RTNode of evaluating an expression.
 --
--- `Result`s form a tree that controls execution order and message passing
+-- `RTNode`s form a tree that controls execution order and message
 -- between `Op`s.
 --
--- @classmod Result
-class Result
+-- @classmod RTNode
+class RTNode
 --- members
 -- @section members
 
-  --- return whether this Result's value is const.
+  --- return whether this RTNode's value is const.
   is_const: => not next @side_inputs
 
   --- assert value-constness and return the value.
@@ -22,20 +22,20 @@ class Result
   --- assert this result has a value, return its type.
   -- @treturn string
   type: =>
-    assert @value, "Result with value expected"
+    assert @value, "RTNode with value expected"
     @value.type
 
   --- assert this result has a value, returns its metatype.
   -- @treturn string `"value"` or `"event"`
   metatype: =>
-    assert @value, "Result with value expected"
+    assert @value, "RTNode with value expected"
     @value.metatype
 
   --- create a copy of this result with value-copy semantics.
   -- the copy has the same @value and @side_inputs, but will not update
   -- anything on \tick.
   make_ref: =>
-    with Result value: @value
+    with RTNode value: @value
       .side_inputs = @side_inputs
 
   --- poll all IOStream instances that are effecting this (sub)tree.
@@ -73,7 +73,7 @@ class Result
       @op\tick!
 
   __tostring: =>
-    buf = "<result=#{@value}"
+    buf = "<RT=#{@value}"
     buf ..= " #{@op}" if @op
     buf ..= " (#{#@children} children)" if #@children > 0
     buf ..= ">"
@@ -87,11 +87,11 @@ class Result
   --
   -- @tfield ?Op op
 
-  --- list of child `Result`s from subexpressions
+  --- list of child `RTNode`s from subexpressions
   --
-  -- @tfield {}|{Result,...} children
+  -- @tfield {}|{RTNode,...} children
 
-  --- cached mapping of all `Stream`/`Input` pairs affecting this Result.
+  --- cached mapping of all `Stream`/`Input` pairs affecting this RTNode.
   --
   -- This is the union of all `children`s `side_inputs` and all `Input`s from
   -- `op` that are not the `value` of any child.
@@ -101,7 +101,7 @@ class Result
 --- static functions
 -- @section static
 
-  --- create a new Result.
+  --- create a new RTNode.
   -- @classmethod
   -- @param params table with optional keys op, value, children. default: {}
   new: (params={}) =>
@@ -122,5 +122,5 @@ class Result
           @side_inputs[input.stream] = input
 
 {
-  :Result
+  :RTNode
 }

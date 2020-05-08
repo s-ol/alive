@@ -5,9 +5,10 @@
 -- nodes), a `Tag`, and optionally the internal whitespace as parsed.
 --
 -- @classmod Cell
-import ValueStream from require 'alv.stream'
+import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import op_invoke, fn_invoke from require 'alv.invoke'
+import Primitive from require 'alv.types'
 import Tag from require 'alv.tag'
 
 local RootCell
@@ -73,11 +74,11 @@ class Cell
     head = assert @head!, Error 'syntax', "cannot evaluate empty expr"
     head = (head\eval scope)\const!
     Builtin = switch head.type
-      when 'opdef'
+      when (Primitive 'opdef')
         op_invoke
-      when 'fndef'
+      when (Primitive 'fndef')
         fn_invoke
-      when 'builtin'
+      when (Primitive 'builtin')
         head\unwrap!
       else
         error Error 'type', "#{head} is not an opdef, fndef or builtin"
@@ -157,7 +158,7 @@ class Cell
 
 -- @type RootCell
 class RootCell extends Cell
-  head: => ValueStream.sym 'do'
+  head: => Constant.sym 'do'
   tail: => @children
 
   clone: (parent) =>

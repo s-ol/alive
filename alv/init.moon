@@ -13,8 +13,9 @@ cycle = require 'alv.cycle'
 
 version = require 'alv.version'
 import Logger from require 'alv.logger'
-import ValueStream, EventStream, IOStream from require 'alv.stream'
-import Result from require 'alv.result'
+
+import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
+import RTNode from require 'alv.rtnode'
 import Scope from require 'alv.scope'
 import Error from require 'alv.error'
 import Registry, SimpleRegistry from require 'alv.registry'
@@ -34,10 +35,11 @@ import Copilot from require 'alv.copilot'
 --- exports
 -- @table exports
 -- @tfield version version
--- @tfield ValueStream ValueStream
--- @tfield EventStream EventStream
+-- @tfield Constant Constant
+-- @tfield SigStream SigStream
+-- @tfield EvtStream EvtStream
 -- @tfield IOStream IOStream
--- @tfield Result Result
+-- @tfield RTNode RTNode
 -- @tfield Cell Cell
 -- @tfield RootCell RootCell
 -- @tfield Scope Scope
@@ -51,9 +53,9 @@ import Copilot from require 'alv.copilot'
 {
   :version
 
-  :ValueStream, :EventStream, :IOStream
+  :Constant, :SigStream, :EvtStream, :IOStream
   :Cell, :RootCell
-  :Result, :Scope, :Error
+  :RTNode, :Scope, :Error
 
   :Registry, :SimpleRegistry, :Tag
 

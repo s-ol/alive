@@ -4,12 +4,12 @@
 -- Unlike other `Stream`s, this is not updated/set by an `Op` instace, but is
 -- continuously polled for changes by the runtime and may mark itself as
 -- *dirty* at any point in time. All runtime execution happens due to IOStream
--- updates, which ripple through the `Result` tree.
+-- updates, which ripple through the `RTNode` tree.
 --
 -- @classmod IOStream
-import EventStream from require 'alv.stream.event'
+import EvtStream from require 'alv.result.evt'
 
-class IOStream extends EventStream
+class IOStream extends EvtStream
 --- IOStream interface.
 --
 -- methods that have to be implemented by `IOStream` implementations.
@@ -42,13 +42,13 @@ class IOStream extends EventStream
   -- via `Input.hot` should be notified (via `Op:tick`). May be called multiple
   -- times. May be called before `poll` on the first frame after construction.
   --
-  -- If this is not overrided, the `EventStream` interface can be used, see
-  -- `EventStream.add`, `EventStream.unwrap`, and `EventStream.dirty`.
+  -- If this is not overriden, the `EvtStream` interface can be used, see
+  -- `EvtStream.add`, `EvtStream.unwrap`, and `EvtStream.dirty`.
   --
   -- @function dirty
   -- @treturn bool whether processing is required
 
-  __inherited: (cls) => cls.__base.__tostring = @__tostring
+  __inherited: (cls) => cls.__base.__tostring or= @__tostring
 
 {
   :IOStream

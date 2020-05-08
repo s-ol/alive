@@ -11,10 +11,11 @@
 -- @see Input
 -- @see base.match.val
 -- @see base.match.evt
--- @see ValueStream
--- @see EventStream
+-- @see Constant
+-- @see SigStream
+-- @see EvtStream
 -- @see IOStream
--- @see Result
+-- @see RTNode
 -- @see Error
 
 import Op from require 'alv.base.op'
@@ -22,8 +23,8 @@ import Builtin from require 'alv.base.builtin'
 import FnDef from require 'alv.base.fndef'
 import Input from require 'alv.base.input'
 import val, evt from require 'alv.base.match'
-import ValueStream, EventStream, IOStream from require 'alv.stream'
-import Result from require 'alv.result'
+import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
+import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 
 {
@@ -34,6 +35,6 @@ import Error from require 'alv.error'
   :val, :evt
 
   -- redundant exports, to keep anything an extension might need in one import
-  :ValueStream, :EventStream, :IOStream
-  :Result, :Error
+  :Constant, :SigStream, :EvtStream, :IOStream
+  :RTNode, :Error
 }

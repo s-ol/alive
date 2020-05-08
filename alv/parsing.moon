@@ -2,7 +2,7 @@
 -- Lpeg Grammar for parsing `alive` code.
 --
 -- @module parsing
-import ValueStream from require 'alv.stream'
+import Constant from require 'alv.result'
 import Cell from require 'alv.cell'
 import Tag from require 'alv.tag'
 import R, S, P, V, C, Ct from require 'lpeg'
@@ -20,15 +20,15 @@ mspace = (comment + wc)^0 / 1            -- optional whitespace
 -- atoms
 digit = R '09'
 first = (R 'az', 'AZ') + S '-_+*/.!?=%'
-sym = first * (first + digit)^0 / ValueStream\parse 'sym'
+sym = first * (first + digit)^0 / Constant\parse 'sym'
 
-strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / ValueStream\parse 'str', '\"'
-strq = "'" * (C ((P "\\'") + (P '\\\\') + (1 - P "'"))^0) * "'" / ValueStream\parse 'str', '\''
+strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Constant\parse 'str', '\"'
+strq = "'" * (C ((P "\\'") + (P '\\\\') + (1 - P "'"))^0) * "'" / Constant\parse 'str', '\''
 str = strd + strq
 
 int = digit^1
 float = (digit^1 * '.' * digit^0) + (digit^0 * '.' * digit^1)
-num = ((P '-')^-1 * (float + int)) / ValueStream\parse 'num'
+num = ((P '-')^-1 * (float + int)) / Constant\parse 'num'
 
 atom = num + sym + str
 

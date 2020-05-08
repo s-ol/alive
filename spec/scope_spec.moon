@@ -1,4 +1,5 @@
-import Scope, ValueStream, Result from require 'alv'
+import Scope, Constant, RTNode from require 'alv'
+import Primitive from require 'alv.types'
 import Op from require 'alv.base'
 import Logger from require 'alv.logger'
 Logger\init 'silent'
@@ -6,7 +7,12 @@ Logger\init 'silent'
 class TestOp extends Op
   new: (...) => super ...
 
-wrap_res = (value) -> Result :value
+wrap_res = (value) -> RTNode :value
+
+num = Primitive 'num'
+str = Primitive 'str'
+opdef = Primitive 'opdef'
+scope_t = Primitive 'scope'
 
 describe 'Scope', ->
   describe 'constifies', ->
@@ -16,18 +22,18 @@ describe 'Scope', ->
       scope\set_raw 'num', 3
 
       got = (scope\get 'num')\const!
-      assert.is.equal 'num', got.type
+      assert.is.equal num, got.type
       assert.is.equal 3, got.value
 
     test 'strings', ->
       scope\set_raw 'str', "im a happy string"
 
       got = (scope\get 'str')\const!
-      assert.is.equal 'str', got.type
+      assert.is.equal str, got.type
       assert.is.equal "im a happy string", got.value
 
     test 'Values', ->
-      pi = ValueStream 'num', 3.14
+      pi = Constant.num 3.14
       scope\set_raw 'pi', pi
 
       assert.is.equal pi, (scope\get 'pi')\const!
@@ -36,7 +42,7 @@ describe 'Scope', ->
       scope\set_raw 'test', TestOp
 
       got = (scope\get 'test')\const!
-      assert.is.equal 'opdef', got.type
+      assert.is.equal opdef, got.type
       assert.is.equal TestOp, got.value
 
     test 'Scopes', ->
@@ -44,21 +50,21 @@ describe 'Scope', ->
       scope\set_raw 'sub', sub
 
       got = (scope\get 'sub')\const!
-      assert.is.equal 'scope', got.type
+      assert.is.equal scope_t, got.type
       assert.is.equal sub, got.value
 
     test 'tables', ->
-      pi = ValueStream 'num', 3.14
-      scope\set_raw 'math',  { :pi }
+      pi = Constant.num 3.14
+      scope\set_raw 'math', { :pi }
 
       got = (scope\get 'math')\const!
-      assert.is.equal 'scope', got.type
+      assert.is.equal scope_t, got.type
       assert.is.equal Scope, got.value.__class
       assert.is.equal pi, (got.value\get 'pi')\const!
       assert.is.equal pi, (scope\get 'math/pi')\const!
 
   it 'wraps Values in from_table', ->
-    pi = ValueStream 'num', 3.14
+    pi = Constant.num 3.14
     scope = Scope.from_table {
       num: 3
       str: "im a happy string"
@@ -68,21 +74,21 @@ describe 'Scope', ->
     }
 
     got = (scope\get 'num')\const!
-    assert.is.equal 'num', got.type
+    assert.is.equal num, got.type
     assert.is.equal 3, got.value
 
     got = (scope\get 'str')\const!
-    assert.is.equal 'str', got.type
+    assert.is.equal str, got.type
     assert.is.equal "im a happy string", got.value
 
     assert.is.equal pi, (scope\get 'pi')\const!
 
     got = (scope\get 'test')\const!
-    assert.is.equal 'opdef', got.type
+    assert.is.equal opdef, got.type
     assert.is.equal TestOp, got.value
 
     got = (scope\get 'math')\const!
-    assert.is.equal 'scope', got.type
+    assert.is.equal scope_t, got.type
     assert.is.equal pi, (scope\get 'math/pi')\const!
 
   it 'gets from nested scopes', ->
@@ -90,7 +96,7 @@ describe 'Scope', ->
     a = Scope!
     b = Scope!
 
-    pi = ValueStream 'num', 3.14
+    pi = Constant.num 3.14
     b\set_raw 'test', pi
     a\set_raw 'child', b
     root\set_raw 'deep', a
@@ -98,8 +104,8 @@ describe 'Scope', ->
     assert.is.equal pi, (root\get 'deep/child/test')\const!
 
   describe 'can set symbols', ->
-    one = wrap_res ValueStream.num 1
-    two = wrap_res ValueStream.num 2
+    one = wrap_res Constant.num 1
+    two = wrap_res Constant.num 2
     scope = Scope!
 
     it 'disallows re-setting symbols', ->
@@ -119,14 +125,14 @@ describe 'Scope', ->
 
     it 'allows access', ->
       got = (scope\get 'inherited')\const!
-      assert.is.equal 'str', got.type
+      assert.is.equal str, got.type
       assert.is.equal "inherited string", got.value
 
     it 'can be shadowed', ->
       scope\set_raw 'hidden', "overwritten"
 
       got = (scope\get 'hidden')\const!
-      assert.is.equal 'str', got.type
+      assert.is.equal str, got.type
       assert.is.equal "overwritten", got.value
 
   describe 'dynamic inheritance', ->

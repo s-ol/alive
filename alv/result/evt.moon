@@ -1,13 +1,10 @@
 ----
 -- Stream of momentary events.
 --
--- @classmod EventStream
-import Stream from require 'alv.stream.base'
-import Result from require 'alv.result'
-import Error from require 'alv.error'
-import scope, base from require 'alv.cycle'
+-- @classmod EvtStream
+import Stream from require 'alv.result.base'
 
-class EventStream extends Stream
+class EvtStream extends Stream
 --- members
 -- @section members
 
@@ -44,19 +41,17 @@ class EventStream extends Stream
   --
   -- Used to wrap insulate eval-cycles from each other.
   --
-  -- @treturn EventStream
+  -- @treturn EvtStream
   fork: => @@ @type
 
   --- alias for `unwrap`.
   __call: (...) => @unwrap ...
-
-  __tostring: =>
-    "<#{@@__name} #{@type}>"
+  __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
 
   --- Stream metatype.
   --
-  -- @tfield string metatype
-  metatype: 'event'
+  -- @tfield string metatype (`!`)
+  metatype: '!'
 
   --- the type name of the stream.
   --
@@ -89,12 +84,12 @@ class EventStream extends Stream
 --- static functions
 -- @section static
 
-  --- construct a new EventStream.
+  --- construct a new EvtStream.
   --
   -- @classmethod
   -- @tparam string type the type name
   new: (type) => super type
 
 {
-  :EventStream
+  :EvtStream
 }

@@ -1,10 +1,11 @@
 ----
--- Mapping from `sym`s to `Result`s.
+-- Mapping from `sym`s to `RTNode`s.
 --
 -- @classmod Scope
-import ValueStream from require 'alv.stream'
-import Result from require 'alv.result'
+import Constant from require 'alv.result'
+import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
+import Primitive from require 'alv.types'
 
 class Scope
 --- members
@@ -12,21 +13,21 @@ class Scope
 
   --- set a Lua value in the scope.
   --
-  -- wraps `val` in a `ValueStream` and `Result` before calling `set`.
+  -- wraps `val` in a `Constant` and `RTNode` before calling `set`.
   --
   -- @tparam string key
   -- @tparam any val
   set_raw: (key, val) =>
-    value = ValueStream.wrap val, key
-    @values[key] = Result :value
+    value = Constant.wrap val, key
+    @values[key] = RTNode :value
 
-  --- set a symbol to a `Result`.
+  --- set a symbol to a `RTNode`.
   --
   -- @tparam string key
-  -- @tparam Result val
+  -- @tparam RTNode val
   set: (key, val) =>
     L\trace "setting #{key} = #{val} in #{@}"
-    assert val.__class == Result, "expected #{key}=#{val} to be Result"
+    assert val.__class == RTNode, "expected #{key}=#{val} to be RTNode"
     assert val.value, Error 'type', "cannot define symbol to nil"
     assert not @values[key], Error 'type', "cannot redefine symbol '#{key}'!"
     @values[key] = val
@@ -42,7 +43,7 @@ class Scope
   --- resolve a key in this Scope.
   --
   -- @tparam string key the key to resolve
-  -- @treturn ?Result the value of the definition that was found, or `nil`
+  -- @treturn ?RTNode the value of the definition that was found, or `nil`
   get: (key) =>
     L\debug "checking for #{key} in #{@}"
     if val = @values[key]
@@ -56,7 +57,7 @@ class Scope
     child = @get start
     if not child
       error Error 'reference', "undefined symbol '#{start}'"
-    if child\type! != 'scope'
+    if child\type! != (Primitive 'scope')
       error Error 'reference', "'#{start}' is not a scope"
     child.value!\get rest, while_msg
 
@@ -104,7 +105,7 @@ class Scope
   --- convert a Lua table to a Scope.
   --
   -- `tbl` may contain more tables (or `Scope`s).
-  -- Uses `ValueStream.wrap` on the values recursively.
+  -- Uses `Constant.wrap` on the values recursively.
   --
   -- @tparam table tbl the table to convert
   -- @treturn Scope

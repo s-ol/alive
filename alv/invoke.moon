@@ -2,10 +2,15 @@
 -- Builtins for invoking `Op`s and `FnDef`s.
 --
 -- @module invoke
-import Result from require 'alv.result'
+import RTNode from require 'alv.rtnode'
 import Builtin from require 'alv.base'
 import Scope from require 'alv.scope'
 import Error from require 'alv.error'
+import Primitive from require 'alv.types'
+
+opdef = Primitive 'opdef'
+fndef = Primitive 'fndef'
+sym = Primitive 'sym'
 
 get_name = (value, raw) ->
   meta = if value.meta then value.meta.name
@@ -34,7 +39,7 @@ class op_invoke extends Builtin
       @op = prev.op\fork!
       prev.forked = COPILOT.T
     else
-      def = @head\unwrap 'opdef', "cant op-invoke #{@head}"
+      def = @head\unwrap opdef, "cant op-invoke #{@head}"
       @op = def!
 
   --- `Builtin:destroy` implementation.
@@ -50,11 +55,11 @@ class op_invoke extends Builtin
   -- checks if any of `op`:@{Op:all_inputs|all_inputs} are @{Input:dirty|dirty},
   -- and if so, calls `op`:@{Op:tick|tick}.
   --
-  -- The `Result` contains `op`, `Op.value` and all the `Result`s from the tail.
+  -- The `RTNode` contains `op`, `Op.value` and all the `RTNode`s from the tail.
   --
   -- @tparam Scope scope the active scope
   -- @tparam {AST,...} tail the arguments to this expression
-  -- @treturn Result
+  -- @treturn RTNode
   eval: (scope, tail) =>
     children = [L\push expr\eval, scope for expr in *tail]
 
@@ -73,7 +78,7 @@ class op_invoke extends Builtin
     for input in @op\all_inputs!
       input\finish_setup!
 
-    Result :children, value: @op.out, op: @op
+    RTNode :children, value: @op.out, op: @op
 
   --- The `Op` instance.
   --
@@ -92,18 +97,18 @@ class fn_invoke extends Builtin
   -- `FnDef.body` with the prefix `Builtin.tag`, and `AST:eval`s it in the newly
   -- created `Scope`.
   --
-  -- The `Result` contains the `Stream` from the cloned AST, and its children
-  -- are all the `Result`s from evaluating the tail as well as the cloned
+  -- The `RTNode` contains the `Stream` from the cloned AST, and its children
+  -- are all the `RTNode`s from evaluating the tail as well as the cloned
   -- `AST`s.
   --
   -- @tparam Scope caller_scope the active scope
   -- @tparam {AST,...} tail the arguments to this expression
-  -- @treturn Result the result of this evaluation
+  -- @treturn RTNode the result of this evaluation
   eval: (caller_scope, tail) =>
     name = get_name @head, @cell\head!
     frame = "invoking function #{name} at [#{@tag}]"
 
-    fndef = @head\unwrap 'fndef', "cant fn-invoke #{@head}"
+    fndef = @head\unwrap fndef, "cant fn-invoke #{@head}"
     { :params, :body } = fndef
     if #params != #tail
       err = Error 'argument', "expected #{#params} arguments, found #{#tail}"
@@ -113,7 +118,7 @@ class fn_invoke extends Builtin
     fn_scope = Scope fndef.scope, caller_scope
 
     children = for i=1,#params
-      name = params[i]\unwrap 'sym'
+      name = params[i]\unwrap sym
       with L\push tail[i]\eval, caller_scope
         fn_scope\set name, \make_ref!
 
@@ -121,7 +126,7 @@ class fn_invoke extends Builtin
     result = Error.wrap frame, clone\eval, fn_scope
 
     table.insert children, result
-    Result :children, value: result.value
+    RTNode :children, value: result.value
 
 {
   :op_invoke, :fn_invoke

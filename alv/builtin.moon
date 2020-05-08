@@ -6,16 +6,17 @@
 --
 -- @module builtin
 import Builtin, Op, FnDef, Input, val, evt from require 'alv.base'
-import ValueStream, LiteralValue from require 'alv.stream.value'
+import Constant from require 'alv.result'
 import Error from require 'alv.error'
-import Result from require 'alv.result'
+import RTNode from require 'alv.rtnode'
 import Cell from require 'alv.cell'
 import Scope from require 'alv.scope'
 import Tag from require 'alv.tag'
 import op_invoke from require 'alv.invoke'
+import Primitive from require 'alv.types'
 lfs = require 'lfs'
 
-doc = ValueStream.meta
+doc = Constant.meta
   meta:
     name: 'doc'
     summary: "Print documentation in console."
@@ -36,11 +37,11 @@ doc = ValueStream.meta
       assert #tail == 1, "'doc' takes exactly one parameter"
 
       result = L\push tail[1]\eval, scope
-      with Result children: { def }
+      with RTNode children: { def }
         meta = result.value.meta
         L\print "(doc #{tail[1]}):\n#{format_meta meta}\n"
 
-def = ValueStream.meta
+def = Constant.meta
   meta:
     name: 'def'
     summary: "Declare symbols in current scope."
@@ -63,9 +64,9 @@ Define the symbols `sym1`, `sym2`, … to resolve to the values of `val-expr1`,
           with val_expr\eval scope
             scope\set name, \make_ref!
 
-      Result :children
+      RTNode :children
 
-use = ValueStream.meta
+use = Constant.meta
   meta:
     name: 'use'
     summary: "Merge scopes into current scope."
@@ -82,9 +83,9 @@ All arguments have to be evaltime constant."
         value = result\const!
         scope\use value\unwrap 'scope', "'use' only works on scopes"
 
-      Result!
+      RTNode!
 
-require_ = ValueStream.meta
+require_ = Constant.meta
   meta:
     name: 'require'
     summary: "Load a module."
@@ -102,7 +103,7 @@ require_ = ValueStream.meta
       L\trace @, "loading module #{name}"
       COPILOT\require name
 
-import_ = ValueStream.meta
+import_ = Constant.meta
   meta:
     name: 'import'
     summary: "Require and define modules."
@@ -120,9 +121,9 @@ current scope."
         name = child\unwrap 'sym'
         with COPILOT\require name
           scope\set name, \make_ref!
-      Result :children
+      RTNode :children
 
-import_star = ValueStream.meta
+import_star = Constant.meta
   meta:
     name: 'import*'
     summary: "Require and use modules."
@@ -138,9 +139,9 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
       children = for i, child in ipairs tail
         with COPILOT\require child\unwrap 'sym'
           scope\use .value\unwrap 'scope'
-      Result :children
+      RTNode :children
 
-export_ = ValueStream.meta
+export_ = Constant.meta
   meta:
     name: 'export'
     summary: "Evaluate definitions in a new scope and return it."
@@ -152,9 +153,9 @@ Evaluate `expr1`, `expr2`, … in a new Scope and return scope."
     eval: (scope, tail) =>
       new_scope = Scope scope
       children = [expr\eval new_scope for expr in *tail]
-      Result :children, value: ValueStream.wrap new_scope
+      RTNode :children, value: Constant.wrap new_scope
 
-export_star = ValueStream.meta
+export_star = Constant.meta
   meta:
     name: 'export*'
     summary: "Export specific symbol definitions as a module/scope."
@@ -179,9 +180,9 @@ Copies the containing scope if no symbols are given."
           with result = scope\get name
             new_scope\set name, result
 
-      Result :children, value: ValueStream.wrap new_scope
+      RTNode :children, value: Constant.wrap new_scope
 
-fn = ValueStream.meta
+fn = Constant.meta
   meta:
     name: 'fn'
     summary: "Declare a function."
@@ -201,13 +202,13 @@ function is invoked."
         assert param.type == 'sym', "function parameter declaration has to be a symbol"
         param
 
-      Result value: with ValueStream.wrap FnDef param_symbols, body, scope
+      RTNode value: with Constant.wrap FnDef param_symbols, body, scope
         .meta = {
           summary: "(user defined function)"
           examples: { "(??? #{table.concat [p! for p in *param_symbols], ' '})" }
         }
 
-defn = ValueStream.meta
+defn = Constant.meta
   meta:
     name: 'defn'
     summary: "Define a function."
@@ -229,16 +230,16 @@ function is invoked."
         assert param.type == 'sym', "function parameter declaration has to be a symbol"
         param
 
-      value = with ValueStream.wrap FnDef param_symbols, body, scope
+      value = with Constant.wrap FnDef param_symbols, body, scope
         .meta =
           :name
           summary: "(user defined function)"
           examples: { "(#{name} #{table.concat [p! for p in *param_symbols], ' '})" }
 
-      scope\set name, Result :value
-      Result!
+      scope\set name, RTNode :value
+      RTNode!
 
-do_expr = ValueStream.meta
+do_expr = Constant.meta
   meta:
     name: 'do'
     summary: "Evaluate multiple expressions in a new scope."
@@ -250,9 +251,9 @@ Evaluate `expr1`, `expr2`, … and return the value of the last expression."
     eval: (scope, tail) =>
       scope = Scope scope
       children = [expr\eval scope for expr in *tail]
-      Result :children, value: children[#children].value
+      RTNode :children, value: children[#children].value
 
-if_ = ValueStream.meta
+if_ = Constant.meta
   meta:
     name: 'if'
     summary: "Make an evaltime const choice."
@@ -277,7 +278,7 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
       elseif xelse
         xelse\eval scope
 
-trace_ = ValueStream.meta
+trace_ = Constant.meta
   meta:
     name: 'trace!'
     summary: "Trace an expression's value at evaltime."
@@ -291,7 +292,7 @@ trace_ = ValueStream.meta
       with result = L\push tail[1]\eval, scope
         L\print "trace! #{tail[1]\stringify!}: #{result.value}"
 
-trace = ValueStream.meta
+trace = Constant.meta
   meta:
     name: 'trace'
     summary: "Trace an expression's values at runtime."
@@ -313,13 +314,13 @@ trace = ValueStream.meta
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
-        LiteralValue 'opdef', traceOp, 'trace'
-        ValueStream.str tostring tail[1]
+        Constant.literal (Primitive 'opdef'), traceOp, 'trace'
+        Constant.str tostring tail[1]
         tail[1]
       }
       inner\eval scope
 
-print = ValueStream.meta
+print = Constant.meta
   meta:
     name: 'print'
     summary: "Print string values."
@@ -348,23 +349,23 @@ Scope.from_table {
   export: export_
   'export*': export_star
 
-  true: ValueStream.meta
+  true: Constant.meta
     meta:
       name: 'true'
       summary: "The boolean constant `true`."
-    value: ValueStream.bool true
+    value: Constant.bool true
 
-  false: ValueStream.meta
+  false: Constant.meta
     meta:
       name: 'false'
       summary: "The boolean constant `false`."
-    value: ValueStream.bool false
+    value: Constant.bool false
 
-  bang: ValueStream.meta
+  bang: Constant.meta
     meta:
       name: 'bang'
       summary: "A `bang` value-constant."
-    value: ValueStream 'bang', true
+    value: Constant 'bang', true
 
   :fn, :defn
   'do': do_expr

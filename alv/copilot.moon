@@ -6,8 +6,8 @@ lfs = require 'lfs'
 import Scope from require 'alv.scope'
 import Module from require 'alv.module'
 import Error from require 'alv.error'
-import Result from require 'alv.result'
-import ValueStream from require 'alv.stream'
+import RTNode from require 'alv.rtnode'
+import Constant from require 'alv.result'
 
 export COPILOT
 
@@ -41,12 +41,12 @@ class Copilot
 
   --- require a module.
   -- @tparam string name
-  -- @treturn Result result
+  -- @treturn RTNode root
   require: (name) =>
     Error.wrap "loading module '#{name}'", ->
       ok, lua = pcall require, "alv-lib.#{name}"
       if ok
-        Result value: ValueStream.wrap lua
+        RTNode value: Constant.wrap lua
       else
         assert @modules, "no current eval cycle?"
         if mod = @modules[name]
