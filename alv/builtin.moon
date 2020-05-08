@@ -313,7 +313,7 @@ trace = Constant.meta
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
-        Constant.literal (Primitive 'opdef'), traceOp, 'trace'
+        Constant.literal Primitive.op, traceOp, 'trace'
         Constant.str tostring tail[1]
         tail[1]
       }

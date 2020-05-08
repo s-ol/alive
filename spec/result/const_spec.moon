@@ -14,12 +14,12 @@ describe 'Constant', ->
   describe '.wrap', ->
     it 'wraps numbers', ->
       got = Constant.wrap 3
-      assert.is.equal (Primitive 'num'), got.type
+      assert.is.equal Primitive.num, got.type
       assert.is.equal 3, got.value
 
     it 'wraps strings', ->
       got = Constant.wrap "im a happy string"
-      assert.is.equal (Primitive 'str'), got.type
+      assert.is.equal Primitive.str, got.type
       assert.is.equal "im a happy string", got.value
 
     it 'wraps Constants', ->
@@ -31,27 +31,27 @@ describe 'Constant', ->
     it 'wraps Opdefs', ->
       got = Constant.wrap TestOp
 
-      assert.is.equal (Primitive 'opdef'), got.type
+      assert.is.equal Primitive.op, got.type
       assert.is.equal TestOp, got.value
 
     it 'wraps Bultins', ->
       got = Constant.wrap TestBuiltin
 
-      assert.is.equal (Primitive 'builtin'), got.type
+      assert.is.equal Primitive.builtin, got.type
       assert.is.equal TestBuiltin, got.value
 
     it 'wraps Scopes', ->
       sub = Scope!
       got = Constant.wrap sub
 
-      assert.is.equal (Primitive 'scope'), got.type
+      assert.is.equal Primitive.scope, got.type
       assert.is.equal sub, got.value
 
     it 'wraps tables', ->
       pi = Constant.num 3.14
       got = Constant.wrap { :pi }
 
-      assert.is.equal (Primitive 'scope'), got.type
+      assert.is.equal Primitive.scope, got.type
       assert.is.equal pi, (got.value\get 'pi')\const!
 
   describe ':unwrap', ->
@@ -61,23 +61,23 @@ describe 'Constant', ->
       assert.is.equal 'hi', (Constant.sym 'hi')\unwrap!
 
     test 'can assert the type', ->
-      assert.is.equal 3.14, (Constant.num 3.14)\unwrap Primitive 'num'
-      assert.is.equal 'hi', (Constant.str 'hi')\unwrap Primitive 'str'
-      assert.is.equal 'hi', (Constant.sym 'hi')\unwrap Primitive 'sym'
-      assert.has_error -> (Constant.num 3.14)\unwrap Primitive 'sym'
-      assert.has_error -> (Constant.str 'hi')\unwrap Primitive 'num'
-      assert.has_error -> (Constant.sym 'hi')\unwrap Primitive 'str'
+      assert.is.equal 3.14, (Constant.num 3.14)\unwrap Primitive.num
+      assert.is.equal 'hi', (Constant.str 'hi')\unwrap Primitive.str
+      assert.is.equal 'hi', (Constant.sym 'hi')\unwrap Primitive.sym
+      assert.has_error -> (Constant.num 3.14)\unwrap Primitive.sym
+      assert.has_error -> (Constant.str 'hi')\unwrap Primitive.num
+      assert.has_error -> (Constant.sym 'hi')\unwrap Primitive.str
 
     test 'has __call shorthand', ->
       assert.is.equal 3.14, (Constant.num 3.14)!
       assert.is.equal 'hi', (Constant.str 'hi')!
       assert.is.equal 'hi', (Constant.sym 'hi')!
-      assert.is.equal 3.14, (Constant.num 3.14) Primitive 'num'
-      assert.is.equal 'hi', (Constant.str 'hi') Primitive 'str'
-      assert.is.equal 'hi', (Constant.sym 'hi') Primitive 'sym'
-      assert.has_error -> (Constant.num 3.14) Primitive 'sym'
-      assert.has_error -> (Constant.str 'hi') Primitive 'num'
-      assert.has_error -> (Constant.sym 'hi') Primitive 'str'
+      assert.is.equal 3.14, (Constant.num 3.14) Primitive.num
+      assert.is.equal 'hi', (Constant.str 'hi') Primitive.str
+      assert.is.equal 'hi', (Constant.sym 'hi') Primitive.sym
+      assert.has_error -> (Constant.num 3.14) Primitive.sym
+      assert.has_error -> (Constant.str 'hi') Primitive.num
+      assert.has_error -> (Constant.sym 'hi') Primitive.str
 
   describe 'overrides __eq', ->
     it 'compares the type', ->

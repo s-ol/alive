@@ -57,7 +57,7 @@ class Scope
     child = @get start
     if not child
       error Error 'reference', "undefined symbol '#{start}'"
-    if child\type! != (Primitive 'scope')
+    if child\type! != Primitive.scope
       error Error 'reference', "'#{start}' is not a scope"
     child.result!\get rest, while_msg
 

@@ -8,10 +8,6 @@ import Scope from require 'alv.scope'
 import Primitive from require 'alv.type'
 import Error from require 'alv.error'
 
-opdef = Primitive 'opdef'
-fndef = Primitive 'fndef'
-sym = Primitive 'sym'
-
 get_name = (value, raw) ->
   meta = if value.meta then value.meta.name
   locl = if raw and raw.type == 'sym' then raw!
@@ -39,7 +35,7 @@ class op_invoke extends Builtin
       @op = prev.op\fork!
       prev.forked = COPILOT.T
     else
-      def = @head\unwrap opdef, "cant op-invoke #{@head}"
+      def = @head\unwrap Primitive.opdef, "cant op-invoke #{@head}"
       @op = def!
 
   --- `Builtin:destroy` implementation.
@@ -108,7 +104,7 @@ class fn_invoke extends Builtin
     name = get_name @head, @cell\head!
     frame = "invoking function #{name} at [#{@tag}]"
 
-    fndef = @head\unwrap fndef, "cant fn-invoke #{@head}"
+    fndef = @head\unwrap Primitive.fndef, "cant fn-invoke #{@head}"
     { :params, :body } = fndef
     if #params != #tail
       err = Error 'argument', "expected #{#params} arguments, found #{#tail}"
@@ -118,7 +114,7 @@ class fn_invoke extends Builtin
     fn_scope = Scope fndef.scope, caller_scope
 
     children = for i=1,#params
-      name = params[i]\unwrap sym
+      name = params[i]\unwrap Primitive.sym
       with L\push tail[i]\eval, caller_scope
         fn_scope\set name, \make_ref!
 

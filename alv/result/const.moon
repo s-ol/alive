@@ -128,52 +128,52 @@ class Constant extends Result
   -- @treturn Constant
   @wrap: (val, name='(unknown)') ->
     typ = switch type val
-      when 'number' then 'num'
-      when 'string' then 'str'
+      when 'number' then Primitive.num
+      when 'string' then Primitive.str
       when 'table'
         if rawget val, '__base'
           -- a class
           switch ancestor val
-            when base.Op then 'opdef'
-            when base.Builtin then 'builtin'
+            when base.Op then Primitive.op
+            when base.Builtin then Primitive.builtin
             else
               error "#{name}: cannot wrap class '#{val.__name}'"
         elseif val.__class
           -- an instance
           switch ancestor val.__class
-            when scope.Scope then 'scope'
-            when base.FnDef then 'fndef'
+            when scope.Scope then Primitive.scope
+            when base.FnDef then Primitive.fn
             when Result then return val
             else
               error "#{name}: cannot wrap '#{val.__class.__name}' instance"
         else
           -- plain table
           val = scope.Scope.from_table val
-          'scope'
+          Primitive.scope
       else
         error "#{name}: cannot wrap Lua type '#{type val}'"
 
-    Constant (Primitive typ), val
+    Constant typ, val
 
   --- create a constant number.
-  -- @tparam number val the number
+  -- @tparam number num the number
   -- @treturn Constant
-  @num: (val) -> Constant num, val, tostring val
+  @num: (num) -> Constant Primitive.num, num, tostring num
 
   --- create a constant string.
-  -- @tparam string val the string
+  -- @tparam string str the string
   -- @treturn Constant
-  @str: (val) -> Constant str, val, "'#{val}'"
+  @str: (str) -> Constant Primitive.str, str, "'#{str}'"
 
   --- create a constant symbol.
-  -- @tparam string val the symbol
+  -- @tparam string sym the symbol
   -- @treturn Constant
-  @sym: (val) -> Constant sym, val, val
+  @sym: (sym) -> Constant Primitive.sym, sym, sym
 
   --- create a constant boolean.
-  -- @tparam boolean val the boolean
+  -- @tparam boolean bool the boolean
   -- @treturn Constant
-  @bool: (val) -> Constant bool, val, tostring val
+  @bool: (bool) -> Constant Primitive.bool, bool, tostring bool
 
   --- create a forced-literal Constant.
   --

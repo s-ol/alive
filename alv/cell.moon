@@ -74,11 +74,11 @@ class Cell
     head = assert @head!, Error 'syntax', "cannot evaluate empty expr"
     head = (head\eval scope)\const!
     Builtin = switch head.type
-      when (Primitive 'opdef')
+      when Primitive.op
         op_invoke
-      when (Primitive 'fndef')
+      when Primitive.fn
         fn_invoke
-      when (Primitive 'builtin')
+      when Primitive.builtin
         head\unwrap!
       else
         error Error 'type', "#{head} is not an opdef, fndef or builtin"
