@@ -35,7 +35,7 @@ class Input
   --- create a new Input.
   --
   -- @classmethod
-  -- @tparam Stream stream
+  -- @tparam Result stream
   new: (@stream) =>
     assert @stream, "nil passed to Input: #{value}"
 
@@ -98,26 +98,27 @@ class Input
   -- Never marked dirty. Use this for input streams that are only read when
   -- another `Input` is dirty.
   --
-  -- @tparam Stream|RTNode value
+  -- @tparam Result|RTNode value
   @cold: (value) ->
     if value.__class == RTNode
-      value = assert value.value, "Input from result without value!"
+      value = assert value.result, "Input from node without result!"
     ColdInput value
 
   --- Create a `hot` `Input`.
   --
-  -- Behaviour depends on what kind of `Stream` `value` is:
+  -- Behaviour depends on what kind of `Result` `value` is:
   --
+  -- - `Constant`: treated like `cold`.
   -- - `SigStream`: Marked dirty only if old and new `SigStream` differ.
   -- - `EvtStream` and `IOStream`: Marked dirty only if the current
   --   `EvtStream` is dirty.
   --
   -- This is the most common `Input` strategy.
   --
-  -- @tparam Stream|RTNode value
+  -- @tparam Result|RTNode value
   @hot: (value) ->
     if value.__class == RTNode
-      value = assert value.value, "Input from result without value!"
+      value = assert value.result, "Input from node without result!"
 
     InputType = match_parent value, mapping
     assert InputType, "Input from unknown value: #{value}"

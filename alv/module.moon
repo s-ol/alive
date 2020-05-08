@@ -67,8 +67,8 @@ class Module
   --- the last updated AST tree for this module.
   -- @tfield ?AST ast
 
-  --- the root Result of this module.
-  -- @tfield ?Result root
+  --- the runtime graph root of this module.
+  -- @tfield ?RTNode root
 
 {
   :Module

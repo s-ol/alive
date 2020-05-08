@@ -46,7 +46,7 @@ class Copilot
     Error.wrap "loading module '#{name}'", ->
       ok, lua = pcall require, "alv-lib.#{name}"
       if ok
-        RTNode value: Constant.wrap lua
+        RTNode result: Constant.wrap lua
       else
         assert @modules, "no current eval cycle?"
         if mod = @modules[name]

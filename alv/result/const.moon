@@ -1,10 +1,10 @@
 ----
 -- Constant Value.
 --
--- Implements the `Stream` and `AST` inteface.
+-- Implements the `Result` and `AST` inteface.
 --
 -- @classmod Constant
-import Stream from require 'alv.result.base'
+import Result from require 'alv.result.base'
 import Primitive from require 'alv.type'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
@@ -21,10 +21,14 @@ ancestor = (klass) ->
     klass = klass.__parent
   klass
 
-class Constant extends Stream
-  --- Whether this Result is dirty.
-  --
-  -- @treturn bool always `false`.
+class Constant extends Result
+--- Result interface
+--
+-- `Constant` implements the `Result` interface.
+-- @section result
+
+  --- return whether this Result was changed in the current tick.
+  -- @treturn bool
   dirty: => false
 
   --- unwrap to the Lua type.
@@ -53,14 +57,13 @@ class Constant extends Stream
   -- Compares two `SigStream`s by comparing their types and their Lua values.
   __eq: (other) => other.type == @type and other.value == @value
 
-  --- Stream metatype.
-  --
+  --- Result metatype.
   -- @tfield string metatype (`=`)
   metatype: '='
 
 --- AST interface
 --
--- `SignStream` implements the `AST` interface.
+-- `Constant` implements the `AST` interface.
 -- @section ast
 
   --- evaluate this literal constant.
@@ -72,11 +75,11 @@ class Constant extends Stream
   -- @tparam Scope scope the scope to evaluate in
   -- @treturn RTNode the evaluation result
   eval: (scope) =>
-    return RTNode value: @ if @literal
+    return RTNode result: @ if @literal
 
     switch @type
       when num, str
-        RTNode value: @
+        RTNode result: @
       when sym
         Error.wrap "resolving symbol '#{@value}'", scope\get, @value
       else
@@ -140,7 +143,7 @@ class Constant extends Stream
           switch ancestor val.__class
             when scope.Scope then 'scope'
             when base.FnDef then 'fndef'
-            when Stream then return val
+            when Result then return val
             else
               error "#{name}: cannot wrap '#{val.__class.__name}' instance"
         else

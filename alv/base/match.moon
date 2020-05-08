@@ -49,14 +49,12 @@ import Primitive from require 'alv.type'
 
 local Repeat, Sequence, Choice, Optional
 
-typestr = (result) -> tostring result.value
-
 class Pattern
   match: (seq) =>
     @reset!
     num, cap = @capture seq, 1
     if num != #seq
-      args = table.concat [typestr arg for arg in *seq], ' '
+      args = table.concat [arg.result\fulltype! for arg in *seq], ' '
       msg = "couldn't match arguments (#{args}) against pattern #{@}"
       error Error 'argument', msg
     cap
@@ -86,15 +84,15 @@ class Pattern
     cls.__base.__div or= @__div
     cls.__base.__unm or= @__unm
 
---- Base Stream Pattern.
+--- Base Result Pattern.
 --
--- When instantiated with `type`, only succeeds for `Stream`s whose value and
+-- When instantiated with `type`, only succeeds for `Result`s whose value and
 -- meta types match.
 --
 -- Otherwise, matches Streams based only on `metatype` for the first match, but
 -- using both afterwards (recall mode).
 --
--- @function Stream
+-- @function Type
 -- @tparam string metatype "value" or "event"
 -- @tparam ?string type type name
 class Type extends Pattern

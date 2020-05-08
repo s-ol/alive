@@ -111,9 +111,9 @@ describe 'Constant', ->
 
     it 'looks up symbols in the scope', ->
       scope = with Scope!
-        \set 'number', RTNode value: Constant.num 3
-        \set 'hello', RTNode value: Constant.str "world"
-        \set 'goodbye', RTNode value: Constant.sym "again"
+        \set 'number', RTNode result: Constant.num 3
+        \set 'hello', RTNode result: Constant.str "world"
+        \set 'goodbye', RTNode result: Constant.sym "again"
 
       assert_eval = (sym, val) ->
         const = Constant.sym sym

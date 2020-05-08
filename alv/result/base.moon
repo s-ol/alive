@@ -1,55 +1,45 @@
 ----
--- base Stream interface.
+-- base Result interface.
 --
 -- implemented by `Constant`, `SigStream`, `EvtStream`, and `IOStream`.
 --
--- @classmod Stream
+-- @classmod Result
 
-class Stream
---- Stream interface.
+class Result
+--- Result interface.
 --
--- Methods that have to be implemented by `Stream` implementations
+-- Methods that have to be implemented by `Result` implementations
 -- (`SigStream`, `EvtStream`, `IOStream`).
 --
 -- @section interface
 
-  --- return whether this Stream was changed in the current tick.
-  --
+  --- return whether this Result was changed in the current tick.
   -- @function dirty
   -- @treturn boolean
 
-  --- create a mutable copy of this Stream.
+  --- create a mutable copy of this Result.
   --
   -- Used to insulate eval-cycles from each other.
   --
   -- @function fork
-  -- @treturn Stream
+  -- @treturn Result
 
   __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
   __inherited: (cls) => cls.__base.__tostring or= @__tostring
 
-  --- the type name of this Stream's value.
-  --
-  -- the following builtin typenames are used:
-  --
-  -- - `str` - strings, `value` is a Lua string
-  -- - `sym` - symbols, `value` is a Lua string
-  -- - `num` - numbers, `value` is a Lua number
-  -- - `bool` - booleans, `value` is a Lua boolean
-  -- - `bang` - trigger signals, `value` is a Lua boolean
-  -- - `opdef` - `value` is an `Op` subclass
-  -- - `builtin` - `value` is a `Builtin` subclass
-  -- - `fndef` - `value` is a `FnDef` instance
-  -- - `scope` - `value` is a `Scope` instance
-  --
+  --- the type name of this Result's value.
   -- @tfield string type
 
-  --- the metatype string for this Stream.
+  --- the metatype string for this Result.
   --
   -- one of `=` (`Constant`), `~` (`SigStream`),
   -- `!` (`EvtStream` and `IOStream`).
   --
-  -- @tfield string type
+  -- @tfield string metatype
+
+  --- get the full typestring.
+  -- @treturn string `type .. metatype`
+  fulltype: => (tostring @type) .. @metatype
 
   --- documentation metadata.
   --
@@ -66,7 +56,7 @@ class Stream
 --- static functions
 -- @section static
 
-  --- construct a new Stream.
+  --- construct a new Result.
   --
   -- @classmethod
   -- @tparam string type the type name
@@ -74,5 +64,5 @@ class Stream
   new: (@type, @meta={}) =>
 
 {
-  :Stream
+  :Result
 }

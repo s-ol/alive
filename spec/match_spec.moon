@@ -1,14 +1,14 @@
 import val, evt from require 'alv.base.match'
-import RTNode, Primitive, SigStream, EvtStream from require 'alv'
+import RTNode, Primitive, SigStream, EvtStream, Error from require 'alv'
 
 mk_val = (type, const) ->
-  value = SigStream Primitive type
-  with RTNode :value
+  result = SigStream Primitive type
+  with RTNode :result
     .side_inputs = { 'fake' } unless const
 
 mk_evt = (type, const) ->
-  value = EvtStream Primitive type
-  with RTNode :value
+  result = EvtStream Primitive type
+  with RTNode :result
     .side_inputs = { 'fake' } unless const
 
 describe 'val and evt', ->
@@ -224,11 +224,13 @@ describe 'complex nesting', ->
   bang = mk_evt 'bang'
   str = mk_val 'str'
   num = mk_val 'num'
-  pattern = -evt.bang + val.num*4 + (val.str + (val.num / val.str))\named('key', 'val')^0
+  pattern = -evt.bang + val.num*4 +
+            (val.str + (val.num / val.str))\named('key', 'val')^0
 
   it 'just works', ->
     assert.is.same { bang, { num, num }, {} }, pattern\match { bang, num, num }
-    assert.is.same { nil, { num }, { { key: str, val: num }, { key: str, val: str } } },
+    assert.is.same { nil, { num }, { { key: str, val: num },
+                                     { key: str, val: str } } },
                    pattern\match { num, str, num, str, str }
     assert.has.error -> pattern\match { num, str }
     assert.has.error -> pattern\match { bang, num, num, num, num, num, num }
@@ -238,3 +240,8 @@ describe 'complex nesting', ->
 
   it 'stringifies well', ->
     assert.is.equal '(bang!? num{1-4} (str (num | str)){0-*})', tostring pattern
+
+  it 'gives useful error feedback', ->
+    msg = "couldn't match arguments (num~ str~ bool~) against pattern #{pattern}"
+    err = Error 'argument', msg
+    assert.has.error (-> pattern\match { num, str, mk_val 'bool' }), err

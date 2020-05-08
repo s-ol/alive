@@ -31,7 +31,7 @@ class Builtin
   --
   -- @tparam Scope scope the active scope
   -- @tparam {AST,...} tail the arguments to this expression
-  -- @treturn Result the result of this evaluation
+  -- @treturn RTNode the result of this evaluation
   eval: (scope, tail) => error "not implemented"
 
   --- free resources
@@ -62,12 +62,12 @@ class Builtin
   -- Create a new instance using `tag` and `head` and call `setup` on it.
   -- If a previous instance with the same `tag` exists and has the same `head`,
   -- it pass it to `setup`. Register the `Builtin` with `tag`, evaluate it
-  -- and return the `Result`.
+  -- and return the `RTNode`.
   --
   -- @tparam Cell cell the `Cell` being evaluated
   -- @tparam Scope scope the active scope
   -- @tparam Value head the (`AST:eval`d) head of the `Cell` being evaluated
-  -- @treturn Result the result of evaluation
+  -- @treturn RTNode the result of evaluation
   @eval_cell: (cell, scope, head) =>
     last = cell.tag\last!
     compatible = last and (last.__class == @) and last.head == head

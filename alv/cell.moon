@@ -69,7 +69,7 @@ class Cell
   -- then calls `Builtin:eval_cell` on it.
   --
   -- @tparam Scope scope the scope to evaluate in
-  -- @treturn Result the evaluation result
+  -- @treturn RTNode the evaluation result
   eval: (scope) =>
     head = assert @head!, Error 'syntax', "cannot evaluate empty expr"
     head = (head\eval scope)\const!

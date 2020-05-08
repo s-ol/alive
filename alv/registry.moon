@@ -2,8 +2,6 @@
 -- `Tag` Registry.
 --
 -- @classmod Registry
-import Result from require 'alv.result'
-import Error from require 'alv.error'
 
 class Registry
 --- internals for `Tag`

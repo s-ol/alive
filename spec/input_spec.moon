@@ -12,7 +12,7 @@ class MyIO extends IOStream
   dirty: => @is_dirty
 
 basic_tests = (stream, input) ->
-  it 'gives access to the Stream', ->
+  it 'gives access to the Result', ->
     assert.is.equal stream, input.stream
 
   it 'forwards :unwrap', ->

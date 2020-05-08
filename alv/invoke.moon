@@ -64,7 +64,7 @@ class op_invoke extends Builtin
     children = [L\push expr\eval, scope for expr in *tail]
 
     frame = "invoking op #{get_name @head, @cell\head!} at [#{@tag}]"
-    Error.wrap frame, @op\setup, [result for result in *children], scope
+    Error.wrap frame, @op\setup, [node for node in *children], scope
 
     any_dirty = false
     for input in @op\all_inputs!
@@ -78,7 +78,7 @@ class op_invoke extends Builtin
     for input in @op\all_inputs!
       input\finish_setup!
 
-    RTNode :children, value: @op.out, op: @op
+    RTNode :children, result: @op.out, op: @op
 
   --- The `Op` instance.
   --
@@ -123,10 +123,10 @@ class fn_invoke extends Builtin
         fn_scope\set name, \make_ref!
 
     clone = body\clone @tag
-    result = Error.wrap frame, clone\eval, fn_scope
+    node = Error.wrap frame, clone\eval, fn_scope
 
-    table.insert children, result
-    RTNode :children, value: result.value
+    table.insert children, node
+    RTNode :children, result: node.result
 
 {
   :op_invoke, :fn_invoke

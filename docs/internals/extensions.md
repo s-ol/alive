@@ -11,13 +11,13 @@ these are exported in the `base` module.
 
 ## documentation metadata
 The lua module should return a `Scope` or a table that will be converted using
-`Scope.from_table`. All exports should be documented using `ValueStream.meta`,
+`Scope.from_table`. All exports should be documented using `Constant.meta`,
 which attaches a `meta` table to the value that is used for error messages,
 documentation generation and [`(doc)`][builtins-doc].
 
-    import ValueStream from require 'alv.base'
+    import Constant from require 'alv.base'
 
-    two = ValueStream.meta
+    two = Constant.meta
       meta:
         name: 'two'
         summary: "the number two"
@@ -43,9 +43,9 @@ Most extensions will want to define a number of *Op*s to be used by the user.
 They are implemented by deriving from the `Op` class and implementing at least
 the `Op:setup` and `Op:tick` methods.
 
-    import ValueStream, Op, Input, evt from require 'alv.base'
+    import Constant, SigStream, Op, Input, evt from require 'alv.base'
 
-    total_sum = ValueStream.meta
+    total_sum = Constant.meta
       meta:
         name: 'total-sum'
         summary: "Keep a total of incoming numbers."
@@ -56,7 +56,7 @@ the `Op:setup` and `Op:tick` methods.
         new: (...) =>
           super ...
           @state or= { total: 0 }
-          @out or= ValueStream 'num', @state.total
+          @out or= SigStream 'num', @state.total
 
         setup: (inputs, scope) =>
           num = evt.num\match inputs
@@ -89,9 +89,9 @@ for more information).
     pattern = evt.bang + val.str + val.num*3 + -evt!
     { trig, str, numbers, optional } = pattern\match inputs
 
-This example matches first an `EventStream` of type `bang`, then a `ValueStream`
+This example matches first an `EvtStream` of type `bang`, then a `SigStream`
 of type `str`, followed by one, two or three `num`-values and finally an
-optional argument `EventStream` of any type. `:match` will throw an error if it
+optional argument `EvtStream` of any type. `:match` will throw an error if it
 couldn't (fully) match the arguments and otherwise return a structured mapping
 of the inputs.
 
@@ -111,12 +111,12 @@ update when the value changes, it's enough to update only when the trigger
 input changes and simply read the value in that moment.
 
 *Hot* inputs on the other hand mark the input stream as a dependency for the
-Op. Depending on the type of `Stream`, the semantics are a little different:
+Op. Depending on the type of `Result`, the semantics are a little different:
 
-- For `ValueStream`s, the Op updates whenever the current value changes. When
+- For `SigStream`s, the Op updates whenever the current value changes. When
   an input stream is swapped out for another one at evaltime, but their values
   are momentarily equal, the input is not considered dirty.
-- For `EventStream`s and `IOStream`s, the Op updates whenever the stream is
+- For `EvtStream`s and `IOStream`s, the Op updates whenever the stream is
   dirty. There is no special handling when the stream is swapped out at
   evaltime.
 
@@ -142,26 +142,29 @@ long as all 'leaf values' are `Input` instances. The following are both valid:
       values: { (Inputs.cold a), (Inputs.cold b), (Inputs.cold c) }
 
 #### output setup
-When `Op:setup` finishes, `@out` has to be set to a `Stream` instance. The
+When `Op:setup` finishes, `@out` has to be set to a `Result` instance. The
 instance can be created in `Op:setup`, or by overriding the constructor and
 delegating to the original one using `super`. In general setting it in the
 constructor is preferred, and it is only moved to `Op:setup` if the output
 type depends on the arguments received.
 
-There are three types of `Stream`s that can be created:
+There are four types of `Result`s that can be created:
 
-- `ValueStream`s track *continuous values*. They can only have one value per
-  tick, and downstream Ops will not update when a *ValueStream* has been set
-  to the same value it already had. They are updated using `ValueStream:set`.
-- `EventStream`s transmit *momentary events*. They can transmit multiple events
-  in a single tick. `EventStream`s do not keep a value set on the last tick on
-  the next tick. They are updated using `EventStream:add`.
-- `IOStream`s are like `EventStream`s, but their `IOStream:poll` method is
+- `SigStream`s track *continuous values*. They can only have one value per
+  tick, and downstream Ops will not update when a *SigStream* has been set
+  to the same value it already had. They are updated using `SigStream:set`.
+- `EvtStream`s transmit *momentary events*. They can transmit multiple events
+  in a single tick. `EvtStream`s do not keep a value set on the last tick on
+  the next tick. They are updated using `EvtStream:add`.
+- `IOStream`s are like `EvtStream`s, but their `IOStream:poll` method is
   polled by the event loop at the start of every tick. This gives them a chance
   to effectively create changes 'out of thin air' and kickstart the execution
   of the dataflow engine. All *runtime* execution is due to an `IOStream`
   becoming dirty somewhere. See the section on implementing `IOStream`s below
   for more information.
+- `Constant`s do not change in-between evalcycles. Usually Ops do not output
+  `Constant`s directly, althrough `SigStream`s outputs are automatically
+  'downgraded' to `Constant`s when the Op has no reactive inputs.
 
 ### Op:tick
 `Op:tick` is called whenever any of the inputs are *dirty*. This is where the
@@ -179,7 +182,7 @@ familiar with the relevant internal interfaces (especially `AST`, `Result`, and
 `Scope`).
 
 ## defining `IOStream`s
-`IOStream`s are `EventStream`s that can 'magically' create events out of
+`IOStream`s are `EvtStream`s that can 'magically' create events out of
 nothing. They are the source of all processing in alv. Whenever you want to
 bring events into alv from an external protocol or application, an IOStream
 will be necessary.
@@ -196,7 +199,7 @@ To implement a custom IOStream, create it as a class that inherits from the
         if math.random! < 0.1
           @add true
 
-In the constructor, you should call the super-constructor `EventStream.new` to
+In the constructor, you should call the super-constructor `EvtStream.new` to
 set the event type. Often this will be a custom event that is only used inside
 your extension (such as e.g. the `midi/port` type in the [midi][modules-midi]
 module), but it can also be a primitive type like `'num'` in this example. In
@@ -209,7 +212,7 @@ them this way in a real extension.
 ### using `IOStream`s
 There's a couple of ways IOStreams can be used and exposed to the user of your
 extension. You can either expose an instance of your IOStream directly
-(documented using `ValueStream.meta`), or offer an Op that creates and returns
+(documented using `SigStream.meta`), or offer an Op that creates and returns
 an instance in `Op.out` - that way the IOStream can be created only on demand
 and take parameters. It is also possible to not exepose the IOStream at all,
 and rather pass it as a hardcoded input into an Op's `Op.inputs`.

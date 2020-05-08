@@ -2,28 +2,17 @@
 -- Stream of momentary events.
 --
 -- @classmod EvtStream
-import Stream from require 'alv.result.base'
+import Result from require 'alv.result.base'
 
-class EvtStream extends Stream
---- members
--- @section members
+class EvtStream extends Result
+--- Result interface
+--
+-- `EvtStream` implements the `Result` interface.
+-- @section result
 
-  --- return whether this stream was changed in the current tick.
-  --
+  --- return whether this Result was changed in the current tick.
   -- @treturn bool
   dirty: => @updated == COPILOT.T
-
-  --- push an event value into the stream.
-  --
-  -- Marks this stream as dirty for the remainder of the current tick.
-  --
-  -- @tparam any event
-  add: (event) =>
-    if not @dirty!
-      @events = {}
-
-    @updated = COPILOT.T
-    table.insert @events, event
 
   --- get the sequence of current events (if any).
   --
@@ -48,26 +37,12 @@ class EvtStream extends Stream
   __call: (...) => @unwrap ...
   __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
 
-  --- Stream metatype.
-  --
+  --- the type name of this Result's value.
+  -- @tfield string type
+
+  --- the metatype string for this Result.
   -- @tfield string metatype (`!`)
   metatype: '!'
-
-  --- the type name of the stream.
-  --
-  -- the following builtin typenames are used:
-  --
-  -- - `str` - strings, `value` is a Lua string
-  -- - `sym` - symbols, `value` is a Lua string
-  -- - `num` - numbers, `value` is a Lua number
-  -- - `bool` - booleans, `value` is a Lua boolean
-  -- - `bang` - trigger signals, `value` is a Lua boolean
-  -- - `opdef` - `value` is an `Op` subclass
-  -- - `builtin` - `value` is a `Builtin` subclass
-  -- - `fndef` - `value` is a `FnDef` instance
-  -- - `scope` - `value` is a `Scope` instance
-  --
-  -- @tfield string type
 
   --- documentation metadata.
   --
@@ -80,6 +55,22 @@ class EvtStream extends Stream
   -- - `description`: optional full-text description (markdown)
   --
   -- @tfield ?table meta
+
+--- members
+-- @section members
+
+  --- push an event value into the stream.
+  --
+  -- Marks this stream as dirty for the remainder of the current tick.
+  --
+  -- @tparam any event
+  add: (event) =>
+    if not @dirty!
+      @events = {}
+
+    @updated = COPILOT.T
+    table.insert @events, event
+
 
 --- static functions
 -- @section static

@@ -2,25 +2,18 @@
 -- Continuous stream of values.
 --
 -- @classmod SigStream
-import Stream from require 'alv.result.base'
+import Result from require 'alv.result.base'
 import Primitive from require 'alv.type'
 
-class SigStream extends Stream
---- members
--- @section members
+class SigStream extends Result
+--- Result interface
+--
+-- `SigStream` implements the `Result` interface.
+-- @section result
 
-  --- return whether this stream was changed in the current tick.
-  --
+  --- return whether this Result was changed in the current tick.
   -- @treturn bool
   dirty: => @updated == COPILOT.T
-
-  --- update this stream's value.
-  --
-  -- Marks this stream as dirty for the remainder of the current tick.
-  set: (value) =>
-    if value != @value
-      @value = value
-      @updated = COPILOT.T
 
   --- unwrap to the Lua type.
   --
@@ -50,29 +43,12 @@ class SigStream extends Stream
   -- Compares two `SigStream`s by comparing their types and their Lua values.
   __eq: (other) => other.type == @type and other.value == @value
 
-  --- Stream metatype.
-  --
-  -- @tfield string metatype (`~`)
-  metatype: '~'
-
-  --- the type name of this stream.
-  --
-  -- the following builtin typenames are used:
-  --
-  -- - `str` - strings, `value` is a Lua string
-  -- - `sym` - symbols, `value` is a Lua string
-  -- - `num` - numbers, `value` is a Lua number
-  -- - `bool` - booleans, `value` is a Lua boolean
-  -- - `bang` - trigger signals, `value` is a Lua boolean
-  -- - `opdef` - `value` is an `Op` subclass
-  -- - `builtin` - `value` is a `Builtin` subclass
-  -- - `fndef` - `value` is a `FnDef` instance
-  -- - `scope` - `value` is a `Scope` instance
-  --
+  --- the type name of this Result's value.
   -- @tfield string type
 
-  --- the wrapped Lua value.
-  -- @tfield any value
+  --- the metatype string for this Result.
+  -- @tfield string metatype (`~`)
+  metatype: '~'
 
   --- documentation metadata.
   --
@@ -85,6 +61,20 @@ class SigStream extends Stream
   -- - `description`: optional full-text description (markdown)
   --
   -- @tfield ?table meta
+
+--- members
+-- @section members
+
+  --- update this stream's value.
+  --
+  -- Marks this stream as dirty for the remainder of the current tick.
+  set: (value) =>
+    if value != @value
+      @value = value
+      @updated = COPILOT.T
+
+  --- the wrapped Lua value.
+  -- @tfield any value
 
 --- static functions
 -- @section static

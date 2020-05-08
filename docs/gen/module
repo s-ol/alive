@@ -33,9 +33,9 @@ spit OUT, layout
   body: section {
     h2 (code name), ' module reference'
     h3 'index'
-    ul for key, res in opairs module.values
-      li render key, res.value, nil, true
+    ul for key, node in opairs module.values
+      li render key, node.result, nil, true
     h3 'details'
-    ul for key, res in opairs module.values
-      li render key, res.value
+    ul for key, node in opairs module.values
+      li render key, node.result
   }

@@ -35,9 +35,9 @@ doc = Constant.meta
     eval: (scope, tail) =>
       assert #tail == 1, "'doc' takes exactly one parameter"
 
-      result = L\push tail[1]\eval, scope
+      node = L\push tail[1]\eval, scope
       with RTNode children: { def }
-        meta = result.value.meta
+        meta = node.result.meta
         L\print "(doc #{tail[1]}):\n#{format_meta meta}\n"
 
 def = Constant.meta
@@ -78,8 +78,8 @@ All arguments have to be evaltime constant."
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
       for child in *tail
-        result = L\push child\eval, scope
-        value = result\const!
+        node = L\push child\eval, scope
+        value = node\const!
         scope\use value\unwrap 'scope', "'use' only works on scopes"
 
       RTNode!
@@ -96,8 +96,8 @@ require_ = Constant.meta
       L\trace "evaling #{@}"
       assert #tail == 1, "'require' takes exactly one parameter"
 
-      result = L\push tail[1]\eval, scope
-      name = result\const!\unwrap 'str'
+      node = L\push tail[1]\eval, scope
+      name = node\const!\unwrap 'str'
 
       L\trace @, "loading module #{name}"
       COPILOT\require name
@@ -148,11 +148,11 @@ export_ = Constant.meta
     description: "
 Evaluate `expr1`, `expr2`, … in a new Scope and return scope."
 
-  value: class  extends Builtin
+  value: class extends Builtin
     eval: (scope, tail) =>
       new_scope = Scope scope
       children = [expr\eval new_scope for expr in *tail]
-      RTNode :children, value: Constant.wrap new_scope
+      RTNode :children, result: Constant.wrap new_scope
 
 export_star = Constant.meta
   meta:
@@ -170,16 +170,16 @@ Copies the containing scope if no symbols are given."
       new_scope = Scope!
 
       children = if #tail == 0
-        for k,result in pairs scope.values
-          new_scope\set k, result
-          result
+        for k,node in pairs scope.values
+          new_scope\set k, node
+          node
       else
         for child in *tail
           name = child\unwrap 'sym'
-          with result = scope\get name
-            new_scope\set name, result
+          with node = scope\get name
+            new_scope\set name, node
 
-      RTNode :children, value: Constant.wrap new_scope
+      RTNode :children, result: Constant.wrap new_scope
 
 fn = Constant.meta
   meta:
@@ -201,7 +201,7 @@ function is invoked."
         assert param.type == 'sym', "function parameter declaration has to be a symbol"
         param
 
-      RTNode value: with Constant.wrap FnDef param_symbols, body, scope
+      RTNode result: with Constant.wrap FnDef param_symbols, body, scope
         .meta = {
           summary: "(user defined function)"
           examples: { "(??? #{table.concat [p! for p in *param_symbols], ' '})" }
@@ -229,13 +229,13 @@ function is invoked."
         assert param.type == 'sym', "function parameter declaration has to be a symbol"
         param
 
-      value = with Constant.wrap FnDef param_symbols, body, scope
+      result = with Constant.wrap FnDef param_symbols, body, scope
         .meta =
           :name
           summary: "(user defined function)"
           examples: { "(#{name} #{table.concat [p! for p in *param_symbols], ' '})" }
 
-      scope\set name, RTNode :value
+      scope\set name, RTNode :result
       RTNode!
 
 do_expr = Constant.meta
@@ -246,11 +246,11 @@ do_expr = Constant.meta
     description: "
 Evaluate `expr1`, `expr2`, … and return the value of the last expression."
 
-  value: class  extends Builtin
+  value: class extends Builtin
     eval: (scope, tail) =>
       scope = Scope scope
       children = [expr\eval scope for expr in *tail]
-      RTNode :children, value: children[#children].value
+      RTNode :children, result: children[#children].result
 
 if_ = Constant.meta
   meta:
@@ -288,8 +288,8 @@ trace_ = Constant.meta
       L\trace "evaling #{@}"
       assert #tail == 1, "'trace!' takes exactly one parameter"
 
-      with result = L\push tail[1]\eval, scope
-        L\print "trace! #{tail[1]\stringify!}: #{result.value}"
+      with node = L\push tail[1]\eval, scope
+        L\print "trace! #{tail[1]\stringify!}: #{node.result}"
 
 trace = Constant.meta
   meta:

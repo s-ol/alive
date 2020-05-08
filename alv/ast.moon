@@ -10,11 +10,11 @@
 
   --- evaluate this AST Node.
   --
-  -- Evaluate this node and return a `Result`.
+  -- Evaluate this node and return a `RTNode`.
   --
   -- @function eval
   -- @tparam Scope scope the scope to evaluate in
-  -- @treturn Result the evaluation result
+  -- @treturn RTNode the evaluation result
 
   --- create a clone with its own identity.
   --

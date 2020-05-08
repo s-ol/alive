@@ -18,8 +18,8 @@ class Scope
   -- @tparam string key
   -- @tparam any val
   set_raw: (key, val) =>
-    value = Constant.wrap val, key
-    @values[key] = RTNode :value
+    result = Constant.wrap val, key
+    @values[key] = RTNode :result
 
   --- set a symbol to a `RTNode`.
   --
@@ -28,7 +28,7 @@ class Scope
   set: (key, val) =>
     L\trace "setting #{key} = #{val} in #{@}"
     assert val.__class == RTNode, "expected #{key}=#{val} to be RTNode"
-    assert val.value, Error 'type', "cannot define symbol to nil"
+    assert val.result, Error 'type', "cannot define symbol to nil"
     assert not @values[key], Error 'type', "cannot redefine symbol '#{key}'!"
     @values[key] = val
 
@@ -59,7 +59,7 @@ class Scope
       error Error 'reference', "undefined symbol '#{start}'"
     if child\type! != (Primitive 'scope')
       error Error 'reference', "'#{start}' is not a scope"
-    child.value!\get rest, while_msg
+    child.result!\get rest, while_msg
 
   --- copy definitions from another scope.
   --

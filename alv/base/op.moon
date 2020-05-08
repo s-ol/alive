@@ -46,9 +46,9 @@ class Op
   --
   -- @tfield table state
 
-  --- `Stream` instance representing this Op's computed output value.
+  --- `Result` instance representing this Op's computed output value.
   --
-  -- Must be set to a `Stream` instance once `setup` finishes. Must not change
+  -- Must be set to a `Result` instance once `setup` finishes. Must not change
   -- type, be removed or replaced outside of `new` and `setup`. If it is a
   -- `ValueStream`, it should have a value assigned via `set` or the
   -- constructor once `tick` is called the first time. If `out`'s value is not
@@ -56,7 +56,7 @@ class Op
   -- `tick``(true)` is called at least on the first eval-cycle the Op goes
   -- through, e.g. by using an `Input.hot` with a `ValueStream`.
   --
-  -- @tfield Stream out
+  -- @tfield Result out
 
   --- table containing `Input`s to this Op.
   --
@@ -79,18 +79,18 @@ class Op
   --
   -- @function new
   -- @classmethod
-  -- @tparam ?Stream out `out`
+  -- @tparam ?Result out `out`
   -- @tparam ?table state `state`
 
   --- parse arguments and patch self.
   --
-  -- Called once every eval-cycle. `inputs` is a list of `Result`s that are the
+  -- Called once every eval-cycle. `inputs` is a list of `RTNode`s that are the
   -- argument to this op. The `inputs` have to be wrapped in `Input` instances
   -- to define update behaviour. Use `base.match` to parse them, then delegate to
   -- `super:setup` to patch the `Input` instances.
   --
   -- @function setup
-  -- @tparam {Result,...} inputs a sequence of `Result`s
+  -- @tparam {RTNode,...} inputs a sequence of `RTNode`s
   -- @tparam Scope scope the active scope
 
   --- handle incoming events and update `out` (optional).
@@ -120,7 +120,7 @@ class Op
   -- type is not known at this time.
   --
   -- @classmethod
-  -- @tparam ?Stream out `out`
+  -- @tparam ?Result out `out`
   -- @tparam ?table state `state`
   new: (@out, @state) =>
 

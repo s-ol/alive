@@ -16,14 +16,14 @@ render_meta = (meta) ->
 
   contents
 
--- render an ALV Value to a HTML string
-render = (name, value, prefix=nil, index=false) ->
+-- render a Result to a HTML string
+render = (name, result, prefix=nil, index=false) ->
   import div, label, code, ul, li, i, a, pre from dom
 
   id = if prefix then "#{prefix}/#{name}" else name
-  type = i value.type
-  assert value.meta, "#{id} doesn't have any metadata!"
-  summary = assert value.meta.summary, "#{id} doesn't have a summary!"
+  type = i tostring result.type
+  assert result.meta, "#{id} doesn't have any metadata!"
+  summary = assert result.meta.summary, "#{id} doesn't have a summary!"
 
   if index
     div {
@@ -31,12 +31,12 @@ render = (name, value, prefix=nil, index=false) ->
       summary
     }
   else
-    content = switch value.type
+    content = switch tostring result.type
       when 'scope'
-        ul for k, result in opairs value!.values
-          li render k, result.value, id
+        ul for k, node in opairs result!.values
+          li render k, node.result, id
       else
-        render_meta value.meta
+        render_meta result.meta
 
     content.class = 'nest'
     div {

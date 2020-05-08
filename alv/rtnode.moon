@@ -9,33 +9,33 @@ class RTNode
 --- members
 -- @section members
 
-  --- return whether this RTNode's value is const.
+  --- return whether this RTNode's result is const.
   is_const: => not next @side_inputs
 
-  --- assert value-constness and return the value.
+  --- assert result-constness and return the result.
   -- @tparam[opt] string msg the error message to throw
   -- @treturn any
   const: (msg) =>
     assert not (next @side_inputs), msg or "eval-time const expected"
-    @value
+    @result
 
-  --- assert this result has a value, return its type.
+  --- assert this result has a result, return its type.
   -- @treturn string
   type: =>
-    assert @value, "RTNode with value expected"
-    @value.type
+    assert @result, "RTNode with result expected"
+    @result.type
 
-  --- assert this result has a value, returns its metatype.
-  -- @treturn string `"value"` or `"event"`
+  --- assert this result has a result, returns its metatype.
+  -- @treturn string `"result"` or `"event"`
   metatype: =>
-    assert @value, "RTNode with value expected"
-    @value.metatype
+    assert @result, "RTNode with result expected"
+    @result.metatype
 
-  --- create a copy of this result with value-copy semantics.
-  -- the copy has the same @value and @side_inputs, but will not update
+  --- create a copy of this result with result-copy semantics.
+  -- the copy has the same @result and @side_inputs, but will not update
   -- anything on \tick.
   make_ref: =>
-    with RTNode value: @value
+    with RTNode result: @result
       .side_inputs = @side_inputs
 
   --- poll all IOStream instances that are effecting this (sub)tree.
@@ -73,15 +73,15 @@ class RTNode
       @op\tick!
 
   __tostring: =>
-    buf = "<RT=#{@value}"
+    buf = "<RT=#{@result}"
     buf ..= " #{@op}" if @op
     buf ..= " (#{#@children} children)" if #@children > 0
     buf ..= ">"
     buf
 
-  --- the `Stream` result
+  --- the `Result` result
   --
-  -- @tfield ?Stream value
+  -- @tfield ?Result result
 
   --- an Op
   --
@@ -91,21 +91,21 @@ class RTNode
   --
   -- @tfield {}|{RTNode,...} children
 
-  --- cached mapping of all `Stream`/`Input` pairs affecting this RTNode.
+  --- cached mapping of all `Result`/`Input` pairs affecting this RTNode.
   --
   -- This is the union of all `children`s `side_inputs` and all `Input`s from
-  -- `op` that are not the `value` of any child.
+  -- `op` that are not the `result` of any child.
   --
-  -- @tfield {[Stream]=Input,...} side_inputs
+  -- @tfield {[Result]=Input,...} side_inputs
 
 --- static functions
 -- @section static
 
   --- create a new RTNode.
   -- @classmethod
-  -- @param params table with optional keys op, value, children. default: {}
+  -- @param params table with optional keys op, result, children. default: {}
   new: (params={}) =>
-    @value = params.value
+    @result = params.result
     @op = params.op
     @children = params.children or {}
 
@@ -113,13 +113,16 @@ class RTNode
     for child in *@children
       for stream, input in pairs child.side_inputs
         @side_inputs[stream] = input
-      if child.value
-        is_child[child.value] = true
+      if child.result
+        is_child[child.result] = true
 
     if @op
       for input in @op\all_inputs!
         if input.io or not is_child[input.stream]
           @side_inputs[input.stream] = input
+
+    if @result and @result.metatype == '='
+      assert not (next @side_inputs), "Const result has side_inputs"
 
 {
   :RTNode
