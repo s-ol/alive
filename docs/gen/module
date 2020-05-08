@@ -2,6 +2,7 @@
 import Scope from require 'alv'
 import render, layout from require 'docs.gen.layout'
 import section, h2, h3, ul, li, code from require 'docs.gen.dom'
+import opairs from require 'alv.util'
 
 export OUT, require
 

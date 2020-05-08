@@ -1,6 +1,7 @@
 version = require 'alv.version'
 dom = require 'docs.gen.dom'
 import compile from require 'discount'
+import opairs from require 'alv.util'
 
 render_meta = (meta) ->
   import p, code from dom

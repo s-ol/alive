@@ -1,7 +1,7 @@
 #!/usr/bin/env moon
-import ValueStream from require 'alv'
 import render, layout, autoref from require 'docs.gen.layout'
 import section, h1, h2, p, ul, li, a, code from require 'docs.gen.dom'
+import opairs from require 'alv.util'
 
 export OUT
 
