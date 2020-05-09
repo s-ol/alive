@@ -121,6 +121,7 @@ class RTNode
 
     if @op
       for input in @op\all_inputs!
+        continue if input.result.metatype == '='
         if input.io or not is_child[input.result]
           @side_inputs[input.result] = input
 
