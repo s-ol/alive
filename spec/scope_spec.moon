@@ -52,6 +52,23 @@ describe 'Scope', ->
       assert.is.equal pi, (got.value\get 'pi')\const!
       assert.is.equal pi, (scope\get 'math/pi')\const!
 
+  it 'stringifies well', ->
+    scope = Scope.from_table {
+      num: 3
+      str: "im a happy string"
+      :pi
+      math: :pi
+      test: TestOp
+    }
+    sub = Scope Scope scope
+
+    assert.is.equal "<Scope ^1 []>", tostring sub
+    assert.is.equal "<Scope ^-1 [math, num, str, test]>", tostring scope
+    scope\set_raw 'a', Constant.num 1
+    scope\set_raw 'b', Constant.num 2
+    scope\set_raw 'c', Constant.num 3
+    assert.is.equal "<Scope ^-1 [a, b, c, math, num, …]>", tostring scope
+
   it 'wraps Values in from_table', ->
     pi = Constant.num 3.14
     scope = Scope.from_table {

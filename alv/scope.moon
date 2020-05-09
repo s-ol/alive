@@ -6,6 +6,7 @@ import Constant from require 'alv.result'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 import T from require 'alv.type'
+import opairs from require 'alv.util'
 
 class Scope
 --- members
@@ -81,10 +82,10 @@ class Scope
       parent = parent.parent
     buf ..= " ^#{depth}" if depth != 0
 
-    keys = [key for key in pairs @values]
+    keys = [key for key in opairs @values]
     if #keys > 5
       keys = [key for key in *keys[,5]]
-      keys[6] = '...'
+      keys[6] = '…'
     buf ..= " [#{table.concat keys, ', '}]"
 
     buf ..= ">"
