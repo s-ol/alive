@@ -35,7 +35,10 @@ class EvtStream extends Result
 
   --- alias for `unwrap`.
   __call: (...) => @unwrap ...
-  __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
+
+  __tostring: =>
+    events = table.concat [@type\pp e for e in *@events], ' '
+    "<#{@type}#{@metatype} #{events}>"
 
   --- the type of this Result's value.
   -- @tfield type.Type type
@@ -79,7 +82,9 @@ class EvtStream extends Result
   --
   -- @classmethod
   -- @tparam type.Type type the type
-  new: (type) => super type
+  new: (type) =>
+    super type
+    @events = {}
 
 {
   :EvtStream

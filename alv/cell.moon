@@ -5,7 +5,7 @@
 -- nodes), a `Tag`, and optionally the internal whitespace as parsed.
 --
 -- @classmod Cell
-import Primitive from require 'alv.type'
+import T from require 'alv.type'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import op_invoke, fn_invoke from require 'alv.invoke'
@@ -74,11 +74,11 @@ class Cell
     head = assert @head!, Error 'syntax', "cannot evaluate empty expr"
     head = (head\eval scope)\const!
     Builtin = switch head.type
-      when Primitive.op
+      when T.opdef
         op_invoke
-      when Primitive.fn
+      when T.fndef
         fn_invoke
-      when Primitive.builtin
+      when T.builtin
         head\unwrap!
       else
         error Error 'type', "#{head} is not an opdef, fndef or builtin"

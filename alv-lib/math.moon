@@ -1,10 +1,10 @@
-import Op, ValueStream, Error, Input, val from require 'alv.base'
+import Op, Constant, SigStream, Error, Input, T, val from require 'alv.base'
 unpack or= table.unpack
 
 class ReduceOp extends Op
   pattern = val.num + val.num*0
   setup: (inputs) =>
-    @out or= ValueStream 'num'
+    @out or= SigStream T.num
     { first, rest } = pattern\match inputs
     super
       first: Input.hot first
@@ -21,14 +21,16 @@ func_op = (func, pattern) ->
   class extends Op
 
     setup: (inputs) =>
-      @out or= ValueStream 'num'
+      @out or= SigStream T.num
+
       params = pattern\match inputs
       super [Input.hot p for p in *params]
+
 
     tick: => @out\set func unpack @unwrap_all!
 
 func_def = (name, args, func, summary, pattern) ->
-   ValueStream.meta
+   Constant.meta
      meta:
        :name
        :summary
@@ -39,17 +41,17 @@ evenodd_op = (remainder) ->
   class extends Op
     pattern = val.num + -val.num
     setup: (inputs) =>
-      @out or= ValueStream 'bool'
+      @out or= SigStream T.bool
       { val, div } = pattern\match inputs
       super
         val: Input.hot val
-        div: Input.hot div or ValueStream.num 2
+        div: Input.hot div or SigStream.num 2
 
     tick: =>
       { :val, :div } = @unwrap_all!
       @out\set (val % div) == remainder
 
-add = ValueStream.meta
+add = Constant.meta
   meta:
     name: 'add'
     summary: "Add values."
@@ -58,7 +60,7 @@ add = ValueStream.meta
   value: class extends ReduceOp
     fn: (a, b) -> a + b
 
-sub = ValueStream.meta
+sub = Constant.meta
   meta:
     name: 'sub'
     summary: "Subtract values."
@@ -67,7 +69,7 @@ sub = ValueStream.meta
   value: class extends ReduceOp
     fn: (a, b) -> a - b
 
-mul = ValueStream.meta
+mul = Constant.meta
   meta:
     name: 'mul'
     summary: "Multiply values."
@@ -75,7 +77,7 @@ mul = ValueStream.meta
   value: class extends ReduceOp
     fn: (a, b) -> a * b
 
-div = ValueStream.meta
+div = Constant.meta
   meta:
     name: 'div'
     summary: "Divide values."
@@ -84,7 +86,7 @@ div = ValueStream.meta
   value: class extends ReduceOp
     fn: (a, b) -> a / b
 
-pow = ValueStream.meta
+pow = Constant.meta
   meta:
     name: 'pow'
     summary: "Raise to a power."
@@ -93,7 +95,7 @@ pow = ValueStream.meta
   value: class extends ReduceOp
     fn: (a, b) -> a ^ b
 
-mod = ValueStream.meta
+mod = Constant.meta
   meta:
     name: 'mod'
     summary: 'Modulo operator.'
@@ -101,7 +103,7 @@ mod = ValueStream.meta
     description: "Calculate remainder of division by `div`."
   value: func_op ((a, b) -> a % b), val.num + val.num
 
-even = ValueStream.meta
+even = Constant.meta
   meta:
     name: 'even'
     summary: 'Check whether val is even.'
@@ -110,7 +112,7 @@ even = ValueStream.meta
 `div` defaults to 2."
   value: evenodd_op 0
 
-odd = ValueStream.meta
+odd = Constant.meta
   meta:
     name: 'odd'
     summary: 'Check whether val is odd.'
@@ -119,7 +121,7 @@ odd = ValueStream.meta
 `div` defaults to 2."
   value: evenodd_op 1
 
-mix = ValueStream.meta
+mix = Constant.meta
   meta:
     name: 'mix'
     summary: 'Linearly interpolate.'
@@ -127,7 +129,7 @@ mix = ValueStream.meta
     description: "Interpolate between `a` and `b` using `i` in range 0-1."
   value: func_op ((a, b, i) -> i*b + (1-i)*a), val.num + val.num + val.num
 
-min = ValueStream.meta
+min = Constant.meta
   meta:
     name: 'min'
     summary: "Find the minimum."
@@ -135,7 +137,7 @@ min = ValueStream.meta
     description: "Return the lowest of arguments."
   value: func_op math.min, val.num*0
 
-max = ValueStream.meta
+max = Constant.meta
   meta:
     name: 'max'
     summary: "Find the maximum."
@@ -176,12 +178,17 @@ sqrt = func_def 'sqrt', 'val', math.sqrt, "Square root function."
   :mix
   :min, :max
 
-  pi: with ValueStream.wrap math.pi
-    .meta = summary: 'The pi constant.'
-  tau: with ValueStream.wrap math.pi*2
-    .meta = summary: 'The tau constant.'
-  huge: with ValueStream.wrap math.huge
-    .meta = summary: 'Positive infinity constant.'
+  pi: Constant.meta
+    value: math.pi
+    meta: summary: 'The pi constant.'
+
+  tau: Constant.meta
+    value: math.pi*2
+    meta: summary: 'The tau constant.'
+
+  huge: Constant.meta
+    value: math.huge
+    meta: summary: 'Positive infinity constant.'
 
   :sin, :cos, :tan
   :asin, :acos, :atan, :atan2

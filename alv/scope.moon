@@ -5,7 +5,7 @@
 import Constant from require 'alv.result'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
-import Primitive from require 'alv.type'
+import T from require 'alv.type'
 
 class Scope
 --- members
@@ -57,7 +57,7 @@ class Scope
     child = @get start
     if not child
       error Error 'reference', "undefined symbol '#{start}'"
-    if child\type! != Primitive.scope
+    if child\type! != T.scope
       error Error 'reference', "'#{start}' is not a scope"
     child.result!\get rest, while_msg
 

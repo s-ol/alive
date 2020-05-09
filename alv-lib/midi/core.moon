@@ -1,4 +1,4 @@
-import ValueStream, IOStream, Op, Input, Error, val from require 'alv.base'
+import Constant, IOStream, Op, Input, T, Error, val from require 'alv.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 
 bit = do
@@ -31,7 +31,7 @@ find_port = (Klass, name) ->
     \openport id
 
 class MidiPort extends IOStream
-  new: => super 'midi/port'
+  new: => super T['midi/port']
 
   setup: (inp, out) =>
     @inp = inp and find_port RtMidiIn, inp
@@ -63,7 +63,7 @@ class PortOp extends Op
     { :inp, :out } = @unwrap_all!
     @out\setup inp, out
 
-input = ValueStream.meta
+input = Constant.meta
   meta:
     name: 'input'
     summary: "Create a MIDI input port."
@@ -74,7 +74,7 @@ input = ValueStream.meta
       name = val.str\match inputs
       super inp: Input.hot name
 
-output = ValueStream.meta
+output = Constant.meta
   meta:
     name: 'output'
     summary: "Create a MIDI output port."
@@ -85,7 +85,7 @@ output = ValueStream.meta
       name = val.str\match inputs
       super out: Input.hot name
 
-inout = ValueStream.meta
+inout = Constant.meta
   meta:
     name: 'inout'
     summary: "Create a bidirectional MIDI port."
@@ -99,7 +99,7 @@ inout = ValueStream.meta
         out: Input.hot out
 
 apply_range = (range, val) ->
-  if range\type! == 'str'
+  if range\type! == T.str
     switch range!
       when 'raw' then val
       when 'uni' then val / 128
@@ -108,7 +108,7 @@ apply_range = (range, val) ->
       when 'deg' then val / 128 * 360
       else
         error Error 'argument', "unknown range '#{range!}'"
-  elseif range.type == 'num'
+  elseif range.type == T.num
     val / 128 * range!
   else
     error Error 'argument', "range has to be a string or number"

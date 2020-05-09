@@ -53,7 +53,7 @@ class Copilot
           mod.root\make_ref!
         else
           last = @active_module
-          prefix = @active_module.file\match('(.*)/[^/]*$') .. '/' or ''
+          prefix = if b = last.file\match'(.*)/[^/]*$' then b .. '/' else ''
           mod = @last_modules[name] or Module "#{prefix}#{name}.alv"
           L\trace "entering module #{mod}"
           @modules[name] = mod

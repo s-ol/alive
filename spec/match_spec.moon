@@ -1,13 +1,13 @@
 import val, evt from require 'alv.base.match'
-import RTNode, Primitive, SigStream, EvtStream, Error from require 'alv'
+import RTNode, T, Error from require 'alv'
 
 mk_val = (type, const) ->
-  result = SigStream Primitive type
+  result = T[type]\mk_sig!
   with RTNode :result
     .side_inputs = { 'fake' } unless const
 
 mk_evt = (type, const) ->
-  result = EvtStream Primitive type
+  result = T[type]\mk_evt!
   with RTNode :result
     .side_inputs = { 'fake' } unless const
 

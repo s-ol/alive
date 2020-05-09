@@ -1,4 +1,4 @@
-import Op, ValueStream, Input, Error, val from require 'alv.base'
+import Op, SigStream, Constant, Input, Error, T, val from require 'alv.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -17,7 +17,7 @@ tobool = (val) ->
 class ReduceOp extends Op
   pattern = val! + val! * 0
   setup: (inputs) =>
-    @out or= ValueStream 'bool'
+    @out or= SigStream T.bool
     { first, rest } = pattern\match inputs
     super
       first: Input.hot first
@@ -31,7 +31,7 @@ class ReduceOp extends Op
 
     @out\set accum
 
-eq = ValueStream.meta
+eq = Constant.meta
   meta:
     name: 'eq'
     summary: "Check for equality."
@@ -41,7 +41,7 @@ eq = ValueStream.meta
   value: class extends Op
     pattern = val! + val! * 0
     setup: (inputs) =>
-      @out or= ValueStream 'bool', false
+      @out or= SigStream T.bool, false
       { first, rest } = pattern\match inputs
       same = all_same first\type!, [i\type! for i in *rest]
 
@@ -68,7 +68,7 @@ eq = ValueStream.meta
 
       @out\set equal
 
-not_eq = ValueStream.meta
+not_eq = Constant.meta
   meta:
     name: 'not-eq'
     summary: "Check for inequality."
@@ -77,7 +77,7 @@ not_eq = ValueStream.meta
 
   value: class extends Op
     setup: (inputs) =>
-      @out or= ValueStream 'bool', false
+      @out or= SigStream T.bool, false
       assert #inputs > 1, Error 'argument', "need at least two values"
       super [Input.hot v for v in *inputs]
 
@@ -97,7 +97,7 @@ not_eq = ValueStream.meta
 
       @out\set diff
 
-and_ = ValueStream.meta
+and_ = Constant.meta
   meta:
     name: 'and'
     summary: "Logical AND."
@@ -105,7 +105,7 @@ and_ = ValueStream.meta
   value: class extends ReduceOp
     fn: (a, b) -> a and b
 
-or_ = ValueStream.meta
+or_ = Constant.meta
   meta:
     name: 'or'
     summary: "Logical OR."
@@ -113,7 +113,7 @@ or_ = ValueStream.meta
   value: class extends ReduceOp
     fn: (a, b) -> a or b
 
-not_ = ValueStream.meta
+not_ = Constant.meta
   meta:
     name: 'not'
     summary: "Logical NOT."
@@ -121,14 +121,14 @@ not_ = ValueStream.meta
 
   value: class extends Op
     setup: (inputs) =>
-      @out or= ValueStream 'bool', false
+      @out or= SigStream T.bool, false
       value = val!\match inputs
       super value: Input.hot value
 
     tick: =>
       @out\set not tobool @inputs.value!
 
-bool = ValueStream.meta
+bool = Constant.meta
   meta:
     name: 'bool'
     summary: "Cast value to bool."
@@ -137,7 +137,7 @@ bool = ValueStream.meta
 
   value: class extends Op
     setup: (inputs) =>
-      @out or= ValueStream 'bool'
+      @out or= SigStream T.bool
       value = val!\match inputs
       super value: Input.hot value
 

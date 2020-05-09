@@ -3,6 +3,7 @@
 --
 -- @module type
 import opairs from require 'alv.util'
+import result from require 'alv.cycle'
 
 shared_shape = (a, b) ->
   for key in pairs a
@@ -20,74 +21,54 @@ same = (a, b) ->
 
   true
 
---- Interface for types.
+--- Base class for types.
 -- @type Type
 class Type
-  new: =>
-
   --- pretty-print a value of this type.
   -- @function pp
   -- @tparam any value
   -- @treturn string
 
+  --- create a `SigStream` of this type.
+  -- @tparam ?any init initial value
+  -- @treturn SigStream
+  mk_sig: (init) =>
+    result.SigStream @, init
+
+  --- create a `EvtStream` of this type.
+  -- @treturn EvtStream
+  mk_evt: =>
+    result.EvtStream @
+
+  --- create a `Constant` of this type.
+  -- @tparam any val value
+  -- @treturn Constant
+  mk_const: (val) =>
+    result.Constant @, val
+
 --- Primitive type.
 --
--- Implements the `Type` interface.
+-- Extends `Type`.
 --
 -- @type Primitive
-class Primitive
+class Primitive extends Type
   pp: (value) => tostring value
 
-  __eq: (other) => @type == other.type
-  __tostring: => @type
-
-  --- shorthand for number type.
-  -- @tfield Primitive num
-  @num: @ 'num'
-
-  --- shorthand for string type.
-  -- @tfield Primitive str
-  @str: @ 'str'
-
-  --- shorthand for symbol type.
-  -- @tfield Primitive sym
-  @sym: @ 'sym'
-
-  --- shorthand for boolean type.
-  -- @tfield Primitive bool
-  @bool: @ 'bool'
-
-  --- shorthand for bang type.
-  -- @tfield Primitive bang
-  @bang: @ 'bang'
-
-  --- shorthand for `Scope` type.
-  -- @tfield Primitive scope
-  @scope: @ 'scope'
-
-  --- shorthand for `Op` type.
-  -- @tfield Primitive op
-  @op: @ 'opdef'
-
-  --- shorthand for `FnDef` type.
-  -- @tfield Primitive fn
-  @fn: @ 'fndef'
-
-  --- shorthand for `Builtin` type.
-  -- @tfield Primitive builtin
-  @builtin: @ 'builtin'
+  __eq: (other) => @name == other.name
+  __tostring: => @name
 
   --- instantiate a Primitive type.
   -- @classmethod
-  -- @tparam string type the typename
-  new: (@type) =>
+  -- @tparam string name the typename
+  new: (@name) =>
+    assert (type @name) == 'string', "Typename has to be a string: '#{@name}'"
 
 --- Struct/Hashmap type.
 --
--- Implements the `Type` interface.
+-- Extends `Type`.
 --
 -- @type Struct
-class Struct
+class Struct extends Type
   pp: (value) =>
     inner = table.concat ["#{k}: #{@types[k]\pp v}" for k, v in opairs value], ', '
     "{#{inner}}"
@@ -111,10 +92,10 @@ class Struct
 
 --- Array type.
 --
--- Implements the `Type` interface.
+-- Extends `Type`.
 --
 -- @type Array
-class Array
+class Array extends Type
   pp: (value) =>
     inner = table.concat [@type\pp v for v in *value], ' '
     "[#{inner}]"
@@ -128,7 +109,17 @@ class Array
   -- @tparam Type type
   new: (@size, @type) =>
 
+--- Magic table containing all `Primitive` types.
+--
+-- When indexed with a string returns a (cached) instance of that type.
+--
+-- @table T
+T = setmetatable {}, __index: (key) =>
+  with type = Primitive key
+    rawset @, key, type
+
 {
+  :T
   :Primitive
   :Array
   :Struct

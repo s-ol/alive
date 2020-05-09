@@ -5,6 +5,9 @@
 -- between `Op`s.
 --
 -- @classmod RTNode
+
+import Error from require 'alv.error'
+
 class RTNode
 --- members
 -- @section members
@@ -41,15 +44,15 @@ class RTNode
   --- poll all IOStream instances that are effecting this (sub)tree.
   -- should be called once per frame on the root, right before tick.
   poll_io: =>
-    for stream, input in pairs @side_inputs
-      stream\poll! if input.io
+    for result, input in pairs @side_inputs
+      result\poll! if input.io
 
   --- in depth-first order, tick all Ops which have dirty Inputs.
   --
   -- short-circuits if there are no dirty Inputs in the entire subtree
   tick: =>
     any_dirty = false
-    for stream, input in pairs @side_inputs
+    for result, input in pairs @side_inputs
       if input\dirty!
         any_dirty = true
         break
@@ -70,7 +73,7 @@ class RTNode
 
       return unless self_dirty
 
-      @op\tick!
+      Error.wrap "ticking #{op}", @op\tick
 
   __tostring: =>
     buf = "<RT=#{@result}"
@@ -111,15 +114,15 @@ class RTNode
 
     @side_inputs, is_child = {}, {}
     for child in *@children
-      for stream, input in pairs child.side_inputs
-        @side_inputs[stream] = input
+      for result, input in pairs child.side_inputs
+        @side_inputs[result] = input
       if child.result
         is_child[child.result] = true
 
     if @op
       for input in @op\all_inputs!
-        if input.io or not is_child[input.stream]
-          @side_inputs[input.stream] = input
+        if input.io or not is_child[input.result]
+          @side_inputs[input.result] = input
 
     if @result and @result.metatype == '='
       assert not (next @side_inputs), "Const result has side_inputs"

@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtin
-import Builtin, Op, Primitive, FnDef, Input, val, evt from require 'alv.base'
+import Builtin, Op, T, FnDef, Input, val, evt from require 'alv.base'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
@@ -58,7 +58,7 @@ Define the symbols `sym1`, `sym2`, … to resolve to the values of `val-expr1`,
       children = L\push ->
         return for i=1,#tail,2
           name, val_expr = tail[i], tail[i+1]
-          name = name\unwrap 'sym'
+          name = name\unwrap T.sym
 
           with val_expr\eval scope
             scope\set name, \make_ref!
@@ -117,7 +117,7 @@ current scope."
       assert #tail > 0, "'import' requires at least one arguments"
 
       children = for i, child in ipairs tail
-        name = child\unwrap 'sym'
+        name = child\unwrap T.sym
         with COPILOT\require name
           scope\set name, \make_ref!
       RTNode :children
@@ -136,8 +136,8 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
       assert #tail > 0, "'import' requires at least one arguments"
 
       children = for i, child in ipairs tail
-        with COPILOT\require child\unwrap 'sym'
-          scope\use .value\unwrap 'scope'
+        with COPILOT\require child\unwrap T.sym
+          scope\use .result\unwrap T.scope
       RTNode :children
 
 export_ = Constant.meta
@@ -175,7 +175,7 @@ Copies the containing scope if no symbols are given."
           node
       else
         for child in *tail
-          name = child\unwrap 'sym'
+          name = child\unwrap T.sym
           with node = scope\get name
             new_scope\set name, node
 
@@ -198,7 +198,7 @@ function is invoked."
 
       assert params.__class == Cell, "'fn's first argument has to be an expression"
       param_symbols = for param in *params.children
-        assert param.type == 'sym', "function parameter declaration has to be a symbol"
+        assert param.type == T.sym, "function parameter declaration has to be a symbol"
         param
 
       RTNode result: with Constant.wrap FnDef param_symbols, body, scope
@@ -223,10 +223,10 @@ function is invoked."
       assert #tail == 3, "'defn' takes exactly three arguments"
       { name, params, body } = tail
 
-      name = name\unwrap 'sym'
+      name = name\unwrap T.sym
       assert params.__class == Cell, "'defn's second argument has to be an expression"
       param_symbols = for param in *params.children
-        assert param.type == 'sym', "function parameter declaration has to be a symbol"
+        assert param.type == T.sym, "function parameter declaration has to be a symbol"
         param
 
       result = with Constant.wrap FnDef param_symbols, body, scope
@@ -305,7 +305,7 @@ trace = Constant.meta
           value: Input.hot inputs[2]
 
       tick: =>
-        L\print "trace #{@inputs.prefix!}: #{@inputs.value.stream}"
+        L\print "trace #{@inputs.prefix!}: #{@inputs.value\type!\pp @inputs.value!}"
 
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
@@ -313,7 +313,7 @@ trace = Constant.meta
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
-        Constant.literal Primitive.op, traceOp, 'trace'
+        Constant.literal T.opdef, traceOp, 'trace'
         Constant.str tostring tail[1]
         tail[1]
       }
@@ -364,7 +364,7 @@ Scope.from_table {
     meta:
       name: 'bang'
       summary: "A `bang` value-constant."
-    value: Constant 'bang', true
+    value: Constant T.bang, true
 
   :fn, :defn
   'do': do_expr

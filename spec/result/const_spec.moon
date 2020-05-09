@@ -1,5 +1,5 @@
 import do_setup from require 'spec.test_setup'
-import Constant, RTNode, Scope, SimpleRegistry, Primitive from require 'alv'
+import Constant, RTNode, Scope, SimpleRegistry, T from require 'alv'
 import Op, Builtin from require 'alv.base'
 
 class TestOp extends Op
@@ -11,15 +11,20 @@ class TestBuiltin extends Builtin
 setup do_setup
 
 describe 'Constant', ->
+  it 'requires a value', ->
+    assert.has.error -> Constant.num!
+    assert.has.error -> Constant T.num
+    assert.has.no.error -> Constant T.bool, false
+
   describe '.wrap', ->
     it 'wraps numbers', ->
       got = Constant.wrap 3
-      assert.is.equal Primitive.num, got.type
+      assert.is.equal T.num, got.type
       assert.is.equal 3, got.value
 
     it 'wraps strings', ->
       got = Constant.wrap "im a happy string"
-      assert.is.equal Primitive.str, got.type
+      assert.is.equal T.str, got.type
       assert.is.equal "im a happy string", got.value
 
     it 'wraps Constants', ->
@@ -31,27 +36,27 @@ describe 'Constant', ->
     it 'wraps Opdefs', ->
       got = Constant.wrap TestOp
 
-      assert.is.equal Primitive.op, got.type
+      assert.is.equal T.opdef, got.type
       assert.is.equal TestOp, got.value
 
     it 'wraps Bultins', ->
       got = Constant.wrap TestBuiltin
 
-      assert.is.equal Primitive.builtin, got.type
+      assert.is.equal T.builtin, got.type
       assert.is.equal TestBuiltin, got.value
 
     it 'wraps Scopes', ->
       sub = Scope!
       got = Constant.wrap sub
 
-      assert.is.equal Primitive.scope, got.type
+      assert.is.equal T.scope, got.type
       assert.is.equal sub, got.value
 
     it 'wraps tables', ->
       pi = Constant.num 3.14
       got = Constant.wrap { :pi }
 
-      assert.is.equal Primitive.scope, got.type
+      assert.is.equal T.scope, got.type
       assert.is.equal pi, (got.value\get 'pi')\const!
 
   describe ':unwrap', ->
@@ -61,23 +66,23 @@ describe 'Constant', ->
       assert.is.equal 'hi', (Constant.sym 'hi')\unwrap!
 
     test 'can assert the type', ->
-      assert.is.equal 3.14, (Constant.num 3.14)\unwrap Primitive.num
-      assert.is.equal 'hi', (Constant.str 'hi')\unwrap Primitive.str
-      assert.is.equal 'hi', (Constant.sym 'hi')\unwrap Primitive.sym
-      assert.has_error -> (Constant.num 3.14)\unwrap Primitive.sym
-      assert.has_error -> (Constant.str 'hi')\unwrap Primitive.num
-      assert.has_error -> (Constant.sym 'hi')\unwrap Primitive.str
+      assert.is.equal 3.14, (Constant.num 3.14)\unwrap T.num
+      assert.is.equal 'hi', (Constant.str 'hi')\unwrap T.str
+      assert.is.equal 'hi', (Constant.sym 'hi')\unwrap T.sym
+      assert.has_error -> (Constant.num 3.14)\unwrap T.sym
+      assert.has_error -> (Constant.str 'hi')\unwrap T.num
+      assert.has_error -> (Constant.sym 'hi')\unwrap T.str
 
     test 'has __call shorthand', ->
       assert.is.equal 3.14, (Constant.num 3.14)!
       assert.is.equal 'hi', (Constant.str 'hi')!
       assert.is.equal 'hi', (Constant.sym 'hi')!
-      assert.is.equal 3.14, (Constant.num 3.14) Primitive.num
-      assert.is.equal 'hi', (Constant.str 'hi') Primitive.str
-      assert.is.equal 'hi', (Constant.sym 'hi') Primitive.sym
-      assert.has_error -> (Constant.num 3.14) Primitive.sym
-      assert.has_error -> (Constant.str 'hi') Primitive.num
-      assert.has_error -> (Constant.sym 'hi') Primitive.str
+      assert.is.equal 3.14, (Constant.num 3.14) T.num
+      assert.is.equal 'hi', (Constant.str 'hi') T.str
+      assert.is.equal 'hi', (Constant.sym 'hi') T.sym
+      assert.has_error -> (Constant.num 3.14) T.sym
+      assert.has_error -> (Constant.str 'hi') T.num
+      assert.has_error -> (Constant.sym 'hi') T.str
 
   describe 'overrides __eq', ->
     it 'compares the type', ->
@@ -134,7 +139,7 @@ describe 'Constant', ->
     it 'is equal to the original', ->
       a = Constant.num 2
       b = Constant.str 'asdf'
-      c = Constant (Primitive 'weird'), {}, '(raw)'
+      c = Constant T.weird, {}, '(raw)'
 
       aa, bb, cc = a\fork!, b\fork!, c\fork!
       assert.is.equal a, aa

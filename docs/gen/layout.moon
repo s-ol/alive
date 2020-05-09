@@ -21,13 +21,13 @@ render = (name, result, prefix=nil, index=false) ->
   import div, label, code, ul, li, i, a, pre from dom
 
   id = if prefix then "#{prefix}/#{name}" else name
-  type = i tostring result.type
+  typestr = i tostring result.type
   assert result.meta, "#{id} doesn't have any metadata!"
   summary = assert result.meta.summary, "#{id} doesn't have a summary!"
 
   if index
     div {
-      label (a (code name), href: "##{id}"), ' (', type, '): &ensp;&ndash;&ensp;'
+      label (a (code name), href: "##{id}"), ' (', typestr, '): &ensp;&ndash;&ensp;'
       summary
     }
   else
@@ -41,7 +41,7 @@ render = (name, result, prefix=nil, index=false) ->
     content.class = 'nest'
     div {
       :id, class: 'def'
-      label (a (code name), href: "##{id}"), ' (', type, '): &ensp;&ndash;&ensp;'
+      label (a (code name), href: "##{id}"), ' (', typestr, '): &ensp;&ndash;&ensp;'
       summary
       div content
     }

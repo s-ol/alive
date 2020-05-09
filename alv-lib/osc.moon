@@ -1,10 +1,10 @@
-import Op, ValueStream, Input, val, evt from require 'alv.base'
+import Op, Constant, SigStream, Input, T, val, evt from require 'alv.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
 unpack or= table.unpack
 
-connect = ValueStream.meta
+connect = Constant.meta
   meta:
     name: 'connect'
     summary: "Create a UDP remote."
@@ -13,7 +13,7 @@ connect = ValueStream.meta
   value: class extends Op
     pattern = val.str + val.num
     setup: (inputs) =>
-      @out or= ValueStream 'udp/socket'
+      @out or= SigStream T['udp/socket']
       { host, port } = pattern\match inputs
       super
         host: Input.hot host
@@ -26,7 +26,7 @@ connect = ValueStream.meta
       @out\set with sock = udp!
         \setpeername ip, port
 
-send = ValueStream.meta
+send = Constant.meta
   meta:
     name: 'send'
     summary: "Send events via OSC."
@@ -52,7 +52,7 @@ send = ValueStream.meta
         msg = pack path, if 'table' == type val then unpack val else val
         socket\send msg
 
-sync = ValueStream.meta
+sync = Constant.meta
   meta:
     name: 'sync'
     summary: "Synchronize a value via OSC."

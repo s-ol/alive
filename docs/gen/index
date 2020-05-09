@@ -1,4 +1,5 @@
 #!/usr/bin/env moon
+require 'alv'
 import render, layout, autoref from require 'docs.gen.layout'
 import section, h1, h2, p, ul, li, a, code from require 'docs.gen.dom'
 import opairs from require 'alv.util'
@@ -43,6 +44,6 @@ spit OUT, layout
       p "These definitions are automatically loaded into the global Scope of
         every alive session."
       ul for key, val in opairs (require 'alv.builtin').values
-        li render key, val.value
+        li render key, val.result
     }
   }

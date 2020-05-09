@@ -5,7 +5,7 @@
 import RTNode from require 'alv.rtnode'
 import Builtin from require 'alv.base'
 import Scope from require 'alv.scope'
-import Primitive from require 'alv.type'
+import T from require 'alv.type'
 import Error from require 'alv.error'
 
 get_name = (value, raw) ->
@@ -35,14 +35,14 @@ class op_invoke extends Builtin
       @op = prev.op\fork!
       prev.forked = COPILOT.T
     else
-      def = @head\unwrap Primitive.opdef, "cant op-invoke #{@head}"
+      def = @head\unwrap T.opdef, "cant op-invoke #{@head}"
       @op = def!
 
   --- `Builtin:destroy` implementation.
   --
   -- calls `op`:@{Op:destroy|destroy}.
   destroy: =>
-    if @forked ~= COPILOT.T
+    if @op and @forked ~= COPILOT.T
       @op\destroy!
 
   --- perform an `Op` invocation.
@@ -60,19 +60,20 @@ class op_invoke extends Builtin
     children = [L\push expr\eval, scope for expr in *tail]
 
     frame = "invoking op #{get_name @head, @cell\head!} at [#{@tag}]"
-    Error.wrap frame, @op\setup, [node for node in *children], scope
+    Error.wrap frame, ->
+      @op\setup [node for node in *children], scope
 
-    any_dirty = false
-    for input in @op\all_inputs!
-      if input\dirty!
-        any_dirty = true
-        break
+      any_dirty = false
+      for input in @op\all_inputs!
+        if input\dirty!
+          any_dirty = true
+          break
 
-    if any_dirty
-      @op\tick true
+      if any_dirty
+        @op\tick true
 
-    for input in @op\all_inputs!
-      input\finish_setup!
+      for input in @op\all_inputs!
+        input\finish_setup!
 
     RTNode :children, result: @op.out, op: @op
 
@@ -104,7 +105,7 @@ class fn_invoke extends Builtin
     name = get_name @head, @cell\head!
     frame = "invoking function #{name} at [#{@tag}]"
 
-    fndef = @head\unwrap Primitive.fndef, "cant fn-invoke #{@head}"
+    fndef = @head\unwrap T.fndef, "cant fn-invoke #{@head}"
     { :params, :body } = fndef
     if #params != #tail
       err = Error 'argument', "expected #{#params} arguments, found #{#tail}"
@@ -114,7 +115,7 @@ class fn_invoke extends Builtin
     fn_scope = Scope fndef.scope, caller_scope
 
     children = for i=1,#params
-      name = params[i]\unwrap Primitive.sym
+      name = params[i]\unwrap T.sym
       with L\push tail[i]\eval, caller_scope
         fn_scope\set name, \make_ref!
 

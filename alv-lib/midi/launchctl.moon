@@ -1,10 +1,10 @@
-import ValueStream, EventStream, Op, Input, val, evt from require 'alv.base'
+import Constant, Op, Input, T, val, evt from require 'alv.base'
 import apply_range, bit from require 'alv-lib.midi.core'
 import bor, lshift from bit
 
 color = (r, g) -> bit.bor 12, r, (bit.lshift g, 4)
 
-cc_seq = ValueStream.meta
+cc_seq = Constant.meta
   meta:
     name: 'cc-seq'
     summary: "MIDI CC-Sequencer."
@@ -32,11 +32,11 @@ range can be one of:
         i:     Input.hot i
         start: Input.hot start
         chan:  Input.hot chan
-        steps: Input.hot steps or ValueStream.num 8
-        range: Input.hot range or ValueStream.str 'uni'
+        steps: Input.hot steps or Constant.num 8
+        range: Input.hot range or Constant.str 'uni'
 
       @state or= {}
-      @out or= ValueStream 'num', apply_range @inputs.range, 0
+      @out or= T.num\mk_sig apply_range @inputs.range, 0
 
     tick: =>
       { :port, :i, :start, :chan, :steps, :range } = @inputs
@@ -60,7 +60,7 @@ range can be one of:
       else
         @out\set apply_range range, @state[curr_i+1]
 
-gate_seq = ValueStream.meta
+gate_seq = Constant.meta
   meta:
     name: 'gate-seq'
     summary: "MIDI Gate-Sequencer."
@@ -72,7 +72,7 @@ Send `true` or `false` for the `i`-th note-button (MIDI-notes starting from
   value: class extends Op
     pattern = -evt['midi/port'] + val.num + val.num + val.num + -val.num
     setup: (inputs, scope) =>
-      @out or= ValueStream 'bool'
+      @out or= T.bool\mk_sig!
       @state or= {}
       { port, i, start, chan, steps } = pattern\match inputs
 
@@ -81,7 +81,7 @@ Send `true` or `false` for the `i`-th note-button (MIDI-notes starting from
         i:     Input.hot i
         start: Input.hot start
         chan:  Input.hot chan
-        steps: Input.hot steps or ValueStream.num 8
+        steps: Input.hot steps or Constant.num 8
 
     light = (set, active) ->
       set = if set then 'S' else ' '
@@ -123,7 +123,7 @@ Send `true` or `false` for the `i`-th note-button (MIDI-notes starting from
 
         @out\set @state[curr_i+1]
 
-trig_seq = ValueStream.meta
+trig_seq = Constant.meta
   meta:
     name: 'trig-seq'
     summary: "MIDI Trigger-Sequencer."
@@ -135,7 +135,7 @@ Send bangs for the `i`-th note-button (MIDI-notes starting from `start`).
   value: class extends Op
     pattern = -evt['midi/port'] + val.num + val.num + val.num + -val.num
     setup: (inputs, scope) =>
-      @out or= EventStream 'bang'
+      @out or= T.bang\mk_evt!
       @state or= {}
       { port, i, start, chan, steps } = pattern\match inputs
 
@@ -144,7 +144,7 @@ Send bangs for the `i`-th note-button (MIDI-notes starting from `start`).
         i:     Input.hot i
         start: Input.hot start
         chan:  Input.hot chan
-        steps: Input.hot steps or ValueStream.num 8
+        steps: Input.hot steps or Constant.num 8
 
     light = (set, active) ->
       set = if set then 'S' else ' '

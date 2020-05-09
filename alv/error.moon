@@ -48,7 +48,9 @@ class Error
     if err.__class == Error
       err
     else
-      Error 'implementation', err, debug.traceback "Lua error below:", 2
+      trace = debug.traceback "Lua error below:", 2
+      Error 'implementation', err, trace
+
   --- Wrap function errors in a traceback frame.
   --
   -- Execute `fn(...)`, and turn any error thrown as a result into an
@@ -65,8 +67,8 @@ class Error
     if ok
       unpack results
     else
-      error with results[1]
-        \add_frame frame
+      results[1]\add_frame frame if frame
+      error results[1]
 
   --- Capture and wrap function errors in traceback frame.
   --
@@ -76,7 +78,7 @@ class Error
   -- When `Error` instances are caught, `frame` is added to the traceback.
   -- All other error values are turned into `'implementation'` Errors.
   --
-  -- @tparam string frame
+  -- @tparam ?string frame
   -- @tparam function fn
   -- @treturn boolean `ok` true if exeuction suceeded without errors
   -- @treturn Error|any `error_or_results` the `Error` instance or results
@@ -86,9 +88,8 @@ class Error
     if ok
       ok, unpack results
     else
-      ok, with results[1]
-        \add_frame frame
-
+      results[1]\add_frame frame if frame
+      ok, unpack results
 {
   :Error
 }

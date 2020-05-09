@@ -35,9 +35,9 @@ class Input
   --- create a new Input.
   --
   -- @classmethod
-  -- @tparam Result stream
-  new: (@stream) =>
-    assert @stream, "nil passed to Input: #{value}"
+  -- @tparam Result result
+  new: (@result) =>
+    assert @result, "nil passed to Input: #{value}"
 
   --- copy state from old instance (optional).
   --
@@ -53,10 +53,10 @@ class Input
   --
   -- must return a boolean indicating whether `Op`s that refer to this instance
   -- should be notified (via `Op:tick`). If not overwritten, delegates to
-  -- `stream`:@{SigStream:dirty|dirty}.
+  -- `result`:@{SigStream:dirty|dirty}.
   --
   -- @treturn bool whether processing is necessary
-  dirty: => @stream\dirty!
+  dirty: => @result\dirty!
 
   --- leave setup state (optional).
   --
@@ -67,25 +67,25 @@ class Input
   --- unwrap to Lua value (optional).
   --
   -- @treturn any the raw Lua value
-  unwrap: => @stream\unwrap!
+  unwrap: => @result\unwrap!
 
   --- return the type name of this `Input` (optional).
-  type: => @stream.type
+  type: => @result.type
 
   --- return the metatype name of this `Input` (optional).
-  metatype: => @stream.metatype
+  metatype: => @result.metatype
 
   --- the current value
   --
-  -- @tfield SigStream stream
+  -- @tfield SigStream result
 
 --- members
 -- @section members
 
   --- alias for `unwrap`.
-  __call: => @stream\unwrap!
+  __call: => @result\unwrap!
 
-  __tostring: => "#{@@__name}:#{@stream}"
+  __tostring: => "#{@@__name}:#{@result}"
   __inherited: (cls) =>
     cls.__base.__call = @__call
     cls.__base.__tostring = @__tostring
@@ -95,7 +95,7 @@ class Input
 
   --- Create a `cold` `Input`.
   --
-  -- Never marked dirty. Use this for input streams that are only read when
+  -- Never marked dirty. Use this for input results that are only read when
   -- another `Input` is dirty.
   --
   -- @tparam Result|RTNode value
@@ -128,17 +128,17 @@ class ColdInput extends Input
   dirty: => false
 
 class ValueInput extends Input
-  setup: (old) => @dirty_setup = not old or @stream != old.stream
+  setup: (old) => @dirty_setup = not old or @result != old.result
   finish_setup: => @dirty_setup = nil
   dirty: =>
     return @dirty_setup if @dirty_setup != nil
-    @stream\dirty!
+    @result\dirty!
 
 class IOInput extends Input
   io: true
 
 mapping = {
-  [Constant]: ColdInput
+  [Constant]: ValueInput
   [SigStream]: ValueInput
   [EvtStream]: Input
   [IOStream]: IOInput

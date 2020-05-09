@@ -1,4 +1,4 @@
-import Op, ValueStream, EventStream, Input, val, evt from require 'alv.base'
+import Constant, Op, Input, T, val, evt from require 'alv.base'
 
 all_same = (list) ->
   for v in *list[2,]
@@ -7,7 +7,7 @@ all_same = (list) ->
 
   list[1]
 
-switch_ = ValueStream.meta
+switch_ = Constant.meta
   meta:
     name: 'switch'
     summary: "Switch between multiple inputs."
@@ -24,12 +24,12 @@ switch_ = ValueStream.meta
     setup: (inputs) =>
       { i, values } = pattern\match inputs
 
-      @state = values[1].value.__class == ValueStream
+      @state = values[1].value.metatype == '~'
 
       @out = if @state
-        ValueStream values[1]\type!
+        values[1]\type!\mk_sig!
       else
-        EventStream values[1]\type!
+        values[1]\type!\mk_evt!
 
       super
         i: Input.hot i
@@ -52,7 +52,7 @@ switch_ = ValueStream.meta
           for event in *active!
             @out\add event
 
-edge = ValueStream.meta
+edge = Constant.meta
   meta:
     name: 'edge'
     summary: "Convert rising edges to bangs."
@@ -60,7 +60,7 @@ edge = ValueStream.meta
 
   value: class extends Op
     setup: (inputs) =>
-      @out or= EventStream 'bang'
+      @out or= T.bang\mk_evt!
       value = val.bool\match inputs
       super value: Input.hot value
 
@@ -70,7 +70,7 @@ edge = ValueStream.meta
         @out\add true
       @state = now
 
-change = ValueStream.meta
+change = Constant.meta
   meta:
     name: 'change'
     summary: "Convert value changes to events."
@@ -79,7 +79,7 @@ change = ValueStream.meta
   value: class extends Op
     setup: (inputs) =>
       value = val!\match inputs
-      @out or= EventStream value\type!
+      @out or= value\type!\mk_evt!
       super value: Input.hot value
 
     tick: =>
@@ -88,7 +88,7 @@ change = ValueStream.meta
         @out\add @inputs.value!
         @state = now
 
-hold = ValueStream.meta
+hold = Constant.meta
   meta:
     name: 'hold'
     summary: "Convert events to value changes."
@@ -97,7 +97,7 @@ hold = ValueStream.meta
   value: class extends Op
     setup: (inputs) =>
       event = evt!\match inputs
-      @out or= ValueStream event\type!
+      @out or= event\type!\mk_sig!
       super event: Input.hot event
 
     tick: =>

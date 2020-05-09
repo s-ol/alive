@@ -1,11 +1,8 @@
 import do_setup from require 'spec.test_setup'
 import RTNode, Scope, SimpleRegistry from require 'alv'
-import Primitive, Input, Op, Constant, SigStream, EvtStream, IOStream
-  from require 'alv.base'
+import T, Input, Op, Constant, IOStream from require 'alv.base'
 
 setup do_setup
-num = Primitive 'num'
-bang = Primitive 'bang'
 
 op_with_inputs = (inputs) ->
   with Op!
@@ -16,7 +13,7 @@ node_with_sideinput = (result, input) ->
     .side_inputs = { [result]: input }
 
 class DirtyIO extends IOStream
-  new: => super Primitive 'dirty-io'
+  new: => super T.dirty_io
   dirty: => true
 
 describe 'RTNode', ->
@@ -34,7 +31,7 @@ describe 'RTNode', ->
 
   it ':type gets type and assets value', ->
     node = RTNode result: Constant.num 2
-    assert.is.equal num, node\type!
+    assert.is.equal T.num, node\type!
 
     node = RTNode!
     assert.has.error -> node\type!
@@ -52,7 +49,7 @@ describe 'RTNode', ->
     assert.has.error (-> impure\const 'test'), 'test'
 
   it ':make_ref', ->
-    result = SigStream.num 2
+    result = T.num\mk_sig 2
     input = Input.hot result
     op = op_with_inputs { input }
     thick = RTNode :result, :op, children: { RTNode!, RTNode! }
@@ -65,10 +62,10 @@ describe 'RTNode', ->
     assert.is.nil ref.op
 
   it 'lifts up inputs from op', ->
-    event = EvtStream bang
+    event = T.bang\mk_evt!
     event_input = Input.hot event
 
-    value = SigStream num, 4
+    value = T.num\mk_sig 4
     value_input = Input.hot value
 
     op = op_with_inputs { event_input, value_input }
@@ -79,10 +76,10 @@ describe 'RTNode', ->
                    node.side_inputs
 
   it 'does not lift up op inputs that are also child values', ->
-    event = EvtStream bang
+    event = T.bang\mk_evt!
     event_input = Input.hot event
 
-    result = SigStream num, 4
+    result = T.num\mk_sig 4
     value_input = Input.hot result
 
     op = op_with_inputs { event_input, value_input }
@@ -91,12 +88,12 @@ describe 'RTNode', ->
     assert.is.same { [event]: event_input }, node.side_inputs
 
   it 'lifts up side_inputs from children', ->
-    event_value = EvtStream bang
+    event_value = T.bang\mk_evt!
     event_input = Input.hot event_value
     event = RTNode op: op_with_inputs { event_input }
     assert.is.same { [event_value]: event_input }, event.side_inputs
 
-    value_value = SigStream num, 4
+    value_value = T.num\mk_sig 4
     value_input = Input.hot value_value
     value = RTNode op: op_with_inputs { value_input }
     assert.is.same { [value_value]: value_input }, value.side_inputs
@@ -109,11 +106,11 @@ describe 'RTNode', ->
     local a_value, a_child, a_input
     local b_value, b_child, b_input
     before_each ->
-      a_value = EvtStream num
+      a_value = T.num\mk_evt!
       a_input = Input.hot a_value
       a_child = node_with_sideinput a_value, a_input
 
-      b_value = EvtStream num
+      b_value = T.num\mk_evt!
       b_input = Input.hot b_value
       b_child = node_with_sideinput b_value, b_input
 

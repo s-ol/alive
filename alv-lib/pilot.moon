@@ -1,4 +1,4 @@
-import Op, ValueStream, Input, val, evt from require 'alv.base'
+import Op, Constant, Input, val, evt from require 'alv.base'
 import udp from require 'socket'
 
 local conn
@@ -22,7 +22,7 @@ send = (...) ->
 
 arg = val.num / val.str
 
-play = ValueStream.meta
+play = Constant.meta
   meta:
     name: 'play'
     summary: "Play a note when a bang arrives."
@@ -41,7 +41,7 @@ play = ValueStream.meta
       for _ in *trig!
         send [a! for a in *@inputs.args]
 
-play_ = ValueStream.meta
+play_ = Constant.meta
   meta:
     name: 'play!'
     summary: "Play a note when a note arrives."
@@ -63,7 +63,7 @@ play_ = ValueStream.meta
       for note in *note!
         send { chan!, octv!, note }, args
 
-effect = ValueStream.meta
+effect = Constant.meta
   meta:
     name: 'effect'
     summary: "Set effect parameters."

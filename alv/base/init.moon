@@ -15,6 +15,10 @@
 -- @see SigStream
 -- @see EvtStream
 -- @see IOStream
+-- @see type.T
+-- @see type.Primitive
+-- @see type.Array
+-- @see type.Struct
 -- @see RTNode
 -- @see Error
 
@@ -24,7 +28,7 @@ import FnDef from require 'alv.base.fndef'
 import Input from require 'alv.base.input'
 import val, evt from require 'alv.base.match'
 import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
-import Primitive, Array, Struct from require 'alv.type'
+import T, Primitive, Array, Struct from require 'alv.type'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 
@@ -41,7 +45,7 @@ import Error from require 'alv.error'
   :Constant, :SigStream, :EvtStream, :IOStream
 
   -- Types
-  :Primitive, :Array, :Struct
+  :T, :Primitive, :Array, :Struct
 
   :RTNode
   :Error

@@ -1,12 +1,10 @@
-import
-  ValueStream, EventStream, IOStream,
-  Error, Op, Input, val, evt
-from require 'alv.base'
+import Constant, EvtStream, IOStream, Error, Op, Input, T, val, evt
+  from require 'alv.base'
 import monotime from require 'system'
 
 class Clock extends IOStream
   new: (@frametime) =>
-    super 'clock'
+    super T.clock
 
     return unless monotime
     @last = monotime!
@@ -19,11 +17,11 @@ class Clock extends IOStream
       @add { dt: @dt, :time }
       @last = time
 
-class ScaledClock extends EventStream
+class ScaledClock extends EvtStream
   set: (val) => @value
   unwrap: => @value
 
-clock = ValueStream.meta
+clock = Constant.meta
   meta:
     name: 'clock'
     summary: "Create a clock source."
@@ -41,13 +39,13 @@ frame rate.
 
     setup: (inputs) =>
       fps = (-val.num)\match inputs
-      super fps: Input.hot fps or ValueStream.num 60
+      super fps: Input.hot fps or Constant.num 60
       @out.frametime = 1 / @inputs.fps!
 
     tick: =>
       @out.frametime = 1 / @inputs.fps!
 
-scale_time = ValueStream.meta
+scale_time = Constant.meta
   meta:
     name: 'scale-time'
     summary: "Scale clock time."
@@ -60,7 +58,7 @@ scale_time = ValueStream.meta
   value: class extends Op
     new: (...) =>
       super ...
-      @out or= EventStream 'clock'
+      @out or= EvtStream T.clock
 
     pattern = -evt.clock + val.num + -val.str
     setup: (inputs, scope) =>
@@ -74,7 +72,7 @@ scale_time = ValueStream.meta
       for evt in *@inputs.clock!
         @out\add {k, v*scale for k,v in pairs evt}
 
-lfo = ValueStream.meta
+lfo = Constant.meta
   meta:
     name: 'lfo'
     summary: "Low-frequency oscillator."
@@ -92,9 +90,9 @@ lfo = ValueStream.meta
     new: (...) =>
       super ...
       @state or= 0
-      @out or= ValueStream 'num'
+      @out or= T.num\mk_sig!
 
-    default_wave = ValueStream.str 'sin'
+    default_wave = Constant.str 'sin'
     pattern = -evt.clock + val.num + -val.str
     setup: (inputs, scope) =>
       { clock, freq, wave } = pattern\match inputs
@@ -114,7 +112,7 @@ lfo = ValueStream.meta
         when 'tri' then math.abs (2*@state % 2) - 1
         else error Error 'argument', "unknown wave type '#{wave}'"
 
-ramp = ValueStream.meta
+ramp = Constant.meta
   meta:
     name: 'ramp'
     summary: "Sawtooth LFO."
@@ -129,7 +127,7 @@ ramp = ValueStream.meta
     new: (...) =>
       super ...
       @state or= 0
-      @out or= ValueStream 'num'
+      @out or= T.num\mk_sig!
 
     pattern = -evt.clock + val.num + -val.num
     setup: (inputs, scope) =>
@@ -150,7 +148,7 @@ ramp = ValueStream.meta
 
       @out\set @phase * max
 
-tick = ValueStream.meta
+tick = Constant.meta
   meta:
     name: 'tick'
     summary: "Count ticks."
@@ -165,7 +163,7 @@ tick = ValueStream.meta
     new: (...) =>
       super ...
       @state or= { phase: 0, count: 0 }
-      @out or= ValueStream 'num', @state.count
+      @out or= T.num\mk_sig! @state.count
 
     pattern = -evt.clock + val.num
     setup: (inputs, scope) =>
@@ -183,7 +181,7 @@ tick = ValueStream.meta
         @state.count += 1
         @out\set @state.count
 
-every = ValueStream.meta
+every = Constant.meta
   meta:
     name: 'every'
     summary: "Emit events regularly."
@@ -206,8 +204,8 @@ every = ValueStream.meta
       super
         clock: Input.hot clock or scope\get '*clock*'
         period: Input.cold period
-        evt: Input.cold evt or ValueStream 'bang', true
-      @out = EventStream @inputs.evt\type!
+        evt: Input.cold evt or Constant.bang, true
+      @out = @inputs.evt\type!\mk_evt!
 
     tick: =>
       for tick in *@inputs.clock!
@@ -217,7 +215,7 @@ every = ValueStream.meta
         @state -= 1
         @out\add @inputs.evt!
 
-sequence = ValueStream.meta
+sequence = Constant.meta
   meta:
     name: 'sequence'
     summary: "Emit a sequence of values as events over time."
@@ -246,7 +244,7 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
 
     setup: (inputs, scope) =>
       { clock, first, steps } = pattern\match inputs
-      @out = EventStream steps[1].value\type!
+      @out = EvtStream steps[1].value\type!
       table.insert steps, 1, { delay: first }
       super
         clock: Input.hot clock or scope\get '*clock*'

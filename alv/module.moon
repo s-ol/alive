@@ -34,7 +34,7 @@ class Module
   -- @treturn bool whether the file was changed since the last call
   poll: =>
     { :mode, :modification } = (lfs.attributes @file) or {}
-    assert mode == 'file', Error 'io', "not a file: '#{file}'"
+    assert mode == 'file', Error 'io', "not a file: '#{@file}'"
     modification
 
   --- start an evaluation cycle.

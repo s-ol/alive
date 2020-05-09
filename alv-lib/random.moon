@@ -1,7 +1,7 @@
-import ValueStream, Error, Op, Input, val, evt from require 'alv.base'
+import Constant, Error, Op, Input, T, Array, val, evt from require 'alv.base'
 
 apply_range = (range, val) ->
-  if range\type! == 'str'
+  if range\type! == T.str
     switch range!
       when 'uni' then val
       when 'bip' then val*2 - 1
@@ -9,7 +9,7 @@ apply_range = (range, val) ->
       when 'deg' then val * 360
       else
         error Error 'argument', "unknown range '#{range!}'"
-  elseif range\type! == 'num'
+  elseif range\type! == T.num
     val * range!
   else
     error Error 'argument', "range has to be a string or number"
@@ -24,7 +24,7 @@ range can be one of:
 
 pattern = -evt.bang + -(val.num / val.str)
 
-num = ValueStream.meta
+num = Constant.meta
   meta:
     name: 'num'
     summary: 'Generate a random number.'
@@ -35,7 +35,7 @@ num = ValueStream.meta
   value: class extends Op
     new: (...) =>
       super ...
-      @out or= ValueStream 'num'
+      @out or= T.num\mk_sig!
       @state or @gen!
 
     gen: => @state = math.random!
@@ -44,25 +44,26 @@ num = ValueStream.meta
       { trig, range } = pattern\match inputs
       super
         trig: trig and Input.hot trig
-        range: Input.hot range or ValueStream.str 'uni'
+        range: Input.hot range or Constant.str 'uni'
 
     tick: =>
       @gen! if @inputs.trig and @inputs.trig\dirty!
       @out\set apply_range @inputs.range, @state
 
 vec = (n) ->
-  ValueStream.meta
+  typ = Array n, T.num
+  Constant.meta
     meta:
       name: "vec#{n}"
       summary: 'Generate a random vector.'
       examples: { '(random/vec#{n} [trigger] [range]))' }
-      description: "Generate a random vec#{n} in `range` when created and on `trig`.
+      description: "Generate a random #{typ} in `range` when created and on `trig`.
 #{range_doc}"
 
     value: class extends Op
       new: (...) =>
         super ...
-        @out or= ValueStream "vec#{n}"
+        @out or= typ\mk_sig!
         @state or @gen!
 
       gen: => @state = for i=1,n do math.random!
@@ -71,9 +72,9 @@ vec = (n) ->
         { trig, range } = pattern\match inputs
         super
           trig: trig and Input.hot trig
-          range: Input.hot range or ValueStream.str 'uni'
+          range: Input.hot range or Constant.str 'uni'
 
-      tick: =>
+      tick: (setup) =>
         @gen! if @inputs.trig and @inputs.trig\dirty!
         @out\set [apply_range @inputs.range, v for v in *@state]
 

@@ -1,10 +1,10 @@
-import Op, ValueStream, Input, val, evt from require 'alv.base'
+import Op, Constant, Input, val, evt from require 'alv.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
 unpack or= table.unpack
 
-play = ValueStream.meta
+play = Constant.meta
   meta:
     name: 'play'
     summary: 'Play a SuperCollider SynthDef on bangs.'
@@ -39,7 +39,7 @@ Plays the synth `synth` on the `udp/socket` `socket` whenever `trig` is live.
         msg = pack '/s_new', synth, -1, 0, 1, unpack ctrls
         socket\send msg
 
-play_ = ValueStream.meta
+play_ = Constant.meta
   meta:
     name: 'play!'
     summary: 'Play a SuperCollider SynthDef on events.'

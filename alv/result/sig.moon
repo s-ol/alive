@@ -3,7 +3,6 @@
 --
 -- @classmod SigStream
 import Result from require 'alv.result.base'
-import Primitive from require 'alv.type'
 
 class SigStream extends Result
 --- Result interface
@@ -79,32 +78,12 @@ class SigStream extends Result
 --- static functions
 -- @section static
 
-  --- construct a new SigStream.
+  --- construct a new Constant.
   --
   -- @classmethod
-  -- @tparam type.Type type the type
-  -- @tparam any value the Lua value to be accessed through `unwrap`
+  -- @tparam string type the type name
+  -- @tparam ?any value the Lua value to be accessed through `unwrap`
   new: (type, @value) => super type
-
-  --- create a number stream.
-  -- @tparam number val the number
-  -- @treturn SigStream
-  @num: (val) -> SigStream Primitive'num', val
-
-  --- create a string stream.
-  -- @tparam string val the string
-  -- @treturn SigStream
-  @str: (val) -> SigStream Primitive'str', val
-
-  --- create a symbol stream.
-  -- @tparam string val the symbol
-  -- @treturn symbol
-  @sym: (val) -> SigStream Primitive'sym', val
-
-  --- create a boolean stream.
-  -- @tparam boolean val the boolean
-  -- @treturn SigStream
-  @bool: (val) -> SigStream Primitive'bool', val
 
 {
   :SigStream

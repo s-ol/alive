@@ -1,7 +1,7 @@
-import ValueStream, EventStream, Op, Input, val, evt from require 'alv.base'
+import Constant, Op, Input, T, val, evt from require 'alv.base'
 import input, output, inout, apply_range from require 'alv-lib.midi.core'
 
-gate = ValueStream.meta
+gate = Constant.meta
   meta:
     name: 'gate'
     summary: "gate from note-on and note-off messages."
@@ -10,12 +10,12 @@ gate = ValueStream.meta
   value: class extends Op
     pattern = -evt['midi/port'] + val.num -val.num
     setup: (inputs, scope) =>
-      @out or= ValueStream 'bool'
+      @out or= T.bool\mk_sig!
       { port, note, chan } = pattern\match inputs
       super
         port: Input.hot port or scope\get '*midi*'
         note: Input.hot note
-        chan: Input.hot chan or ValueStream.num -1
+        chan: Input.hot chan or Constant.num -1
 
     tick: =>
       { :port, :note, :chan } = @inputs
@@ -31,7 +31,7 @@ gate = ValueStream.meta
             elseif msg.status == 'note-off'
               @out\set false
 
-trig = ValueStream.meta
+trig = Constant.meta
   meta:
     name: 'trig'
     summary: "`bang`s from note-on messages."
@@ -40,12 +40,12 @@ trig = ValueStream.meta
   value: class extends Op
     pattern = -evt['midi/port'] + val.num -val.num
     setup: (inputs, scope) =>
-      @out or= EventStream 'bang'
+      @out or= T.bang\mk_evt!
       { port, note, chan } = pattern\match inputs
       super
         port: Input.hot port or scope\get '*midi*'
         note: Input.cold note
-        chan: Input.cold chan or ValueStream.num -1
+        chan: Input.cold chan or Constant.num -1
 
     tick: =>
       { :port, :note, :chan } = @inputs
@@ -55,7 +55,7 @@ trig = ValueStream.meta
           if msg.status == 'note-on'
             @out\add true
 
-cc = ValueStream.meta
+cc = Constant.meta
   meta:
     name: 'cc'
     summary: "`num` from cc-change messages."
@@ -76,10 +76,10 @@ cc = ValueStream.meta
       super
         port:  Input.hot port or scope\get '*midi*'
         cc:    Input.cold cc
-        chan:  Input.cold chan or ValueStream.num -1
-        range: Input.cold range or ValueStream.str 'uni'
+        chan:  Input.cold chan or Constant.num -1
+        range: Input.cold range or Constant.str 'uni'
 
-      @out or= ValueStream 'num', apply_range @inputs.range, 0
+      @out or= T.num\mk_sig apply_range @inputs.range, 0
 
     tick: =>
       { :port, :cc, :chan, :range } = @inputs

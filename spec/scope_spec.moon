@@ -1,4 +1,4 @@
-import Scope, Primitive, Constant, RTNode from require 'alv'
+import Scope, T, Constant, RTNode from require 'alv'
 import Op from require 'alv.base'
 import Logger from require 'alv.logger'
 Logger\init 'silent'
@@ -7,11 +7,6 @@ class TestOp extends Op
   new: (...) => super ...
 
 wrap_res = (result) -> RTNode :result
-
-num = Primitive 'num'
-str = Primitive 'str'
-opdef = Primitive 'opdef'
-scope_t = Primitive 'scope'
 
 describe 'Scope', ->
   describe 'constifies', ->
@@ -38,21 +33,21 @@ describe 'Scope', ->
       scope\set_raw 'test', TestOp
 
       got = (scope\get 'test')\const!
-      assert.is.equal TestOp, got opdef
+      assert.is.equal TestOp, got T.opdef
 
     test 'Scopes', ->
       sub = Scope!
       scope\set_raw 'sub', sub
 
       got = (scope\get 'sub')\const!
-      assert.is.equal sub, got scope_t
+      assert.is.equal sub, got T.scope
 
     test 'tables', ->
       pi = Constant.num 3.14
       scope\set_raw 'math', { :pi }
 
       got = (scope\get 'math')\const!
-      assert.is.equal scope_t, got.type
+      assert.is.equal T.scope, got.type
       assert.is.equal Scope, got.value.__class
       assert.is.equal pi, (got.value\get 'pi')\const!
       assert.is.equal pi, (scope\get 'math/pi')\const!
@@ -68,18 +63,18 @@ describe 'Scope', ->
     }
 
     got = (scope\get 'num')\const!
-    assert.is.equal 3, got num
+    assert.is.equal 3, got T.num
 
     got = (scope\get 'str')\const!
-    assert.is.equal "im a happy string", got str
+    assert.is.equal "im a happy string", got T.str
 
     assert.is.equal pi, (scope\get 'pi')\const!
 
     got = (scope\get 'test')\const!
-    assert.is.equal TestOp, got opdef
+    assert.is.equal TestOp, got T.opdef
 
     got = (scope\get 'math')\const!
-    assert.is.equal scope_t, got.type
+    assert.is.equal T.scope, got.type
     assert.is.equal pi, (scope\get 'math/pi')\const!
 
   it 'gets from nested scopes', ->
@@ -116,13 +111,13 @@ describe 'Scope', ->
 
     it 'allows access', ->
       got = (scope\get 'inherited')\const!
-      assert.is.equal "inherited string", got str
+      assert.is.equal "inherited string", got T.str
 
     it 'can be shadowed', ->
       scope\set_raw 'hidden', "overwritten"
 
       got = (scope\get 'hidden')\const!
-      assert.is.equal "overwritten", got str
+      assert.is.equal "overwritten", got T.str
 
   describe 'dynamic inheritance', ->
     root = Scope!

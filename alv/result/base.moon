@@ -24,7 +24,11 @@ class Result
   -- @function fork
   -- @treturn Result
 
-  __tostring: => "<#{@type}#{@metatype} #{@type\pp @value}>"
+  __tostring: =>
+    if @value then
+      "<#{@type}#{@metatype} #{@type\pp @value}>"
+    else
+      "<#{@type}#{@metatype}>"
   __inherited: (cls) => cls.__base.__tostring or= @__tostring
 
   --- the type of this Result's value.
@@ -56,12 +60,14 @@ class Result
 --- static functions
 -- @section static
 
+  _type = type
   --- construct a new Result.
   --
   -- @classmethod
   -- @tparam type.Type type the type
   -- @tparam ?table meta the `meta` table
   new: (@type, @meta={}) =>
+    assert @type and (_type @type) == 'table', "not a type: #{@type}"
 
 {
   :Result
