@@ -24,7 +24,7 @@ switch_ = Constant.meta
     setup: (inputs) =>
       { i, values } = pattern\match inputs
 
-      @state = values[1].value.metatype == '~'
+      @state = values[1].result.metatype ~= '!'
 
       @out = if @state
         values[1]\type!\mk_sig!

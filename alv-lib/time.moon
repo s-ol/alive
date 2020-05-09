@@ -58,7 +58,7 @@ scale_time = Constant.meta
   value: class extends Op
     new: (...) =>
       super ...
-      @out or= EvtStream T.clock
+      @out or= T.clock\mk_evt!
 
     pattern = -evt.clock + val.num + -val.str
     setup: (inputs, scope) =>
@@ -163,7 +163,7 @@ tick = Constant.meta
     new: (...) =>
       super ...
       @state or= { phase: 0, count: 0 }
-      @out or= T.num\mk_sig! @state.count
+      @out or= T.num\mk_sig @state.count
 
     pattern = -evt.clock + val.num
     setup: (inputs, scope) =>
@@ -204,7 +204,7 @@ every = Constant.meta
       super
         clock: Input.hot clock or scope\get '*clock*'
         period: Input.cold period
-        evt: Input.cold evt or Constant.bang, true
+        evt: Input.cold evt or T.bang\mk_const true
       @out = @inputs.evt\type!\mk_evt!
 
     tick: =>
@@ -244,7 +244,7 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
 
     setup: (inputs, scope) =>
       { clock, first, steps } = pattern\match inputs
-      @out = EvtStream steps[1].value\type!
+      @out = steps[1].value\type!\mk_evt!
       table.insert steps, 1, { delay: first }
       super
         clock: Input.hot clock or scope\get '*clock*'
