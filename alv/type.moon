@@ -52,7 +52,12 @@ class Type
 --
 -- @type Primitive
 class Primitive extends Type
-  pp: (value) => tostring value
+  pp: (value) =>
+    switch @name
+      when 'str'
+        string.format '%q', value
+      else
+        tostring value
 
   __eq: (other) => @name == other.name
   __tostring: => @name
@@ -70,12 +75,12 @@ class Primitive extends Type
 -- @type Struct
 class Struct extends Type
   pp: (value) =>
-    inner = table.concat ["#{k}: #{@types[k]\pp v}" for k, v in opairs value], ', '
+    inner = table.concat ["#{k}: #{@types[k]\pp v}" for k, v in opairs value], ' '
     "{#{inner}}"
 
   __eq: (other) => same @types, other.types
   __tostring: =>
-    inner = table.concat ["#{k}: #{v}" for k, v in opairs @types], ', '
+    inner = table.concat ["#{k}: #{v}" for k, v in opairs @types], ' '
     "{#{inner}}"
 
   --- create a new struct type with a subset of keys.

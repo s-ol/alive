@@ -11,6 +11,11 @@ describe 'Primitive', ->
     assert.is.equal 'num', tostring num
     assert.is.equal 'str', tostring str
 
+  it 'pretty-prints values', ->
+    assert.is.equal 'true', bool\pp true
+    assert.is.equal '4.134', num\pp 4.134
+    assert.is.equal '"hello"', str\pp "hello"
+
   it 'implements __eq sensibly', ->
     assert.is.equal (Primitive 'bool'), bool
     assert.is.equal (Primitive 'num'), num
@@ -25,6 +30,11 @@ describe 'Array', ->
     assert.is.equal 'num[3]', tostring vec3
     assert.is.equal 'my-type[3][24]', tostring Array 24, Array 3, 'my-type'
 
+  it 'pretty-prints values', ->
+    assert.is.equal '[1 2 3]', vec3\pp { 1, 2, 3 }
+    assert.is.equal '[["a" "b" "c"] ["d" "e" "f"]]',
+                    (Array 2, Array 3, str)\pp { {'a', 'b', 'c'}, {'d', 'e', 'f'} }
+
   it 'implements __eq sensibly', ->
     assert.is.equal vec3, Array 3, num
     assert.not.equal vec3, Array 2, num
@@ -35,8 +45,12 @@ describe 'Struct', ->
   abc = Struct { c: num, b: num, a: num }
 
   it 'stringifies well', ->
-    assert.is.equal '{dur: num, note: str}', tostring play
-    assert.is.equal '{a: num, b: num, c: num}', tostring abc
+    assert.is.equal '{dur: num note: str}', tostring play
+    assert.is.equal '{a: num b: num c: num}', tostring abc
+
+  it 'pretty-prints values', ->
+    assert.is.equal '{dur: 0.5 note: "a"}', play\pp { dur: 0.5, note: 'a' }
+    assert.is.equal '{a: 1 b: 2 c: 3}', abc\pp { a: 1, b: 2, c: 3 }
 
   it 'implements __eq sensibly', ->
     assert.is.equal play, Struct { note: str, dur: num }
