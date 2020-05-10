@@ -29,6 +29,12 @@ class Type
   -- @tparam any value
   -- @treturn string
 
+  --- check two values of this type for equality.
+  -- @function eq
+  -- @tparam any a
+  -- @tparam any b
+  -- @treturn bool
+
   --- create a `SigStream` of this type.
   -- @tparam ?any init initial value
   -- @treturn SigStream
@@ -59,6 +65,8 @@ class Primitive extends Type
       else
         tostring value
 
+  eq: (a, b) => a == b
+
   __eq: (other) => @name == other.name
   __tostring: => @name
 
@@ -77,6 +85,12 @@ class Struct extends Type
   pp: (value) =>
     inner = table.concat ["#{k}: #{@types[k]\pp v}" for k, v in opairs value], ' '
     "{#{inner}}"
+
+  eq: (a, b) =>
+    for key, type in pairs @types
+      if not type\eq a[key], b[key]
+        return false
+    true
 
   __eq: (other) => same @types, other.types
   __tostring: =>
@@ -104,6 +118,12 @@ class Array extends Type
   pp: (value) =>
     inner = table.concat [@type\pp v for v in *value], ' '
     "[#{inner}]"
+
+  eq: (a, b) =>
+    for i=1, @size
+      if not @type\eq a[i], b[i]
+        return false
+    true
 
   __eq: (other) => @size == other.size and @type == other.type
   __tostring: => "#{@type}[#{@size}]"
