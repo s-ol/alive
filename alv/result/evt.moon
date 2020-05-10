@@ -65,8 +65,6 @@ class EvtStream extends Result
   --- push an event value into the stream.
   --
   -- Marks this stream as dirty for the remainder of the current tick.
-  --
-  -- @tparam any event
   add: (event) =>
     if not @dirty!
       @events = {}
@@ -74,6 +72,8 @@ class EvtStream extends Result
     @updated = COPILOT.T
     table.insert @events, event
 
+  --- the wrapped Lua value.
+  -- @tfield {any,...} events
 
 --- static functions
 -- @section static

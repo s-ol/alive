@@ -2,7 +2,7 @@
 -- Continuous stream of values.
 --
 -- @classmod SigStream
-import Result from require 'alv.result.base'
+import Result, __eq from require 'alv.result.base'
 
 class SigStream extends Result
 --- Result interface
@@ -37,11 +37,6 @@ class SigStream extends Result
   --- alias for `unwrap`.
   __call: (...) => @unwrap ...
 
-  --- compare two values.
-  --
-  -- Compares two `SigStream`s by comparing their types and their Lua values.
-  __eq: (other) => other.type == @type and other.value == @value
-
   --- the type of this Result's value.
   -- @tfield type.Type type
 
@@ -68,9 +63,11 @@ class SigStream extends Result
   --
   -- Marks this stream as dirty for the remainder of the current tick.
   set: (value) =>
-    if value != @value
+    if not @type\eq value, @value
       @value = value
       @updated = COPILOT.T
+
+  :__eq
 
   --- the wrapped Lua value.
   -- @tfield any value

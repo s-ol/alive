@@ -50,11 +50,13 @@ import Primitive from require 'alv.type'
 local Repeat, Sequence, Choice, Optional
 
 class Pattern
+  fulltype = (res) -> (tostring res.type) .. res.metatype
+
   match: (seq) =>
     @reset!
     num, cap = @capture seq, 1
     if num != #seq
-      args = table.concat [arg.result\fulltype! for arg in *seq], ' '
+      args = table.concat [fulltype arg.result for arg in *seq], ' '
       msg = "couldn't match arguments (#{args}) against pattern #{@}"
       error Error 'argument', msg
     cap

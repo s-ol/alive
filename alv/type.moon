@@ -144,6 +144,7 @@ T = setmetatable {}, __index: (key) =>
     rawset @, key, type
 
 {
+  :Type
   :T
   :Primitive
   :Array

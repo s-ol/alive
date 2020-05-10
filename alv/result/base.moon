@@ -4,6 +4,8 @@
 -- implemented by `Constant`, `SigStream`, `EvtStream`, and `IOStream`.
 --
 -- @classmod Result
+import Type from require 'alv.type'
+import ancestor from require 'alv.util'
 
 class Result
 --- Result interface.
@@ -41,10 +43,6 @@ class Result
   --
   -- @tfield string metatype
 
-  --- get the full typestring.
-  -- @treturn string `type .. metatype`
-  fulltype: => (tostring @type) .. @metatype
-
   --- documentation metadata.
   --
   -- an optional table containing metadata for error messages and
@@ -60,15 +58,16 @@ class Result
 --- static functions
 -- @section static
 
-  _type = type
   --- construct a new Result.
   --
   -- @classmethod
   -- @tparam type.Type type the type
   -- @tparam ?table meta the `meta` table
   new: (@type, @meta={}) =>
-    assert @type and (_type @type) == 'table', "not a type: #{@type}"
+    assert @type and (ancestor @type.__class) == Type, "not a type: #{@type}"
 
 {
   :Result
+  __eq: (a, b) ->
+    a.type == b.type and a.type\eq a.value, b.value
 }

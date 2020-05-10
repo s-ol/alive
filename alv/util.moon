@@ -24,6 +24,14 @@ opairs = (t, order_fn, only_strings=false) ->
   state = { :t, i: 0, index: sort t, order_fn, only_strings }
   onext, state, nil
 
+--- find the ancestor of a MoonScript class
+ancestor = (klass) ->
+  assert klass, "cant find the ancestor of nil"
+  while klass.__parent
+    klass = klass.__parent
+  klass
+
 {
   :opairs
+  :ancestor
 }

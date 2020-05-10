@@ -1,11 +1,15 @@
 require 'spec.test_setup'
-import T, Primitive, Array, Struct from require 'alv'
+import T, Type, Primitive, Array, Struct from require 'alv.type'
+import ancestor from require 'alv.util'
 
 bool = Primitive 'bool'
 num = Primitive 'num'
 str = Primitive 'str'
 
 describe 'Primitive', ->
+  it 'inherits from Type', ->
+    assert.is.equal Type, ancestor Primitive.__class
+
   it 'stringifies well', ->
     assert.is.equal 'bool', tostring bool
     assert.is.equal 'num', tostring num
@@ -35,6 +39,10 @@ describe 'Primitive', ->
 describe 'Array', ->
   vec3 = Array 3, num
   str32 = Array 2, Array 3, str
+
+  it 'inherits from Type', ->
+    assert.is.equal Type, ancestor Array.__class
+
   it 'stringifies well', ->
     assert.is.equal 'num[3]', tostring vec3
     assert.is.equal 'my-type[3][24]', tostring Array 24, Array 3, 'my-type'
@@ -64,6 +72,9 @@ describe 'Array', ->
 describe 'Struct', ->
   play = Struct { note: str, dur: num }
   abc = Struct { c: num, b: num, a: num }
+
+  it 'inherits from Type', ->
+    assert.is.equal Type, ancestor Struct.__class
 
   it 'stringifies well', ->
     assert.is.equal '{dur: num note: str}', tostring play

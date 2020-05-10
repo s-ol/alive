@@ -59,10 +59,11 @@ eq = Constant.meta
         return
 
       { :first, :rest } = @unwrap_all!
+      type = @inputs.first\type!
 
       equal = true
       for other in *rest
-        if first != other
+        if not type\eq first, other
           equal = false
           break
 
@@ -89,7 +90,7 @@ not_eq = Constant.meta
       diff = true
       for a=1, #@inputs-1
         for b=a+1, #@inputs
-          if @inputs[a].stream == @inputs[b].stream
+          if @inputs[a].result == @inputs[b].result
             diff = false
             break
 

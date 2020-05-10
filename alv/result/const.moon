@@ -4,17 +4,12 @@
 -- Implements the `Result` and `AST` inteface.
 --
 -- @classmod Constant
-import Result from require 'alv.result.base'
+import Result, __eq from require 'alv.result.base'
 import T from require 'alv.type'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 import scope, base from require 'alv.cycle'
-
-ancestor = (klass) ->
-  assert klass, "cant find the ancestor of nil"
-  while klass.__parent
-    klass = klass.__parent
-  klass
+import ancestor from require 'alv.util'
 
 class Constant extends Result
 --- Result interface

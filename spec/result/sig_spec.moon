@@ -1,5 +1,5 @@
 import do_setup from require 'spec.test_setup'
-import SigStream, RTNode, Scope, SimpleRegistry, T from require 'alv'
+import SigStream, Constant, RTNode, Scope, SimpleRegistry, T from require 'alv'
 import Op, Builtin from require 'alv.base'
 
 class TestOp extends Op
@@ -50,6 +50,15 @@ describe 'SigStream', ->
       val = SigStream T.num, 3
       assert.is.equal (SigStream T.num, 3), val
       assert.not.equal (SigStream T.num, 4), val
+
+    it 'can be compared to a Constant', ->
+      val = SigStream T.num, 3
+      assert.is.equal (Constant.num 3), val
+      assert.not.equal (Constant.num 4), val
+
+      val = SigStream T.str, 'hello'
+      assert.is.equal (Constant.str 'hello'), val
+      assert.not.equal (Constant.sym 'hello'), val
 
   describe ':set', ->
     it 'sets the value', ->
