@@ -115,7 +115,7 @@ describe 'RTNode', ->
       b_child = node_with_sideinput b_value, b_input
 
     it 'updates children when a side_input is dirty', ->
-      a_value\add 1
+      a_value\set 1
       assert.is.true a_input\dirty!
       assert.is.false b_input\dirty!
 
@@ -142,7 +142,7 @@ describe 'RTNode', ->
       assert.spy(b).was_not_called!
 
     it 'updates op when any op-inputs are dirty', ->
-      a_value\add 1
+      a_value\set 1
       assert.is.true a_input\dirty!
       assert.is.false b_input\dirty!
 
@@ -155,7 +155,7 @@ describe 'RTNode', ->
       assert.spy(s).was_called_with match.ref op
 
     it 'early-outs when no op-inputs are dirty', ->
-      a_value\add 1
+      a_value\set 1
       assert.is.true a_input\dirty!
       assert.is.false b_input\dirty!
 

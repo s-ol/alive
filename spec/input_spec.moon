@@ -13,8 +13,8 @@ basic_tests = (result, input) ->
     assert.is.equal result, input.result
 
   it 'forwards :unwrap', ->
-    assert.is.same result\unwrap!, input\unwrap!
-    assert.is.same result\unwrap!, input!
+    assert.is.equal result\unwrap!, input\unwrap!, nil
+    assert.is.equal result\unwrap!, input!, nil
 
   it 'gives access to the type string', ->
     assert.is.equal result.type, input\type!
@@ -96,7 +96,7 @@ describe 'Input.hot', ->
       input\finish_setup!
 
       COPILOT\next_tick!
-      result\add 1
+      result\set 1
 
       assert.is.true input\dirty!
       assert.is.true result\dirty!

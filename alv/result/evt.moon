@@ -16,15 +16,16 @@ class EvtStream extends Result
 
   --- get the sequence of current events (if any).
   --
-  -- Returns `events` if `dirty`, or an empty table otherwise.
+  -- Returns `value` if `dirty`, or `nil` otherwise.
   -- Asserts `@type == type` if `type` is given.
   --
   -- @tparam[opt] type.Type type the type to check for
   -- @tparam[optchain] string msg message to throw if type don't match
-  -- @treturn {any,...} `events`
+  -- @treturn ?any `value`
   unwrap: (type, msg) =>
     assert type == @type, msg or "#{@} is not a #{type}" if type
-    if @dirty! then @events else {}
+    @value
+    if @dirty! then @value
 
   --- create a mutable copy of this stream.
   --
@@ -37,8 +38,7 @@ class EvtStream extends Result
   __call: (...) => @unwrap ...
 
   __tostring: =>
-    events = table.concat [@type\pp e for e in *@events], ' '
-    "<#{@type}#{@metatype} #{events}>"
+    "<#{@type}#{@metatype} #{if @dirty then @type\pp @value else 'nil'}>"
 
   --- the type of this Result's value.
   -- @tfield type.Type type
@@ -65,15 +65,13 @@ class EvtStream extends Result
   --- push an event value into the stream.
   --
   -- Marks this stream as dirty for the remainder of the current tick.
-  add: (event) =>
-    if not @dirty!
-      @events = {}
-
+  set: (event) =>
+    assert not @dirty!, "#{@} is already dirty!"
     @updated = COPILOT.T
-    table.insert @events, event
+    @value = event
 
   --- the wrapped Lua value.
-  -- @tfield {any,...} events
+  -- @tfield any value
 
 --- static functions
 -- @section static
@@ -84,7 +82,6 @@ class EvtStream extends Result
   -- @tparam type.Type type the type
   new: (type) =>
     super type
-    @events = {}
 
 {
   :EvtStream

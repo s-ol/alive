@@ -2,12 +2,6 @@ import do_setup from require 'spec.test_setup'
 import SigStream, Constant, RTNode, Scope, SimpleRegistry, T from require 'alv'
 import Op, Builtin from require 'alv.base'
 
-class TestOp extends Op
-  new: (...) => super ...
-
-class TestBuiltin extends Builtin
-  new: (...) =>
-
 setup do_setup
 
 describe 'SigStream', ->
