@@ -6,6 +6,7 @@
 --
 -- @module base
 -- @see Op
+-- @see PureOp
 -- @see Builtin
 -- @see FnDef
 -- @see Input
@@ -24,6 +25,7 @@
 -- @see Error
 
 import Op from require 'alv.base.op'
+import PureOp from require 'alv.base.pureop'
 import Builtin from require 'alv.base.builtin'
 import FnDef from require 'alv.base.fndef'
 import Input from require 'alv.base.input'
@@ -34,7 +36,7 @@ import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
 
 {
-  :Op
+  :Op, :PureOp
   :Builtin
   :FnDef
   :Input

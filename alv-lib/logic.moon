@@ -1,4 +1,4 @@
-import Op, SigStream, Constant, Input, Error, T, val from require 'alv.base'
+import PureOp, Constant, T, val, evt from require 'alv.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -14,19 +14,16 @@ tobool = (val) ->
     else
       true
 
-class ReduceOp extends Op
-  pattern = val! + val! * 0
-  setup: (inputs) =>
-    @out or= SigStream T.bool
-    { first, rest } = pattern\match inputs
-    super
-      first: Input.hot first
-      rest: [Input.hot v for v in *rest]
+any = val! / evt!
+
+class ReduceOp extends PureOp
+  pattern: any\rep 2, nil
+  type: T.bool
 
   tick: =>
-    { :first, :rest } = @unwrap_all!
-    accum = tobool first
-    for val in *rest
+    args = @unwrap_all!
+    accum = tobool args[1]
+    for val in *args[2,]
       accum = @.fn accum, tobool val
 
     @out\set accum
@@ -38,32 +35,22 @@ eq = Constant.meta
     examples: { '(== a b [c]…)', '(eq a b [c]…)' }
     description: "`true` if the types and values of all arguments are equal."
 
-  value: class extends Op
-    pattern = val! + val! * 0
+  value: class extends ReduceOp
     setup: (inputs) =>
-      @out or= SigStream T.bool, false
-      { first, rest } = pattern\match inputs
-      same = all_same first\type!, [i\type! for i in *rest]
-
-      super if same
-        {
-          first: Input.hot first
-          rest: [Input.hot v for v in *rest]
-        }
-      else
-        {}
+      @state or= {}
+      @state.same_type = all_same inputs[1]\type!, [i\type! for i in *inputs[2,]]
+      super inputs
 
     tick: =>
-      if not @inputs.first
+      if not @state.same_type
         @out\set false
         return
 
-      { :first, :rest } = @unwrap_all!
-      type = @inputs.first\type!
-
-      equal = true
-      for other in *rest
-        if not type\eq first, other
+      typ = @inputs[1]\type!
+      args = @unwrap_all!
+      equal, first = true, args[1]
+      for other in *args[2,]
+        if not typ\eq first, other
           equal = false
           break
 
@@ -76,25 +63,24 @@ not_eq = Constant.meta
     examples: { '(!= a b [c]…)', '(not-eq a b [c]…)' }
     description: "`true` if types or values of any two arguments are different."
 
-  value: class extends Op
+  value: class extends ReduceOp
     setup: (inputs) =>
-      @out or= SigStream T.bool, false
-      assert #inputs > 1, Error 'argument', "need at least two values"
-      super [Input.hot v for v in *inputs]
+      @state or= {}
+      @state.same_type = all_same inputs[1]\type!, [i\type! for i in *inputs[2,]]
+      super inputs
 
     tick: =>
-      if not @inputs[1]
+      if not @state.same_type
         @out\set true
         return
 
-      diff = true
-      for a=1, #@inputs-1
-        for b=a+1, #@inputs
-          if @inputs[a].result == @inputs[b].result
-            diff = false
-            break
-
-        break unless diff
+      typ = @inputs[1]\type!
+      args = @unwrap_all!
+      diff, first = true, args[1]
+      for other in *args[2,]
+        if typ\eq first, other
+          diff = false
+          break
 
       @out\set diff
 
@@ -120,14 +106,10 @@ not_ = Constant.meta
     summary: "Logical NOT."
     examples: { '(not a)' }
 
-  value: class extends Op
-    setup: (inputs) =>
-      @out or= SigStream T.bool, false
-      value = val!\match inputs
-      super value: Input.hot value
-
-    tick: =>
-      @out\set not tobool @inputs.value!
+  value: class extends PureOp
+    pattern: any\rep 1, 1
+    type: T.bool
+    tick: => @out\set not tobool @inputs[1]!
 
 bool = Constant.meta
   meta:
@@ -136,14 +118,10 @@ bool = Constant.meta
     examples: { '(bool a)' }
     description: "`false` if a is `false`, `nil` or `0`, `true` otherwise."
 
-  value: class extends Op
-    setup: (inputs) =>
-      @out or= SigStream T.bool
-      value = val!\match inputs
-      super value: Input.hot value
-
-    tick: =>
-      @out\set tobool @inputs.value!
+  value: class extends PureOp
+    pattern: any\rep 1, 1
+    type: T.bool
+    tick: => @out\set tobool @inputs[1]!
 
 {
   :eq, '==': eq

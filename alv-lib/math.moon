@@ -1,31 +1,23 @@
-import Op, Constant, SigStream, Error, Input, T, val from require 'alv.base'
+import PureOp, Constant, T, val, evt from require 'alv.base'
 unpack or= table.unpack
 
-class ReduceOp extends Op
-  pattern = val.num + val.num*0
-  setup: (inputs) =>
-    @out or= SigStream T.num
-    { first, rest } = pattern\match inputs
-    super
-      first: Input.hot first
-      rest: [Input.hot v for v in *rest]
+num = val.num / evt.num
+
+class ReduceOp extends PureOp
+  pattern: num\rep 2, nil
+  type: T.num
 
   tick: =>
-    { :first, :rest } = @unwrap_all!
-    accum = first
-    for val in *rest
+    args = @unwrap_all!
+    accum = args[1]
+    for val in *args[2,]
       accum = @.fn accum, val
     @out\set accum
 
 func_op = (func, pattern) ->
-  class extends Op
-
-    setup: (inputs) =>
-      @out or= SigStream T.num
-
-      params = pattern\match inputs
-      super [Input.hot p for p in *params]
-
+  class extends PureOp
+    pattern: pattern
+    type: T.num
 
     tick: => @out\set func unpack @unwrap_all!
 
@@ -35,20 +27,15 @@ func_def = (name, args, func, summary, pattern) ->
        :name
        :summary
        examples: { "(#{name} #{args})" }
-     value: func_op func, pattern or val.num\rep 1, 1
+     value: func_op func, pattern or num\rep 1, 1
 
 evenodd_op = (remainder) ->
-  class extends Op
-    pattern = val.num + -val.num
-    setup: (inputs) =>
-      @out or= SigStream T.bool
-      { val, div } = pattern\match inputs
-      super
-        val: Input.hot val
-        div: Input.hot div or SigStream.num 2
+  class extends PureOp
+    pattern: num + -num
+    type: T.bool
 
     tick: =>
-      { :val, :div } = @unwrap_all!
+      { val, div } = @unwrap_all!
       @out\set (val % div) == remainder
 
 add = Constant.meta
@@ -101,7 +88,7 @@ mod = Constant.meta
     summary: 'Modulo operator.'
     examples: { '(% num div)', '(mod num div)' }
     description: "Calculate remainder of division by `div`."
-  value: func_op ((a, b) -> a % b), val.num + val.num
+  value: func_op ((a, b) -> a % b), num + num
 
 even = Constant.meta
   meta:
@@ -127,7 +114,7 @@ mix = Constant.meta
     summary: 'Linearly interpolate.'
     examples: { '(mix a b i)' }
     description: "Interpolate between `a` and `b` using `i` in range 0-1."
-  value: func_op ((a, b, i) -> i*b + (1-i)*a), val.num + val.num + val.num
+  value: func_op ((a, b, i) -> i*b + (1-i)*a), num + num + num
 
 min = Constant.meta
   meta:
@@ -135,7 +122,7 @@ min = Constant.meta
     summary: "Find the minimum."
     examples: { '(min a b [c…])' }
     description: "Return the lowest of arguments."
-  value: func_op math.min, val.num*0
+  value: func_op math.min, num*0
 
 max = Constant.meta
   meta:
@@ -143,7 +130,7 @@ max = Constant.meta
     summary: "Find the maximum."
     examples: { '(max a b [c…])' }
     description: "Return the highest of arguments."
-  value: func_op math.max, val.num*0
+  value: func_op math.max, num*0
 
 cos = func_def 'cos', 'alpha', math.cos, "Cosine function (radians)."
 sin = func_def 'sin', 'alpha', math.sin, "Sine function (radians)."
@@ -151,7 +138,7 @@ tan = func_def 'tan', 'alpha', math.tan, "Tangent function (radians)."
 acos = func_def 'acos', 'cos', math.acos, "Inverse cosine function (radians)."
 asin = func_def 'asin', 'sin', math.asin, "Inverse sine function (radians)."
 atan = func_def 'atan', 'tan', math.atan, "Inverse tangent function (radians)."
-atan2 = func_def 'atan2', 'y x', math.atan2, "Inverse tangent function (two argument version).", val.num + val.num
+atan2 = func_def 'atan2', 'y x', math.atan2, "Inverse tangent function (two argument version).", num + num
 cosh = func_def 'cosh', 'alpha', math.cosh, "Hyperbolic cosine function (radians)."
 sinh = func_def 'sinh', 'alpha', math.sinh, "Hyperbolic sine function (radians)."
 tanh = func_def 'tanh', 'alpha', math.tanh, "Hyperbolic tangent function (radians)."
@@ -161,7 +148,7 @@ ceil = func_def 'ceil', 'val', math.ceil, "Round towards positive infinity."
 abs = func_def 'abs', 'val', math.abs, "Get the absolute value."
 
 exp = func_def 'exp', 'exp', math.floor, "*e* number raised to a power."
-log = func_def 'log', 'val [base]', math.log, "Logarithm with given base.", val.num + -val.num
+log = func_def 'log', 'val [base]', math.log, "Logarithm with optional base.", num + -num
 log10 = func_def 'log10', 'val', math.log10, "Logarithm with base 10."
 sqrt = func_def 'sqrt', 'val', math.sqrt, "Square root function."
 

@@ -1,17 +1,16 @@
-import Op, Constant, SigStream, Input, T from require 'alv.base'
+import PureOp, Constant, Input, T, val, evt from require 'alv.base'
+
+any = val! / evt!
 
 str = Constant.meta
   meta:
     name: 'str'
     summary: "Concatenate/stringify values."
     examples: { '(.. v1 [v2…])', '(str v1 [v2…])' }
-  value: class extends Op
-    setup: (inputs) =>
-      @out or= SigStream T.str
-      super [Input.hot v for v in *inputs]
-
-    tick: =>
-      @out\set table.concat [tostring v! for v in *@inputs]
+  value: class extends PureOp
+    pattern: any\rep 1, nil
+    type: T.str
+    tick: => @out\set table.concat [tostring i! for i in *@inputs]
 
 {
   :str, '..': str
