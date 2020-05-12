@@ -48,15 +48,13 @@ range can be one of:
           table.remove @state
 
       curr_i = i! % #@state
-      if port\dirty!
-        changed = false
-        for msg in *port!
-          if msg.status == 'control-change' and msg.chan == chan!
-            rel_i = msg.a - start!
-            if rel_i >= 0 and rel_i < #@state
-              @state[rel_i+1] = msg.b
-              changed = rel_i == curr_i
-        @out\set apply_range range, @state[curr_i+1] if changed
+      if msg = port!
+        if msg.status == 'control-change' and msg.chan == chan!
+          rel_i = msg.a - start!
+          if rel_i >= 0 and rel_i < #@state
+            @state[rel_i+1] = msg.b
+            if rel_i == curr_i
+              @out\set apply_range range, @state[curr_i+1]
       else
         @out\set apply_range range, @state[curr_i+1]
 
@@ -107,13 +105,12 @@ Send `true` or `false` for the `i`-th note-button (MIDI-notes starting from
 
       curr_i = i! % #@state
 
-      if port\dirty!
-        for msg in *port!
-          if msg.status == 'note-on' and msg.chan == chan!
-            rel_i = msg.a - start!
-            if rel_i >= 0 and rel_i < #@state
-              @state[rel_i+1] = not @state[rel_i+1]
-              @display rel_i, rel_i == curr_i
+      if msg = port!
+        if msg.status == 'note-on' and msg.chan == chan!
+          rel_i = msg.a - start!
+          if rel_i >= 0 and rel_i < #@state
+            @state[rel_i+1] = not @state[rel_i+1]
+            @display rel_i, rel_i == curr_i
 
       if i\dirty!
         prev_i = (curr_i - 1) % #@state
@@ -170,13 +167,12 @@ Send bangs for the `i`-th note-button (MIDI-notes starting from `start`).
 
       curr_i = i! % #@state
 
-      if port\dirty!
-        for msg in *port!
-          if msg.status == 'note-on' and msg.chan == chan!
-            rel_i = msg.a - start!
-            if rel_i >= 0 and rel_i < #@state
-              @state[rel_i+1] = not @state[rel_i+1]
-              @display rel_i, rel_i == curr_i
+      if msg = port!
+        if msg.status == 'note-on' and msg.chan == chan!
+          rel_i = msg.a - start!
+          if rel_i >= 0 and rel_i < #@state
+            @state[rel_i+1] = not @state[rel_i+1]
+            @display rel_i, rel_i == curr_i
 
       if i\dirty!
         prev_i = (curr_i - 1) % #@state
@@ -185,7 +181,7 @@ Send bangs for the `i`-th note-button (MIDI-notes starting from `start`).
         @display prev_i, false
 
         if @state[curr_i+1]
-          @out\add true
+          @out\set true
 
 {
   'cc-seq': cc_seq

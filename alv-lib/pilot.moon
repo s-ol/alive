@@ -37,9 +37,7 @@ play = Constant.meta
         args: [Input.cold a for a in *args]
 
     tick: =>
-      { :trig, :args } = @inputs
-      for _ in *trig!
-        send [a! for a in *@inputs.args]
+      send @unwrap_all!.args
 
 play_ = Constant.meta
   meta:

@@ -48,8 +48,8 @@ send = Constant.meta
 
     tick: =>
       { :socket, :path, :value } = @unwrap_all!
-      for val in *value
-        msg = pack path, if 'table' == type val then unpack val else val
+      if value
+        msg = pack path, if 'table' == type value then unpack value else value
         socket\send msg
 
 sync = Constant.meta

@@ -14,7 +14,7 @@ class Clock extends IOStream
     time = monotime!
     @dt = time - @last
     if @dt >= @frametime
-      @add { dt: @dt, :time }
+      @set { dt: @dt, :time }
       @last = time
 
 class ScaledClock extends EvtStream
@@ -68,9 +68,8 @@ scale_time = Constant.meta
         scale: Input.cold scale
 
     tick: =>
-      scale = @inputs.scale!
-      for evt in *@inputs.clock!
-        @out\add {k, v*scale for k,v in pairs evt}
+      { :clock, :scale } = @unwrap_all!
+      @out\set {k, v*scale for k,v in pairs clock}
 
 lfo = Constant.meta
   meta:
@@ -103,7 +102,7 @@ lfo = Constant.meta
 
     tau = math.pi * 2
     tick: =>
-      for tick in *@inputs.clock!
+      if tick = @inputs.clock!
         @state += tick.dt * @inputs.freq!
 
       @out\set switch @inputs.wave!
@@ -138,11 +137,10 @@ ramp = Constant.meta
         max: max and Input.cold max
 
     tick: =>
-      for tick in *@inputs.clock!
-        period = @inputs.period!
-        max = (@inputs.max or @inputs.period)!
-        @phase += tick.dt / period
+      { :clock, :period, :max } = @unwrap_all!
+      max or= period
 
+      @phase += clock.dt / period
       while @phase >= 1
         @phase -= 1
 
@@ -173,10 +171,9 @@ tick = Constant.meta
         period: Input.cold period
 
     tick: =>
-      for tick in *@inputs.clock!
-        @state.phase += tick.dt / @inputs.period!
+      @state.phase += @inputs.clock!.dt / @inputs.period!
 
-      while @state.phase >= 1
+      if @state.phase >= 1
         @state.phase -= 1
         @state.count += 1
         @out\set @state.count
@@ -208,12 +205,11 @@ every = Constant.meta
       @out = @inputs.evt\type!\mk_evt!
 
     tick: =>
-      for tick in *@inputs.clock!
-        @state += tick.dt / @inputs.period!
+      @state += @inputs.clock!.dt / @inputs.period!
 
-      while @state >= 1
+      if @state >= 1
         @state -= 1
-        @out\add @inputs.evt!
+        @out\set @inputs.evt!
 
 sequence = Constant.meta
   meta:
@@ -251,7 +247,7 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
         steps: [inputify step for step in *steps]
 
     tick: =>
-      for tick in *@inputs.clock!
+      if tick = @inputs.clock!
         @state.t += tick.dt
 
       change, current = false, nil
@@ -265,7 +261,7 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
           break
 
       if current.value and (change or current.value\dirty!)
-        @out\add current.value!
+        @out\set current.value!
 
 {
   :clock

@@ -24,9 +24,7 @@ switch_ = Constant.meta
     setup: (inputs) =>
       { i, values } = pattern\match inputs
 
-      @state = values[1].result.metatype ~= '!'
-
-      @out = if @state
+      @out = if values[1].result.metatype ~= '!'
         values[1]\type!\mk_sig!
       else
         values[1]\type!\mk_evt!
@@ -45,12 +43,8 @@ switch_ = Constant.meta
         else
           i = 1 + (math.floor i!) % #values
           values[i]
-      if @state
-        @out\set active and active!
-      else
-        if active and active\dirty!
-          for event in *active!
-            @out\add event
+
+      @out\set active and active!
 
 edge = Constant.meta
   meta:
@@ -67,7 +61,7 @@ edge = Constant.meta
     tick: =>
       now = @inputs.value!
       if now and not @state
-        @out\add true
+        @out\set true
       @state = now
 
 change = Constant.meta
@@ -85,7 +79,7 @@ change = Constant.meta
     tick: =>
       now = @inputs.value!
       if now != @state
-        @out\add @inputs.value!
+        @out\set @inputs.value!
         @state = now
 
 hold = Constant.meta
@@ -100,9 +94,7 @@ hold = Constant.meta
       @out or= event\type!\mk_sig!
       super event: Input.hot event
 
-    tick: =>
-      for val in *@inputs.event!
-        @out\set val
+    tick: => @out\set @inputs.event!
 
 {
   'switch': switch_

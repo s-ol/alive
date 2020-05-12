@@ -23,13 +23,12 @@ gate = Constant.meta
       if note\dirty! or chan\dirty!
         @out\set false
 
-      if port\dirty!
-        for msg in *port!
-          if msg.a == note! and (chan! == -1 or msg.chan == chan!)
-            if msg.status == 'note-on'
-              @out\set true
-            elseif msg.status == 'note-off'
-              @out\set false
+      if msg = port!
+        if msg.a == note! and (chan! == -1 or msg.chan == chan!)
+          if msg.status == 'note-on'
+            @out\set true
+          elseif msg.status == 'note-off'
+            @out\set false
 
 trig = Constant.meta
   meta:
@@ -50,10 +49,10 @@ trig = Constant.meta
     tick: =>
       { :port, :note, :chan } = @inputs
 
-      for msg in *port!
+      if msg = port!
         if msg.a == note! and (chan! == -1 or msg.chan == chan!)
           if msg.status == 'note-on'
-            @out\add true
+            @out\set true
 
 cc = Constant.meta
   meta:
@@ -83,7 +82,7 @@ cc = Constant.meta
 
     tick: =>
       { :port, :cc, :chan, :range } = @inputs
-      for msg in *port!
+      if msg = port!
         if msg.status == 'control-change' and
            (chan! == -1 or msg.chan == chan!) and
            msg.a == cc!
