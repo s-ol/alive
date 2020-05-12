@@ -48,9 +48,9 @@ describe 'val and evt', ->
       assert.has.error -> evt!\match { str }
       assert.has.error -> evt!\match { num }
 
-    it 'is in recall mode', ->
-      value = val!
-      event = evt!
+    it 'can recall the type', ->
+      value = val!!
+      event = evt!!
       two_equal_values = value + value
       two_equal_events = event + event
 

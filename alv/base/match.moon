@@ -33,8 +33,7 @@
 --     pattern = arg + arg
 --
 -- ...will match either two numbers or two strings, but not one number and one
--- string. Recalling works on `Choice` and `Type` patterns. `Type` patterns
--- without a type (`val!` and `evt!`) always behave like this.
+-- string. Recalling works on `Choice` and `Type` patterns.
 --
 -- On `Sequence` patterns, a special method `:named` exists. It takes a
 -- sequence of keys that are used instead of integers when constructing the
@@ -99,8 +98,7 @@ class Pattern
 -- @tparam string metatype `'~', '!' or '='
 -- @tparam ?string type type name
 class Type extends Pattern
-  new: (@metatype, @type) =>
-    @recall = not @type
+  new: (@metatype, @type, @recall=false) =>
 
   casts = { '!!': true, '==': true, '~~': true, '~=': true }
   capture: (seq, i) =>
@@ -114,6 +112,7 @@ class Type extends Pattern
     if match
       1, seq[i]
 
+  __call: => @@ @metatype, @type, true
   __tostring: => "#{@type or 'any'}#{@metatype}"
 
 --- Repeat a pattern.
