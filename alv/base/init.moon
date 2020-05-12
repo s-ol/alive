@@ -9,6 +9,7 @@
 -- @see Builtin
 -- @see FnDef
 -- @see Input
+-- @see base.match.const
 -- @see base.match.val
 -- @see base.match.evt
 -- @see Constant
@@ -26,7 +27,7 @@ import Op from require 'alv.base.op'
 import Builtin from require 'alv.base.builtin'
 import FnDef from require 'alv.base.fndef'
 import Input from require 'alv.base.input'
-import val, evt from require 'alv.base.match'
+import const, val, evt from require 'alv.base.match'
 import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
 import T, Primitive, Array, Struct from require 'alv.type'
 import RTNode from require 'alv.rtnode'
@@ -37,7 +38,7 @@ import Error from require 'alv.error'
   :Builtin
   :FnDef
   :Input
-  :val, :evt
+  :const, :val, :evt
 
   -- redundant exports, to keep anything an extension might need in one import
 

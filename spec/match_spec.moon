@@ -1,10 +1,14 @@
-import val, evt from require 'alv.base.match'
+import const, val, evt from require 'alv.base.match'
 import Op, Input from require 'alv.base'
 import RTNode, T, Error from require 'alv'
 
 op_with_inputs = (inputs) ->
   with Op!
     \setup inputs if inputs
+
+mk_const = (type, const) ->
+  result = T[type]\mk_const true
+  RTNode :result, op: op_with_inputs { Input.hot result }
 
 mk_val = (type, const) ->
   result = T[type]\mk_sig true
@@ -21,15 +25,28 @@ describe 'val and evt', ->
       num = mk_val 'num'
       assert.is.equal str, val!\match { str }
       assert.is.equal num, val!\match { num }
+      assert.has.error -> const!\match { str }
+      assert.has.error -> const!\match { num }
       assert.has.error -> evt!\match { str }
       assert.has.error -> evt!\match { num }
 
       str = mk_evt 'str'
       num = mk_evt 'num'
-      assert.is.equal str, evt!\match { str }
-      assert.is.equal num, evt!\match { num }
       assert.has.error -> val!\match { str }
       assert.has.error -> val!\match { num }
+      assert.has.error -> const!\match { str }
+      assert.has.error -> const!\match { num }
+      assert.is.equal str, evt!\match { str }
+      assert.is.equal num, evt!\match { num }
+
+      str = mk_const 'str'
+      num = mk_const 'num'
+      assert.is.equal str, val!\match { str }
+      assert.is.equal num, val!\match { num }
+      assert.is.equal str, const!\match { str }
+      assert.is.equal num, const!\match { num }
+      assert.has.error -> evt!\match { str }
+      assert.has.error -> evt!\match { num }
 
     it 'is in recall mode', ->
       value = val!
@@ -58,8 +75,9 @@ describe 'val and evt', ->
       assert.has.error -> two_equal_values\match { str1, str2 }
 
     it 'stringifies well', ->
-      assert.is.equal 'event!', tostring evt!
-      assert.is.equal 'value', tostring val!
+      assert.is.equal 'any=', tostring const!
+      assert.is.equal 'any!', tostring evt!
+      assert.is.equal 'any~', tostring val!
 
   describe 'typed shorthand', ->
     it 'matches by metatype', ->
@@ -67,21 +85,45 @@ describe 'val and evt', ->
       num = mk_val 'num'
       assert.is.equal str, val.str\match { str }
       assert.is.equal num, val.num\match { num }
+      assert.has.error -> const.str\match { str }
+      assert.has.error -> const.num\match { num }
       assert.has.error -> evt.str\match { str }
       assert.has.error -> evt.num\match { num }
 
       str = mk_evt 'str'
       num = mk_evt 'num'
-      assert.is.equal str, evt.str\match { str }
-      assert.is.equal num, evt.num\match { num }
       assert.has.error -> val.str\match { str }
       assert.has.error -> val.num\match { num }
+      assert.has.error -> const.str\match { str }
+      assert.has.error -> const.num\match { num }
+      assert.is.equal str, evt.str\match { str }
+      assert.is.equal num, evt.num\match { num }
+
+      str = mk_const 'str'
+      num = mk_const 'num'
+      assert.is.equal str, val.str\match { str }
+      assert.is.equal num, val.num\match { num }
+      assert.is.equal str, const.str\match { str }
+      assert.is.equal num, const.num\match { num }
+      assert.has.error -> evt.str\match { str }
+      assert.has.error -> evt.num\match { num }
 
     it 'matches by type', ->
+      str = mk_const 'str'
+      num = mk_const 'num'
+      assert.is.equal str, val.str\match { str }
+      assert.is.equal num, val.num\match { num }
+      assert.is.equal str, const.str\match { str }
+      assert.is.equal num, const.num\match { num }
+      assert.has.error -> val.num\match { str }
+      assert.has.error -> val.str\match { num }
+
       str = mk_val 'str'
       num = mk_val 'num'
       assert.is.equal str, val.str\match { str }
       assert.is.equal num, val.num\match { num }
+      assert.has.error -> const.num\match { str }
+      assert.has.error -> const.str\match { num }
       assert.has.error -> val.num\match { str }
       assert.has.error -> val.str\match { num }
 
@@ -89,14 +131,18 @@ describe 'val and evt', ->
       num = mk_evt 'num'
       assert.is.equal str, evt.str\match { str }
       assert.is.equal num, evt.num\match { num }
+      assert.has.error -> const.num\match { str }
+      assert.has.error -> const.str\match { num }
       assert.has.error -> evt.num\match { str }
       assert.has.error -> evt.str\match { num }
 
     it 'stringifies well', ->
       assert.is.equal 'str!', tostring evt.str
       assert.is.equal 'num!', tostring evt.num
-      assert.is.equal 'str', tostring val.str
-      assert.is.equal 'num', tostring val.num
+      assert.is.equal 'str~', tostring val.str
+      assert.is.equal 'num~', tostring val.num
+      assert.is.equal 'str=', tostring const.str
+      assert.is.equal 'num=', tostring const.num
 
 describe 'choice', ->
   str = mk_val 'str'
@@ -130,7 +176,7 @@ describe 'choice', ->
     assert.has.error -> same\match { num, str }
 
   it 'stringifies well', ->
-    assert.is.equal '(str | num)', tostring choice
+    assert.is.equal '(str~ | num~)', tostring choice
 
 describe 'sequence', ->
   str = mk_val 'str'
@@ -167,7 +213,7 @@ describe 'sequence', ->
     assert.has.error -> rep\match { str, num, num, num }
 
   it 'stringifies well', ->
-    assert.is.equal '(str num bool!)', tostring seq
+    assert.is.equal '(str~ num~ bool!)', tostring seq
 
 describe 'repeat', ->
   str = mk_val 'str'
@@ -218,15 +264,16 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 2, num)
 
   it 'stringifies well', ->
-    assert.is.equal 'str{1-3}', tostring val.str*3
-    assert.is.equal 'str{1-*}', tostring val.str*0
-    assert.is.equal 'str{0-*}', tostring val.str^0
-    assert.is.equal 'str{2-2}', tostring val.str\rep 2, 2
+    assert.is.equal 'str~{1-3}', tostring val.str*3
+    assert.is.equal 'str~{1-*}', tostring val.str*0
+    assert.is.equal 'str~{0-*}', tostring val.str^0
+    assert.is.equal 'str~{2-2}', tostring val.str\rep 2, 2
 
 describe 'complex nesting', ->
   bang = mk_evt 'bang'
   str = mk_val 'str'
   num = mk_val 'num'
+  num_c = mk_const 'num'
   pattern = -evt.bang + val.num*4 +
             (val.str + (val.num / val.str))\named('key', 'val')^0
 
@@ -236,13 +283,14 @@ describe 'complex nesting', ->
                                      { key: str, val: str } } },
                    pattern\match { num, str, num, str, str }
     assert.has.error -> pattern\match { num, str }
-    assert.has.error -> pattern\match { bang, num, num, num, num, num, num }
+    assert.has.error -> pattern\match { num_c, str }
+    assert.has.error -> pattern\match { bang, num_c, num, num_c, num, num, num }
     assert.has.error -> pattern\match { bang, bang, num }
-    assert.has.error -> pattern\match { num, str, num, str }
+    assert.has.error -> pattern\match { num, str, num_c, str }
     assert.has.error -> pattern\match { num, str, num, str, mk_val 'bool' }
 
   it 'stringifies well', ->
-    assert.is.equal '(bang!? num{1-4} (str (num | str)){0-*})', tostring pattern
+    assert.is.equal '(bang!? num~{1-4} (str~ (num~ | str~)){0-*})', tostring pattern
 
   it 'gives useful error feedback', ->
     msg = "couldn't match arguments (num~ str~ bool~) against pattern #{pattern}"

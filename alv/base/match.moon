@@ -9,9 +9,10 @@
 -- `Repeat`, `Sequence`, `Choice`, and `Optional`. They can be used directly,
 -- but there is also a number of shorthands for assembling patterns quickly:
 --
--- - `val()` and `evt()`: Shorthands for `Type('value')` and `Type('event')`
--- - `val.num`: Shorthand for `Type('value', 'num')`
--- - `evt.str`: Shorthand for `Type('event', 'str')`
+-- - `const()`, `val()` and `evt()`: Shorthands for `Type('='), Type('~'), Type('!')`
+-- - `const.sym`: Shorthand for `Type('=', T.sym)`
+-- - `val.num`: Shorthand for `Type('~', T.num)`
+-- - `evt.str`: Shorthand for `Type('!', T.str)`
 -- - `pat * 2`: Shorthand for `Repeat(pat, 1, 2)` (1-4 times `pat`)
 -- - `pat * 0`: Shorthand for `Repeat(pat, 1, nil)` (1-* times `pat`)
 -- - `pat ^ 2`: Shorthand for `Repeat(pat, 0, 2)` (0-4 times `pat`)
@@ -45,7 +46,7 @@
 --
 -- @module base.match
 import Error from require 'alv.error'
-import Primitive from require 'alv.type'
+import T from require 'alv.type'
 
 local Repeat, Sequence, Choice, Optional
 
@@ -95,28 +96,25 @@ class Pattern
 -- using both afterwards (recall mode).
 --
 -- @function Type
--- @tparam string metatype "value" or "event"
+-- @tparam string metatype `'~', '!' or '='
 -- @tparam ?string type type name
 class Type extends Pattern
   new: (@metatype, @type) =>
     @recall = not @type
 
+  casts = { '!!': true, '==': true, '~~': true, '~=': true }
   capture: (seq, i) =>
     return unless seq[i]
     type, mt = seq[i]\type!, seq[i]\metatype!
-    if @metatype == 'event'
-      return unless mt == '!'
-    else
-      return if mt == '!'
+
+    if not casts[@metatype .. mt]
+      return
 
     match = if @type then type == @type else @remember type
     if match
       1, seq[i]
 
-  __tostring: =>
-    str = tostring @type or @metatype
-    str ..= '!' if @metatype == 'event'
-    str
+  __tostring: => "#{@type or 'any'}#{@metatype}"
 
 --- Repeat a pattern.
 --
@@ -261,43 +259,61 @@ class Optional extends Pattern
 
   __tostring: => "#{@inner}?"
 
---- `Value` shorthands.
+--- `Type` shorthands for matching `Constant`s.
+--
+-- Call or index with a string to obtain an `Type` instance.
+-- Call to obtain a wildcard pattern.
+--
+--     const.bang, const.str, const.num
+--     const['midi/message'], const(Primitive 'midi/message')
+--     const()
+--
+-- @table const
+const = setmetatable {}, {
+  __index: (key) =>
+    with v = Type '=', T[key]
+      @[key] = v
+
+  __call: (...) => Type '=', ...
+}
+
+--- `Type` shorthands for matching `ValueStream`s and `Constant`s.
 --
 -- Call or index with a string to obtain a `Type` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     val.str, val.num
---     val['vec3'], val('vec3')
+--     val['vec3'], val(T.vec3)
 --     val()
 --
 -- @table val
 val = setmetatable {}, {
   __index: (key) =>
-    with v = Type 'value', Primitive key
+    with v = Type '~', T[key]
       @[key] = v
 
-  __call: (...) => Type 'value', ...
+  __call: (...) => Type '~', ...
 }
 
---- `Event` shorthands.
+--- `Type` shorthands for matching `EvtStream` and `IOStream`s.
 --
 -- Call or index with a string to obtain an `Type` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     evt.bang, evt.str, evt.num
---     evt['midi/message'], evt('midi/message')
+--     evt['midi/message'], evt(Primitive 'midi/message')
 --     evt()
 --
 -- @table evt
 evt = setmetatable {}, {
   __index: (key) =>
-    with v = Type 'event', Primitive key
+    with v = Type '!', T[key]
       @[key] = v
 
-  __call: (...) => Type 'event', ...
+  __call: (...) => Type '!', ...
 }
 
 {
   :Type, :Repeat, :Sequence, :Choice, :Optional
-  :val, :evt
+  :const, :val, :evt
 }
