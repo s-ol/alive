@@ -52,6 +52,23 @@ describe 'EvtStream', ->
       assert.is.equal 3, stream\unwrap!
       assert.is.true stream\dirty!
 
+    it 'ignores nil values', ->
+      stream = EvtStream T.num
+      assert.is.nil stream\unwrap!
+      assert.is.false stream\dirty!
+
+      stream\set!
+      assert.is.nil stream\unwrap!
+      assert.is.false stream\dirty!
+
+      stream\set nil
+      assert.is.nil stream\unwrap!
+      assert.is.false stream\dirty!
+
+      stream\set false
+      assert.is.equal false, stream\unwrap!
+      assert.is.true stream\dirty!
+
     it 'errors when set twice', ->
       stream = EvtStream T.num
       stream\set 1
