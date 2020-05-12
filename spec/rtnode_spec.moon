@@ -4,17 +4,22 @@ import T, Input, Op, Constant, IOStream from require 'alv.base'
 
 setup do_setup
 
+class DirtyIO extends IOStream
+  new: => super T.dirty_io
+  dirty: => true
+
 op_with_inputs = (inputs) ->
   with Op!
     \setup inputs if inputs
 
+dirty_op = ->
+  result = DirtyIO!
+  input = Input.hot result
+  result, input, op_with_inputs { input }
+
 node_with_sideinput = (result, input) ->
   with RTNode :result
     .side_inputs = { [result]: input }
-
-class DirtyIO extends IOStream
-  new: => super T.dirty_io
-  dirty: => true
 
 describe 'RTNode', ->
   it 'wraps result, children', ->
@@ -69,23 +74,41 @@ describe 'RTNode', ->
     value_input = Input.hot value
 
     op = op_with_inputs { event_input, value_input }
-    node = RTNode op: op, result: value
+    node = RTNode :op, result: value
 
     assert.is.equal op, node.op
     assert.is.same { [event]: event_input, [value]: value_input },
                    node.side_inputs
 
-  it 'does not lift up op inputs that are also child values', ->
+  it 'does not lift up op inputs that are also children', ->
+    child_result, child_input, child_op = dirty_op!
+    result = T.num\mk_sig 4
+    child = RTNode op: child_op, :result
+
     event = T.bang\mk_evt!
     event_input = Input.hot event
+    input = Input.hot child
 
-    result = T.num\mk_sig 4
-    value_input = Input.hot result
+    op = op_with_inputs { event_input, input }
+    node = RTNode :op, children: { child }
 
-    op = op_with_inputs { event_input, value_input }
-    node = RTNode op: op, :result, children: { RTNode :result }
+    assert.is.same { [event]: event_input, [child_result]: child_input },
+                   node.side_inputs
 
-    assert.is.same { [event]: event_input }, node.side_inputs
+  it 'does not lift up op inputs that are cold', ->
+    bang = T.bang\mk_const true
+    bang_input = Input.hot bang
+
+    num = T.num\mk_const 2
+    num_input = Input.cold num
+
+    sym = T.sym\mk_sig 'hello'
+    sym_input = Input.hot sym
+
+    op = op_with_inputs { bang_input, num_input, sym_input }
+    node = RTNode :op
+
+    assert.is.same { [sym]: sym_input }, node.side_inputs
 
   it 'lifts up side_inputs from children', ->
     event_value = T.bang\mk_evt!
@@ -169,9 +192,7 @@ describe 'RTNode', ->
 
   describe ':poll_io', ->
     it 'polls IOs referenced in side_inputs', ->
-      io = DirtyIO!
-      input = Input.hot io
-      op = op_with_inputs { input }
+      io, input, op = dirty_op!
       node = RTNode :op
 
       s = spy.on io, 'poll'

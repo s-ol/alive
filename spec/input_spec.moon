@@ -28,6 +28,9 @@ describe 'Input.cold', ->
 
   basic_tests result, input
 
+  it 'is marked cold', ->
+    assert.is.equal 'cold', input.mode
+
   it 'is never dirty', ->
     assert.is.false input\dirty!
     result\set 2
@@ -50,6 +53,9 @@ describe 'Input.hot', ->
     input = Input.hot result
 
     basic_tests result, input
+
+    it 'is marked cold', ->
+      assert.is.equal 'cold', input.mode
 
     describe 'at evaltime', ->
       it 'is dirty when new', ->
@@ -84,8 +90,8 @@ describe 'Input.hot', ->
 
     basic_tests result, input
 
-    it 'is marked for lifting', ->
-      assert.is.nil input.io
+    it 'is marked hot', ->
+      assert.is.equal 'hot', input.mode
 
     it 'is dirty when the EvtStream is dirty', ->
       assert.is.false input\dirty!
@@ -115,7 +121,7 @@ describe 'Input.hot', ->
     basic_tests result, input
 
     it 'is marked for lifting', ->
-      assert.is.true input.io
+      assert.is.equal 'io', input.mode
 
     it 'is dirty when the IOStream is dirty', ->
       result.is_dirty = false
@@ -171,6 +177,9 @@ describe 'Input.hot', ->
         newinput\setup input
         assert.is.false newinput\dirty!
         newinput\finish_setup!
+
+    it 'is marked hot', ->
+      assert.is.equal 'hot', input.mode
 
     describe 'at runtime', ->
       it 'is dirty when the result is dirty', ->

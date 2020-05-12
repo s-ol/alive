@@ -45,7 +45,7 @@ class RTNode
   -- should be called once per frame on the root, right before tick.
   poll_io: =>
     for result, input in pairs @side_inputs
-      result\poll! if input.io
+      result\poll! if input.mode == 'io'
 
   --- in depth-first order, tick all Ops which have dirty Inputs.
   --
@@ -120,13 +120,15 @@ class RTNode
         is_child[child.result] = true
 
     if @op
-      for input in @op\all_inputs!
-        continue if input.result.metatype == '='
-        if input.io or not is_child[input.result]
-          @side_inputs[input.result] = input
+      for i in @op\all_inputs!
+        if i.mode == 'io' or (i.mode == 'hot' and not is_child[i.result])
+          @side_inputs[i.result] = i
 
-    if @result and @result.metatype == '='
-      assert not (next @side_inputs), "Const result has side_inputs"
+    if @result
+      if next @side_inputs
+        assert @result.metatype != '=', "Const result has side_inputs"
+      elseif @result.metatype == '~'
+        @result = @result.type\mk_const @result\unwrap!
 
 {
   :RTNode

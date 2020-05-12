@@ -1,15 +1,18 @@
 import val, evt from require 'alv.base.match'
+import Op, Input from require 'alv.base'
 import RTNode, T, Error from require 'alv'
 
+op_with_inputs = (inputs) ->
+  with Op!
+    \setup inputs if inputs
+
 mk_val = (type, const) ->
-  result = T[type]\mk_sig!
-  with RTNode :result
-    .side_inputs = { 'fake' } unless const
+  result = T[type]\mk_sig true
+  RTNode :result, op: op_with_inputs { Input.hot result }
 
 mk_evt = (type, const) ->
   result = T[type]\mk_evt!
-  with RTNode :result
-    .side_inputs = { 'fake' } unless const
+  RTNode :result, op: op_with_inputs { Input.hot result }
 
 describe 'val and evt', ->
   describe 'type-less shorthand', ->

@@ -76,8 +76,11 @@ class Input
   metatype: => @result.metatype
 
   --- the current value
-  --
-  -- @tfield SigStream result
+  -- @tfield Result result
+
+  --- the Input mode
+  -- @tfield string mode `'hot'`, `'cold'` or `'io'`.
+  mode: 'hot'
 
 --- members
 -- @section members
@@ -125,17 +128,25 @@ class Input
     InputType value
 
 class ColdInput extends Input
+  mode: 'cold'
   dirty: => false
 
 class ValueInput extends Input
-  setup: (old) => @dirty_setup = not old or @result != old.result
+  new: (result) =>
+    super result
+    @mode = if @result.metatype == '=' then 'cold' else 'hot'
+
+  setup: (old) =>
+    @dirty_setup = not old or @result != old.result
+
   finish_setup: => @dirty_setup = nil
+
   dirty: =>
     return @dirty_setup if @dirty_setup != nil
     @result\dirty!
 
 class IOInput extends Input
-  io: true
+  mode: 'io'
 
 mapping = {
   [Constant]: ValueInput
