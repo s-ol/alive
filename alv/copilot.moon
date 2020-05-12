@@ -47,6 +47,8 @@ class Copilot
       ok, lua = pcall require, "alv-lib.#{name}"
       if ok
         RTNode result: Constant.wrap lua
+      elseif not lua\match "not found"
+        error lua
       else
         assert @modules, "no current eval cycle?"
         if mod = @modules[name]
