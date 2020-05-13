@@ -33,11 +33,16 @@ class Copilot
   --- change the running script.
   -- @tparam string file
   open: (file) =>
+    assert not COPILOT, "another Copilot is already running!"
+    COPILOT = @
+
     if old = @last_modules.__root
       old\destroy!
 
     @last_modules.__root = Module file
     @active_module = @last_modules.__root
+
+    COPILOT = nil
 
   --- require a module.
   -- @tparam string name
