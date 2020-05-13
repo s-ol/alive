@@ -23,7 +23,7 @@ docs/reference/%.html: alv-lib/%.moon $(DEPS)
 	@mkdir -p `dirname $@`
 	docs/gen/module $@ alv-lib.$(subst /,.,$*) $(subst /,.,$*)
 
-docs/reference/index.html: $(MODREFS) $(DEPS)
+docs/reference/index.html: alv/builtin.moon $(MODREFS) $(DEPS)
 	docs/gen/index $@ $(MODULES)
 
 docs/ldoc.ltp: $(DEPS)

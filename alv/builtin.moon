@@ -305,7 +305,7 @@ trace = Constant.meta
           value: Input.hot inputs[2]
 
       tick: =>
-        L\print "trace #{@inputs.prefix!}: #{@inputs.value\type!\pp @inputs.value!}"
+        L\print "trace #{@inputs.prefix!}: #{@inputs.value.result}"
 
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
@@ -319,7 +319,7 @@ trace = Constant.meta
       }
       inner\eval scope
 
-print = Constant.meta
+print_ = Constant.meta
   meta:
     name: 'print'
     summary: "Print string values."
@@ -376,9 +376,10 @@ to_evt = Constant.meta
     summary: "Cast to !-stream."
     examples: { '(! val)', '(! sig trig)' }
     description: "Casts anything to a !-stream depending on arguments:
-- if `val` is a ~-stream, emits events on changes
-- if `val` is a !-stream, emits a bang for each incoming event
-- if `trig` is given, samples `sig` as a new event when `trig` arrives"
+
+- if `val` is a ~-stream, emits events on change.s
+- if `val` is a !-stream, emits a bang for each incoming even.t
+- if `trig` is given, samples `sig` as a new event when `trig` arrives."
   value: class extends Op
     pattern = (val! + evt.bang) / (val! / evt!)\rep(1,1)
     setup: (inputs) =>
@@ -400,7 +401,7 @@ to_evt = Constant.meta
 
 Scope.from_table {
   :doc
-  :trace, 'trace!': trace_, :print
+  :trace, 'trace!': trace_, print: print_
 
   :def, :use
   require: require_
