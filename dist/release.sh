@@ -100,6 +100,7 @@ if [ -n "$TAG" ]; then
   git add "alv/version.moon" "dist/rocks/alive-$VERSION-$REVISION.rockspec"
   git commit -m "release $TAG"
   git tag -am "version $TAG" "$TAG"
+  git push github "$TAG"
 
   luarocks pack "dist/rocks/alive-$VERSION-$REVISION.rockspec" \
     --sign
