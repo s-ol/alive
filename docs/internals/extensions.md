@@ -155,7 +155,7 @@ There are four types of `Result`s that can be created:
   to the same value it already had. They are updated using `SigStream:set`.
 - `EvtStream`s transmit *momentary events*. They can transmit multiple events
   in a single tick. `EvtStream`s do not keep a value set on the last tick on
-  the next tick. They are updated using `EvtStream:add`.
+  the next tick. They are updated using `EvtStream:set`.
 - `IOStream`s are like `EvtStream`s, but their `IOStream:poll` method is
   polled by the event loop at the start of every tick. This gives them a chance
   to effectively create changes 'out of thin air' and kickstart the execution
@@ -190,19 +190,19 @@ will be necessary.
 To implement a custom IOStream, create it as a class that inherits from the
 `IOStream` base and implement the constructor and `IOStream:poll`:
 
-    import IOStream from require 'alv.base'
+    import T, IOStream from require 'alv.base'
     
     class UnreliableStream extends IOStream
-      new: => super 'bang'
+      new: => super T.bang
       
       poll: =>
         if math.random! < 0.1
-          @add true
+          @set true
 
 In the constructor, you should call the super-constructor `EvtStream.new` to
 set the event type. Often this will be a custom event that is only used inside
 your extension (such as e.g. the `midi/port` type in the [midi][modules-midi]
-module), but it can also be a primitive type like `'num'` in this example. In
+module), but it can also be a primitive type like `T.bang` in this example. In
 `:poll`, your IOStream is given a chance to communicate with the external world
 and create any resulting events. The example stream above randomly sends bang
 events out, with a 10% chance each 'tick' of the system. Note that there is no

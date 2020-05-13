@@ -36,17 +36,17 @@ EOF
 
 mkdir "dist/$BUNDLE/alv-lib"
 cat <<EOF >"dist/$BUNDLE/alv-lib/README.txt"
-You can use this directory to add extensions to alive.
+You can use this directory to add extensions to alv.
 See the extension documentation here for more information:
 
-https://alive.s-ol.nu/internals/topics/extensions.md.html
+https://alv.s-ol.nu/stable/internals/topics/extensions.md.html
 EOF
 
 cat <<EOF >"dist/$BUNDLE/README.md"
 alive $TAG
 ==========
 
-https://alive.s-ol.nu
+https://alv.s-ol.nu
 https://github.com/s-ol/alive
 
 License

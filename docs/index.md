@@ -16,7 +16,7 @@ system seamlessly, without resetting any part of your program (unless you want
 it to).
 
 `alv` is free and open source software. The code is currently being hosted
-[on github][:*web*:], and is licensed under [GPLv3][license].
+[on github][:*repo*:], and is licensed under [GPLv3][license].
 
 If you want to learn more or try out `alv` yourself, the
 [getting started][guide] page is a good place to start. On the other hand, if

@@ -62,6 +62,7 @@ abs = (page) ->
 -- builtin-name; mod.name/name; mod.name
 link = (ref) ->
   return version.web if ref == '*web*'
+  return version.git if ref == '*git*'
   return version.repo if ref == '*repo*'
   return version.release if ref == '*release*'
 

@@ -59,7 +59,7 @@ be a note marking the parts of the guide where specific dependencies are
 required.
 
 After installing the dependencies, you can download the `alv` source code
-from the [releases page][:*release*:], or clone the [git repository][:*web*:]:
+from the [releases page][:*release*:], or clone the [git repository][:*repo*:]:
 
     $ git clone https://github.com/s-ol/alive.git
 

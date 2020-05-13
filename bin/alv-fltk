@@ -28,7 +28,7 @@ class GUICopilot extends Copilot
       \add "&File/&Open script", '^o', -> @open!
       \add "&File/&Quit",        '^q', -> @window\hide!
       @pause = \add "Run (^P)",  '^p', @\pause, nil, fl.MENU_TOGGLE
-      \add "Help",               nil, -> fl.open_uri 'https://alv.s-ol.nu'
+      \add "Help",               nil, -> fl.open_uri version.web
 
     tile = fl.Tile 5, 40, 390, 160
     @window.resizable = tile
@@ -75,7 +75,7 @@ class GUICopilot extends Copilot
   about: =>
     fl.alert "alive #{version.tag} fltkCopilot.
 
-visit alv.s-ol.nu for more information."
+visit #{version.web} for more information."
 
   open: (file) =>
     file or= fl.file_chooser "Open Script", '*.alv', 'script.alv'

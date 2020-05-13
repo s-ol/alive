@@ -26,13 +26,15 @@ else
 --- exports
 -- @table exports
 -- @tfield string tag the last versions git tag
--- @tfield string web the repo web URL
--- @tfield string repo the git repo URL
+-- @tfield string repo the repo web URL
+-- @tfield string git the git repo URL
+-- @tfield string web the project web URL
 -- @tfield string release the web URL of this release
 {
   tag: "${TAG}"
-  web: "https://github.com/s-ol/alive"
-  repo: "https://github.com/s-ol/alive.git"
+  repo: "https://github.com/s-ol/alive"
+  git: "https://github.com/s-ol/alive.git"
+  web: "https://alv.s-ol.nu"
   release: "https://github.com/s-ol/alive/releases/tag/${TAG}"
 }
 EOF
@@ -64,7 +66,7 @@ expressions persist and update until they are removed from the source code, and
 the interpreter keeps no state that you cannot manipulate directly in the
 source. This yields a direct-manipulation like experience with a purely
 text-based language and works without special editor support.]],
-  homepage = "https://alive.s-ol.nu",
+  homepage = "https://alv.s-ol.nu",
   license = "GPL-3",
 }
 
@@ -90,7 +92,8 @@ $(list_modules alv-lib)
     },
     bin = {
       "bin/alv",
-      "bin/alv-wx"
+      "bin/alv-wx",
+      "bin/alv-fltk",
     },
   },
 }

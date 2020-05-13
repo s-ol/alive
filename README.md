@@ -31,7 +31,7 @@ manually.
 ## docs
 
 With `make` the HTML documentation is generated in `docs/`.
-The latest documentation is publicly available online at [alive.s-ol.nu][docs].
+The latest documentation is publicly available online at [alv.s-ol.nu][docs].
  
 ## starting the copilot
 
@@ -62,5 +62,5 @@ development, simply pass the files as arguments:
 [discount]:   https://luarocks.org/modules/craigb/discount
 [ldoc]:       https://github.com/s-ol/LDoc
 
-[docs]:       https://alive.s-ol.nu
-[guide]:      https://alive.s-ol.nu/guide.html
+[docs]:       https://alv.s-ol.nu
+[guide]:      https://alv.s-ol.nu/guide.html
