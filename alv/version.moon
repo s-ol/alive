@@ -10,8 +10,8 @@
 -- @tfield string repo the git repo URL
 -- @tfield string release the web URL of this release
 {
-  tag: "v0.1-rc4"
+  tag: "v0.1"
   web: "https://github.com/s-ol/alive"
   repo: "https://github.com/s-ol/alive.git"
-  release: "https://github.com/s-ol/alive/releases/tag/v0.1-rc4"
+  release: "https://github.com/s-ol/alive/releases/tag/v0.1"
 }
