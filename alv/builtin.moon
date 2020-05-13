@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtin
-import Builtin, Op, T, FnDef, Input, val, evt from require 'alv.base'
+import Builtin, Op, T, FnDef, Input, const, val, evt from require 'alv.base'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
@@ -337,6 +337,67 @@ print = Constant.meta
       else
         L\print @inputs.value!
 
+to_const = Constant.meta
+  meta:
+    name: '='
+    summary: "Assert expression is constant."
+    examples: { '(= val)' }
+    description: "Asserts that `val` is a constant expression and returns it."
+  value: class extends Op
+    setup: (inputs) =>
+      super {}
+      input = const!\match inputs
+      @out = input\type!\mk_const input.result!
+
+to_sig = Constant.meta
+  meta:
+    name: '~'
+    summary: "Cast to ~-stream."
+    examples: { '(~ event initial)' }
+    description: "
+Casts !-stream to ~-stream by always reproducing the last received value.
+Since ~-streams cannot be emtpy, specifying an `initial` value is necessary."
+  value: class extends Op
+    setup: (inputs) =>
+      { event, initial } = (evt! + val!)\match inputs
+      assert event\type! == initial\type!,
+        Error 'argument', "~ arguments have to be of the same type"
+
+      super event: Input.hot event
+
+      if not @out or @out.type != input\type!
+        @out = event\type!\mk_sig initial.result!
+
+    tick: => @out\set @inputs.event!
+
+to_evt = Constant.meta
+  meta:
+    name: '!'
+    summary: "Cast to !-stream."
+    examples: { '(! val)', '(! sig trig)' }
+    description: "Casts anything to a !-stream depending on arguments:
+- if `val` is a ~-stream, emits events on changes
+- if `val` is a !-stream, emits a bang for each incoming event
+- if `trig` is given, samples `sig` as a new event when `trig` arrives"
+  value: class extends Op
+    pattern = (val! + evt.bang) / (val! / evt!)\rep(1,1)
+    setup: (inputs) =>
+      { sig, trig } = pattern\match inputs
+      if trig
+        super
+          trig: Input.hot trig
+          sig: Input.cold sig
+      elseif sig\metatype! == '!'
+        super
+          trig: Input.hot sig
+          sig: Input.cold Constant.bang true
+      else
+        super sig: Input.hot sig
+      @out = @inputs.sig\type!\mk_evt!
+
+    tick: =>
+      @out\set @inputs.sig!
+
 Scope.from_table {
   :doc
   :trace, 'trace!': trace_, :print
@@ -347,6 +408,10 @@ Scope.from_table {
   'import*': import_star
   export: export_
   'export*': export_star
+
+  '=': to_const
+  '~': to_sig
+  '!': to_evt
 
   true: Constant.meta
     meta:

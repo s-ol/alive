@@ -167,6 +167,10 @@ class Constant extends Result
   -- @treturn Constant
   @bool: (bool) -> Constant T.bool, bool, tostring bool
 
+  --- create a constant bang.
+  -- @treturn Constant
+  @bang: -> Constant T.bang, true
+
   --- create a forced-literal Constant.
   --
   -- For internal use in `Builtin`s only.
