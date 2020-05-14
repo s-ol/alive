@@ -31,7 +31,35 @@ ancestor = (klass) ->
     klass = klass.__parent
   klass
 
+--- check whether a table is a 'plain' table
+is_plain_table = (val) -> (type val) == 'table' and not val.__class
+
+--- recursively copy a value
+deep_copy = (val) ->
+  if is_plain_table val
+    {(deep_copy k), (deep_copy v) for k,v in pairs val}
+  else
+    val
+
+--- map leaf values in a table
+deep_map = (val, fn) ->
+  if is_plain_table val
+    {k, (deep_map v, fn) for k,v in pairs val}
+  else
+    fn val
+
+--- yield all leaf values in a table
+deep_iter = (table) ->
+  for k, v in pairs table
+    if is_plain_table v
+      deep_iter v
+    else
+      coroutine.yield v
+
 {
   :opairs
   :ancestor
+  :deep_copy
+  :deep_map
+  :deep_iter
 }

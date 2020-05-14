@@ -2,31 +2,16 @@
 -- Persistent expression Operator.
 --
 -- @classmod Op
-
-deepcopy = (val) ->
-  switch type val
-    when 'number', 'string', 'boolean', 'nil'
-      val
-    when 'table'
-      assert (not getmetatable {}), "state should only contain simple tables!"
-      {(deepcopy k), (deepcopy v) for k,v in pairs val}
-    else
-      error "state cannot contain values of type '#{type val}'"
+import deep_copy, deep_iter from require 'alv.util'
 
 class Op
 --- members
 -- @section members
 
-  do_yield = (table) ->
-    for k, v in pairs table
-      if v.__class
-        coroutine.yield v
-      else
-        do_yield v
   --- yield all `Input`s from the (potentially nested) `inputs` table
   --
   -- @treturn iterator iterator over `inputs`
-  all_inputs: => coroutine.wrap -> do_yield @inputs
+  all_inputs: => coroutine.wrap -> deep_iter @inputs
 
   --- create a mutable copy of this Op.
   --
@@ -36,7 +21,7 @@ class Op
   -- @treturn Op
   fork: =>
     out = if @out then @out\fork!
-    state = if @state then deepcopy @state
+    state = if @state then deep_copy @state
     @@ out, state
 
   --- internal state of this Op.
