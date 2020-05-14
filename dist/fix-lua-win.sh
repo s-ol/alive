@@ -4,7 +4,7 @@ IN=$1
 head -n 2 $IN
 
 cat <<EOF
-set PR=%~dp0..\\..\\
+set PR=%~dp0..\\
 set PP=%PR:\\=/%
 EOF
 

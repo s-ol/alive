@@ -3,11 +3,15 @@ set -e
 
 TAG="${1:-scm}"
 REVISION="${2:-1}"
+ROCK_OPTS=""
+WHERE=""
 
-if [ "$TAG" = scm ]; then
-  WHERE=""
+if [ "$TAG" = "scm" ]; then
   TAG=""
   VERSION="scm"
+elif [ "$TAG" = "test" ]; then
+  VERSION="test"
+  REVISION=999
 else
   VERSION="${TAG#v}"
   VERSION=$(echo "$VERSION" | tr -d -)
@@ -41,6 +45,8 @@ EOF
 
   WHERE="
   tag = \"$TAG\","
+
+  ROCK_OPTS="--sign"
 fi
 
 list_modules() {
@@ -99,17 +105,18 @@ $(list_modules alv-lib)
 }
 STOP
 
-if [ -n "$TAG" ]; then
+if [ -n "$TAG" -a "$TAG" != "test" ]; then
   git add "alv/version.moon" "dist/rocks/alive-$VERSION-$REVISION.rockspec"
   git commit -m "release $TAG"
   git tag -am "version $TAG" "$TAG"
 
-  luarocks pack "dist/rocks/alive-$VERSION-$REVISION.rockspec" \
-    --sign
-  mv "alive-$VERSION-$REVISION.src.rock" "alive-$VERSION-$REVISION.src.rock.asc" dist/rocks
-  luarocks make "dist/rocks/alive-$VERSION-$REVISION.rockspec" \
-    --pack-binary-rock \
-    --sign
-  mv "alive-$VERSION-$REVISION.all.rock" "alive-$VERSION-$REVISION.all.rock.asc" dist/rocks
+  luarocks pack "dist/rocks/alive-$VERSION-$REVISION.rockspec" $ROCK_OPTS
+  mv "alive-$VERSION-$REVISION.src.rock"* dist/rocks
+fi
+
+if [ -n "$TAG" ]; then
+  luarocks make "dist/rocks/alive-$VERSION-$REVISION.rockspec" $ROCK_OPTS \
+    --deps-mode none --pack-binary-rock
+  mv "alive-$VERSION-$REVISION.all.rock"* dist/rocks
   dist/pack-win.sh "$TAG" "$VERSION-$REVISION"
 fi
