@@ -87,6 +87,7 @@ class Struct extends Type
     "{#{inner}}"
 
   eq: (a, b) =>
+    return false unless (type a) == (type b)
     for key, type in pairs @types
       if not type\eq a[key], b[key]
         return false
@@ -120,6 +121,7 @@ class Array extends Type
     "[#{inner}]"
 
   eq: (a, b) =>
+    return false unless (type a) == (type b)
     for i=1, @size
       if not @type\eq a[i], b[i]
         return false
