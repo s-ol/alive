@@ -2,18 +2,31 @@
 import Copilot, Logger from require 'alv'
 import sleep from require 'system'
 
-arguments, key = {}
+class ColorLogger extends Logger
+  set_time: (time) =>
+    super time
+    @stream\write switch time
+      when 'eval' then '\27[92m'
+      when 'run' then '\27[0m'
+
+arguments, key = { nocolor: false }
 for a in *arg
-  if match = a\match '^%-%-(.*)'
-    key = match
-    arguments[key] = true
-  elseif key
+  if key
     arguments[key] = a
     key = nil
+  else if match = a\match '^%-%-(.*)'
+    if 'bool' == type arguments[key]
+      arguments[key] = true
+    else
+      key = match
   else
     table.insert arguments, a
+assert not key, "option value missing"
 
-Logger\init arguments.log
+if arguments.nocolor
+  Logger\init arguments.log
+else
+  ColorLogger\init arguments.log
 
 assert arguments[1], "no filename given"
 copilot = Copilot arguments[1]
