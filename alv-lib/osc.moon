@@ -77,7 +77,7 @@ of the arguments change.
 
     tick: =>
       { :socket, :path, :value } = @unwrap_all!
-      msg = pack path, value
+      msg = pack path, if 'table' == type value then unpack value else value
       socket\send msg
 
 {
