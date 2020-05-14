@@ -39,41 +39,18 @@ Similarily, you should be able to run `luarocks`, `luarocks53` or `luarocks5.3`:
 Again, double check your installation or try adding `--lua-version 5.3` if the
 displayed version is not 5.3.
 
-With everything reacdy to go, you can now install the dependencies for `alv`:
+With everything ready to go, you can now install `alv`:
 
-    $ luarocks install moonscript
-    $ luarocks install luasystem
-    $ luarocks install osc
-    $ luarocks install luasocket
-    $ luarocks install https://raw.githubusercontent.com/s-ol/lua-rtmidi/master/lua-rtmidi-dev-1.rockspec
+    $ luarocks install alive
 
-While `moonscript` and `luasystem` are required by the core of `alv`, the
-other packages (`osc`, `luasocket` and `lua-rtmidi`) are specific to some
-modules of the alv language, and as long as you don't need to use these
-modules their installation is optional.
+To use the copilot GUI, you will also need the `fltk4lua` package, which requires
+installing or building FLTK (also available through homebrew).
 
-In a later part of this guide, we will be using modules that require `osc` and
-`luasocket`, so it is recommended to install at least these two. However it is
-possible to follow a large portion of the guide without any of them. There will
-be a note marking the parts of the guide where specific dependencies are
-required.
+    $ luarocks install fltk4lua
 
-After installing the dependencies, you can download the `alv` source code
-from the [releases page][:*release*:], or clone the [git repository][:*repo*:]:
-
-    $ git clone https://github.com/s-ol/alive.git
-
-To run the copilot, open a shell and navigate into the repository. You can now
-run the `hello.alv` example script using the following command:
-
-    $ moon init.moon hello.alv
-    hello.alv changed at 1585138092
-    hello
-    world!
-    hello
-    world!
-
-You can stop it by pressing `^C` (control-C).
+With the `alive` package, two binaries should have been installed on your system:
+`alv` and `alv-fltk`. If you do not find these in your `$PATH`, you may need to
+apply the exports from `luarocks path` upon login, e.g. in your `.bashrc`.
 
 ### windows
 For Windows, a binary package is available from the latest
@@ -83,27 +60,49 @@ dependencies.
 
 To use the binary package, simply extract the archive and move the folder
 wherever you want. You can now start the `hello.alv` example script by dragging
-it onto the `copilot.bat` file in the folder, or by running the following
-command from the main directory in `cmd.exe`:
+it onto the `alv.bat` or `alv-fltk.bat` file in the folder.
 
-    C:\…\alive>copilot.bat hello.alv
-    hello.alv changed at 1585138092
-    hello
-    world!
-    hello
-    world!
+If you are going to use the command-line `alv.bat`, it is recommended to add
+the directory containing it to `%PATH%`, so that you can use the `alv` command
+anywhere on your system.
 
-You can stop it by pressing `^C` (control-C).
+## starting the copilot GUI
+On Linux and Mac OS X, you can launch the GUI by executing the `alv-fltk`
+command. On Windows, you can double-click `alv-fltk.bat`. This window should
+open:
 
-## evaluating code
-To get started writing your own code, create an empty file in the text editor
-you want to use, and save it as `test.alv` in the same folder as `hello.alv`.
-Now restart the copilot as described above, but substituting the new file.
+![a screeshot of the copilot GUI](copilot-gui.png)
 
-You should see a note indicating that `alv` processed the file. From now on,
-whenever you change `test.alv` and save the file, `alv` will reload it and
-execute your new code. When you are done, you can stop the copilot at any time
-using `^C` (control-C).
+To run a script, open it using `File > Open Script` or `^O` (control-O). You can
+pause and resume execution using the `Run` button or `^P`. To stop execution
+simply close the window.
+
+## starting the copilot in the terminal
+To run a file in the terminal, invoke the command `alv <path/to/file.alv>`. If
+your system cannot find the `alv` command, check your installation and `PATH`.
+On Windows, it is also possible to drag your `alv` file onto `alv.bat`.
+
+You can stop the copilot by pressing `^C` (control-C).
+
+## writing and running a script
+To use the copilot, you first need a file to run. Create an empty file in your
+preferred text editor and save it as `test.alv`. Before adding any code, start
+the copilot.
+
+Either start the GUI and open the file we just created, or run the following
+command from the terminal:
+
+    $ alv test.alv
+    test.alv changed at 1585138092
+    
+You should see a note indicating that `alv` processed the file. The note will
+show up in the upper pane (in the GUI), or colored green (in the Terminal) to
+mark the message as an *eval-time message*. This means that the message was a
+direct response to the file changing or being loaded the first time.
+
+From now on, whenever you change `test.alv` and save the file, the copilot will
+reload it and execute your new code. When you are done, you can stop the copilot
+at any time by closing the GUI window or using `^C` (control-C).
 
 `alv`'s syntax is very similar to Lisp. Expressions take the form of
 parenthesized lists like `(head a b c...)`, where the first element of the list
@@ -117,13 +116,13 @@ following in your file and save it:
 
 As soon as you save the file, you should notice two things happening:
 
-1. The copilot should print two new lines to the terminal:
+1. The copilot will print two new lines:
 
        hello.alv changed at 1583424169
        hello world!
 
    In the first line, it notifies us that the file has changed. In the second
-   line, you can see the output from [print][].
+   line, you can see the output from the [print][] expression.
 2. The copilot will make a small modification to your file. Depending on the
    editor you are using, this may either result in you seeing the modification
    immediately, or a notice appearing that offers the option to reload the
@@ -135,7 +134,7 @@ The code should now look like this:
 
     ([1]print "hello world")
 
-The `[1]` that the copilot added to our expression is that expression's `tag`.
+The `[1]` that the copilot added to your expression is that expression's `tag`.
 In `alv`, every expression has a tag that helps the copilot to identify the
 individual expressions as you make changes to your code. The copilot will make
 sure that all expressions are tagged by adding missing tags when you save the
