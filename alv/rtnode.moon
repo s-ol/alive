@@ -38,8 +38,7 @@ class RTNode
   -- the copy has the same @result and @side_inputs, but will not update
   -- anything on \tick.
   make_ref: =>
-    with RTNode result: @result
-      .side_inputs = @side_inputs
+    RTNode result: @result, side_inputs: @side_inputs
 
   --- poll all IOStream instances that are effecting this (sub)tree.
   -- should be called once per frame on the root, right before tick.
@@ -111,6 +110,10 @@ class RTNode
     @result = params.result
     @op = params.op
     @children = params.children or {}
+
+    if params.side_inputs
+      @side_inputs = params.side_inputs
+      return
 
     @side_inputs, is_child = {}, {}
     for child in *@children
