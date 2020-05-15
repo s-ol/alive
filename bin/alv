@@ -1,36 +1,4 @@
-#!/usr/bin/env moon
-import Copilot, Logger from require 'alv'
-import sleep from require 'system'
-
-class ColorLogger extends Logger
-  set_time: (time) =>
-    super time
-    @stream\write switch time
-      when 'eval' then '\27[92m'
-      when 'run' then '\27[0m'
-
-arguments, key = { nocolor: false }
-for a in *arg
-  if key
-    arguments[key] = a
-    key = nil
-  else if match = a\match '^%-%-(.*)'
-    if 'bool' == type arguments[key]
-      arguments[key] = true
-    else
-      key = match
-  else
-    table.insert arguments, a
-assert not key, "option value missing"
-
-if arguments.nocolor
-  Logger\init arguments.log
-else
-  ColorLogger\init arguments.log
-
-assert arguments[1], "no filename given"
-copilot = Copilot arguments[1]
-
-while true
-  copilot\tick!
-  sleep 1 / 1000
+#!/usr/bin/env lua
+require('moonscript')
+local Copilot = require('alv.copilot.cli').CLICopilot
+Copilot(arg):run()

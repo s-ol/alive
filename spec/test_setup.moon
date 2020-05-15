@@ -1,5 +1,5 @@
 require 'alv'
-import Copilot from require 'alv.copilot'
+import Copilot from require 'alv.copilot.base'
 import Module from require 'alv.module'
 import Logger from require 'alv.logger'
 Logger\init 'silent'

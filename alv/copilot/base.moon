@@ -1,5 +1,5 @@
 ----
--- File watcher and CLI entrypoint.
+-- File watcher and runtime entrypoint.
 --
 -- @classmod Copilot
 lfs = require 'lfs'
@@ -8,6 +8,22 @@ import Module from require 'alv.module'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
 import Constant from require 'alv.result'
+
+parse_args = (args, out={}) ->
+  local key
+  for a in *args
+    if key
+      out[key] = a
+      key = nil
+    else if match = a\match '^%-%-(.*)'
+      if 'boolean' == type out[match]
+        out[match] = true
+      else
+        key = match
+    else
+      table.insert out, a
+  assert not key, "value for option '--#{key}' missing!"
+  out
 
 export COPILOT
 
@@ -131,5 +147,6 @@ class Copilot
     @last_modules, @modules = @modules, nil
 
 {
+  :parse_args
   :Copilot
 }

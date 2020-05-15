@@ -31,8 +31,6 @@ globals = require 'alv.builtin'
 
 cycle\resolve!
 
-import Copilot from require 'alv.copilot'
-
 --- exports
 -- @table exports
 -- @tfield version version
@@ -51,7 +49,6 @@ import Copilot from require 'alv.copilot'
 -- @tfield Error Error
 -- @tfield Registry Registry
 -- @tfield Tag Tag
--- @tfield Copilot Copilot
 -- @tfield Logger Logger
 -- @tfield Scope globals global definitons
 -- @tfield parse function to turn a `string` into a root `Cell`
@@ -65,10 +62,9 @@ import Copilot from require 'alv.copilot'
   :T, :Primitive, :Struct, :Array
 
   :Registry, :SimpleRegistry, :Tag
+  :Logger
 
   :globals
-
-  :Copilot, :Logger
 
   parse: (str) ->
     assert (program\match str), Error 'syntax', "failed to parse"

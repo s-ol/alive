@@ -1,7 +1,6 @@
 import do_setup from require 'spec.test_setup'
 import Cell, RootCell from require 'alv.cell'
 import Constant, Scope, Tag, SimpleRegistry, globals from require 'alv'
-import Copilot from require 'alv.copilot'
 
 setup do_setup
 
