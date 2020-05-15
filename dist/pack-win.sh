@@ -2,11 +2,19 @@
 
 TAG="$1"
 ROCKVER="$2"
+LUA_WIN="$3"
+if [ -z "$LUA_WIN" ]; then
+  LUA_WIN="/mnt/d/alive_pkg/lua"
+fi
 
 BUNDLE="alive-$TAG-win"
 ROCK="alive-$ROCKVER.all.rock"
 
 set -e
+
+if [ "$TAG" = "test" ]; then
+  rm -rf "dist/$BUNDLE" "dist/$BUNDLE.zip"
+fi
 
 if [ -e "dist/$BUNDLE.zip" ]; then
   echo "dist/$BUNDLE.zip already exists!"
@@ -22,29 +30,26 @@ mkdir -p "dist/$BUNDLE"
 
 cp -r docs hello.alv LICENSE "dist/$BUNDLE/"
 rm -rf "dist/$BUNDLE/docs/"*.md "dist/$BUNDLE/docs/"*.ltp "dist/$BUNDLE/docs/gen"
-unzip dist/lua-win.zip -d "dist/$BUNDLE/"
-luarocks --tree "dist/$BUNDLE/lua" install --deps-mode none "dist/rocks/$ROCK"
+cp -r "$LUA_WIN" "dist/$BUNDLE/"
 
 cat <<EOF >"dist/$BUNDLE/alv.bat"
 @echo off
-setlocal
-set PATH=%PATH%;%~dp0\\lua\\bin
-set LUA_PATH=%LUA_PATH%;%~dp0\?.lua;%~dp0\?\init.lua
-moon "%~dp0\\lua\\lib\\luarocks\\rocks-5.3\\alive\\$ROCKVER\\bin\\alv" %*
+%~dp0lua\bin\alv.bat --nocolor %*
 exit /b %ERRORLEVEL%
 EOF
 
 cat <<EOF >"dist/$BUNDLE/alv-fltk.bat"
 @echo off
-setlocal
-set PATH=%PATH%;%~dp0\\lua\\bin
-set LUA_PATH=%LUA_PATH%;%~dp0\?.lua;%~dp0\?\init.lua
-moon "%~dp0\\lua\\lib\\luarocks\\rocks-5.3\\alive\\$ROCKVER\\bin\\alv-fltk" %*
+%~dp0lua\bin\alv-fltk.bat %*
 exit /b %ERRORLEVEL%
 EOF
 
 for script in "dist/$BUNDLE/lua/bin/"*.bat; do
-  dist/fix-lua-win.sh "$script" > "$script.nu"
+  case "$(basename "$script" .bat)" in
+    alv-fltk|alv-wx) mode="wlua" ;;
+    *) mode= ;;
+  esac
+  dist/fix-bat-script.sh "$script" $mode > "$script.nu"
   mv "$script.nu" "$script"
 done
 

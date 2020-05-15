@@ -6,12 +6,27 @@ REVISION="${2:-1}"
 ROCK_OPTS=""
 WHERE=""
 
+list_modules() {
+  for FILE in $(git ls-files "$1" | grep '\.moon$'); do
+    MODULE=$(echo "$FILE" | sed -e "s/\.moon$//" -e "s/\//./g")
+    echo "      [\"$MODULE\"] = \"$FILE\","
+  done
+}
+
 if [ "$TAG" = "scm" ]; then
   TAG=""
   VERSION="scm"
 elif [ "$TAG" = "test" ]; then
   VERSION="test"
   REVISION=999
+
+  list_modules() {
+    for FILE in $(find alv alv-lib -type f | grep '\.moon$'); do
+      MODULE=$(echo "$FILE" | sed -e "s/\.moon$//" -e "s/\//./g")
+      echo "      [\"$MODULE\"] = \"$FILE\","
+    done
+  }
+
 else
   VERSION="${TAG#v}"
   VERSION=$(echo "$VERSION" | tr -d -)
@@ -49,13 +64,6 @@ EOF
   ROCK_OPTS="--sign"
 fi
 
-list_modules() {
-  for FILE in $(git ls-files "$1" | grep '\.moon$'); do
-    MODULE=$(echo "$FILE" | sed -e "s/\.moon$//" -e "s/\//./g")
-    echo "      [\"$MODULE\"] = \"$FILE\","
-  done
-}
-
 cat <<STOP >"dist/rocks/alive-$VERSION-$REVISION.rockspec"
 package = "alive"
 version = "$VERSION-$REVISION"
@@ -79,7 +87,7 @@ text-based language and works without special editor support.]],
 dependencies = {
   "lua",
   "moonscript >= 0.5.0",
-  "lpeg ~> 0.10",
+  "lpeg",
   "luafilesystem",
   "luasystem",
   "luasocket",
@@ -105,7 +113,7 @@ $(list_modules alv-lib)
 }
 STOP
 
-if [ -n "$TAG" -a "$TAG" != "test" ]; then
+if [ -n "$TAG" ] && [ "$TAG" != "test" ]; then
   git add "alv/version.moon" "dist/rocks/alive-$VERSION-$REVISION.rockspec"
   git commit -m "release $TAG"
   git tag -am "version $TAG" "$TAG"
@@ -118,5 +126,6 @@ if [ -n "$TAG" ]; then
   luarocks make "dist/rocks/alive-$VERSION-$REVISION.rockspec" $ROCK_OPTS \
     --deps-mode none --pack-binary-rock
   mv "alive-$VERSION-$REVISION.all.rock"* dist/rocks
-  dist/pack-win.sh "$TAG" "$VERSION-$REVISION"
+  echo "now install 'alive-$VERSION-$REVISION.all.rock' on windows and run"
+  echo dist/pack-win.sh "$TAG" "$VERSION-$REVISION"
 fi
