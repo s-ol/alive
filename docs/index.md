@@ -4,8 +4,9 @@
 language specifically designed for (live) performances where code is edited
 while it is running, such as *livecoding* or *algorave* music performances.
 
-<iframe class="embed" allowfullscreen="true" frameborder="0"
-  height="315" width="560" src="https://www.youtube.com/embed/z0XZYnY3Evc"
+<iframe class="embed" width="560" height="315" frameborder="0"
+  allow="accelerometer; gyroscope; picture-in-picture" allowfullscreen
+  src="https://www.youtube.com/embed/videoseries?list=PLYgrt2AlWlvTSSkO529BRSjVqHtbGWnM4"
 ></iframe>
 
 Unlike other livecoding languages, programming with `alv` does not mean
