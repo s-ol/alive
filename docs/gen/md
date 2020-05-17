@@ -1,5 +1,5 @@
 #!/usr/bin/env moon
-import layout, autoref from require 'docs.gen.layout'
+import layout, subnav, autoref from require 'docs.gen.layout'
 import compile from require 'discount'
 
 export OUT, ESCAPE
@@ -18,6 +18,8 @@ ESCAPE = (str) ->
   (str\gsub '([*`])', '\\%1')
 
 { OUT, file } = arg
-
-contents = slurp file
-spit OUT, layout compile (autoref contents), 'githubtags', 'fencedcode'
+content = compile (autoref slurp file), 'githubtags', 'fencedcode'
+if #arg > 2
+  sub = subnav [a for a in *arg[3,]]
+  content.body = table.concat { sub, content.body }, '\n\n'
+spit OUT, layout content

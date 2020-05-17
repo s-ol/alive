@@ -61,10 +61,10 @@ a {
 }
 
 ul, ol {
-  list-style: '- ';
   margin: 0.5em 0;
   padding-left: 0.6em;
 }
+ul { list-style: '- '; }
 
 header {
   position: fixed;
@@ -75,27 +75,31 @@ header {
   background: #eeeeee;
   box-sizing: border-box;
 }
+header nav {
+  border-bottom: 1px solid #222222;
+  padding-bottom: 1em;
+}
+header nav > a {
+  margin-left: 0.6rem;
+}
 
 nav {
   display: flex;
   justify-content: space-between;
-
-  border-bottom: 1px solid #222222;
-  padding-bottom: 1em;
 }
 
 nav span,
 nav a {
   flex: 0 0 auto;
+  text-decoration: none;
 }
 
 nav > a {
-  margin-left: 0.6rem;
   padding: 0.03em 0.2em;
-  text-decoration: none;
 }
 nav > a.active {
   background: #cccccc;
+  text-decoration: none;
 }
 
 nav span a {
@@ -105,6 +109,18 @@ nav span a {
 
 nav .grow {
   flex: 1;
+}
+
+.subheader {
+  margin: 0 -2rem;
+  padding: 0.5rem 2rem;
+  background: #cccccc;
+}
+.subheader nav {
+  margin: 0 -1.2em;
+}
+.subheader h1 {
+  margin: 0;
 }
 
 footer {

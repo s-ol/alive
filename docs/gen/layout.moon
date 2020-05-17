@@ -86,6 +86,46 @@ autoref = (str) ->
   str = str\gsub '%[([^%]]-)%]%[:(.-):%]', r
   str
 
+subnav = do
+  split_name = (file) ->
+    href, label = file\match '^docs/(.*/([%w%-]+)%.html)'
+    label = label\gsub '-', ' '
+    label, href
+
+  subnav_link = (dir, file) ->
+    import span, a, u from dom
+
+    if not file
+      return span ''
+    
+    label, href = split_name file
+    label = switch dir
+      when 'l'
+        "&blacktriangleleft;&ensp;back: #{u label}"
+      when 'r'
+        "next: #{u label}&ensp;&blacktriangleright;"
+
+    a label, href: abs href
+
+  (all) ->
+    assert OUT, "OUT needs to be set"
+    import div, nav, h1 from dom
+
+    local c
+    for i, src in ipairs all
+      if OUT == src
+        c = i
+        break
+
+    div {
+      class: 'subheader'
+      h1 (split_name OUT)
+      nav {
+        subnav_link 'l', all[c-1]
+        subnav_link 'r', all[c+1]
+      }
+    }
+
 aopts = (href, pat) ->
   {
     href: abs href
@@ -110,7 +150,7 @@ layout = (opts) ->
     }
     div class: 'grow'
     a 'home', aopts 'index.html', 'index.html$'
-    a 'getting started', aopts 'guide.html', 'guide.html$'
+    a 'guide', aopts 'guide/getting-started-guide.html', 'guide'
     a 'reference', aopts 'reference/index.html', 'reference'
     a 'internals', aopts 'internals/index.html', 'ldoc'
   }
@@ -148,4 +188,5 @@ layout = (opts) ->
   :autoref
   :render
   :layout
+  :subnav
 }

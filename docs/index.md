@@ -24,6 +24,6 @@ you are a curious about the motivations and concepts behind `alv`, you can find
 more in-depth information on these topics in the
 ['persistent expressions' article][rationale].
 
-[guide]: guide.html
+[guide]: guide/getting-started-guide.html
 [rationale]: https://s-ol.nu/alivecoding
 [license]: https://github.com/s-ol/alive/blob/master/LICENSE
