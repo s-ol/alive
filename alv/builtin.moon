@@ -279,9 +279,9 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
 
 trace_ = Constant.meta
   meta:
-    name: 'trace!'
+    name: 'trace='
     summary: "Trace an expression's value at evaltime."
-    examples: { '(trace! expr)' }
+    examples: { '(trace= expr)' }
 
   value: class extends Builtin
     eval: (scope, tail) =>
@@ -289,7 +289,7 @@ trace_ = Constant.meta
       assert #tail == 1, "'trace!' takes exactly one parameter"
 
       with node = L\push tail[1]\eval, scope
-        L\print "trace! #{tail[1]\stringify!}: #{node.result}"
+        L\print "trace! #{tail[1]\stringify 2}: #{node.result}"
 
 trace = Constant.meta
   meta:
@@ -314,7 +314,7 @@ trace = Constant.meta
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
         Constant.literal T.opdef, traceOp, 'trace'
-        Constant.str tostring tail[1]
+        Constant.str tail[1]\stringify 2
         tail[1]
       }
       inner\eval scope
@@ -401,7 +401,7 @@ to_evt = Constant.meta
 
 Scope.from_table {
   :doc
-  :trace, 'trace!': trace_, print: print_
+  :trace, 'trace=': trace_, print: print_
 
   :def, :use
   require: require_
