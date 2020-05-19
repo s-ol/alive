@@ -1,4 +1,7 @@
 *.zip
+*.tar.gz
 *.rock
 *.rock.asc
 alive-test-999.*
+alive-*-win/
+win/deps/*/

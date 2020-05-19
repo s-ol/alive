@@ -126,6 +126,6 @@ if [ -n "$TAG" ]; then
   luarocks make "dist/rocks/alive-$VERSION-$REVISION.rockspec" $ROCK_OPTS \
     --deps-mode none --pack-binary-rock
   mv "alive-$VERSION-$REVISION.all.rock"* dist/rocks
-  echo "now install 'alive-$VERSION-$REVISION.all.rock' on windows and run"
-  echo dist/pack-win.sh "$TAG" "$VERSION-$REVISION"
+  echo "now run this in a windows dev cmd.exe:"
+  echo dist\win\release.bat "$TAG" "dist/rocks/alive-$VERSION-$REVISION.all.rock"
 fi
