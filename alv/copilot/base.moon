@@ -55,6 +55,9 @@ class Copilot
     if old = @last_modules.__root
       old\destroy!
 
+    @active_modules = nil
+    @last_modules.__root = nil
+
     @last_modules.__root = Module file
     @active_module = @last_modules.__root
 
@@ -122,6 +125,10 @@ class Copilot
 
     return if #dirty == 0
 
+    @eval dirty
+
+  --- try to re-evaluate in response to module changes.
+  eval: (dirty) =>
     @last_modification = os.time!
     L\set_time 'eval'
     L\print "changes to files: #{table.concat [m.file for m in *dirty], ', '}"

@@ -26,14 +26,16 @@ class FLTKCopilot extends Copilot
   new: (arg) =>
     @args = parse_args arg
 
-    @window = with fl.Window { 400, 220, "alv copilot", xclass: 'alv' }
+    @window = with fl.Window { 400, 240, "alv copilot", xclass: 'alv' }
       \size_range 400, 220, nil, nil, 20, 20
 
     @menubar = with fl.Menu_Bar 0, 0, 400, 20
       \add "&File/About",        nil,  @\about, nil, fl.MENU_DIVIDER
       \add "&File/&Open script", '^o', -> @open!
       \add "&File/&Quit",        '^q', -> @window\hide!
-      @pause = \add "Run (^P)",  '^p', @\pause, nil, fl.MENU_TOGGLE
+      \add "&Edit/C&lear Logs",  '^l', @\clear
+      @autoclear = \add "&Edit/Auto-clear on eval", nil, nil, nil, fl.MENU_TOGGLE + fl.MENU_VALUE
+      @runcode = \add "Run (^P)", '^p', @\update_status, nil, fl.MENU_TOGGLE
       \add "Help",               nil, -> fl.open_uri version.web
 
     tile = fl.Tile 5, 40, 390, 160
@@ -46,8 +48,6 @@ class FLTKCopilot extends Copilot
         5, 40, 390, 80, "eval",
         box: fl.GTK_DOWN_BOX, align: fl.ALIGN_TOP_RIGHT
       }
-      -- sticky = fl.Check_Button 5, 20, 80, 20, 'sticky'
-      -- sticky\set!
       :browser, :sticky
 
     @run_out = do
@@ -55,14 +55,18 @@ class FLTKCopilot extends Copilot
         5, 120, 390, 80, "run",
         box: fl.GTK_DOWN_BOX, align: fl.ALIGN_BOTTOM_RIGHT
       }
-      -- sticky = fl.Check_Button 5, 200, 80, 20, 'sticky'
-      -- sticky\set!
       :browser, :sticky
+
+    @status = fl.Input {
+      5, 220, 390, 20,
+      color: fl.BACKGROUND_COLOR, align: fl.ALIGN_LEFT
+      type: 'FL_NORMAL_OUTPUT', box: 'FL_FLAT_BOX'
+      value: "no script"
+    }
 
     tile\end_group!
     @window\end_group!
 
-    @update_status!
     super @args[1]
 
   about: =>
@@ -71,27 +75,33 @@ class FLTKCopilot extends Copilot
 visit #{version.web} for more information."
 
   open: (file) =>
-    file or= fl.file_chooser "Open Script", '*.alv', 'script.alv'
+    file or= fl.file_chooser "Open Script", '*.alv', ''
 
     if file
-      @paused = false
+      @menubar\menuitem_set @runcode
       super file
       @update_status!
 
-  pause: =>
-    @paused = not @paused
-    @update_status!
-
   update_status: =>
-    state = fl.MENU_TOGGLE
-    if not @paused
-      state += fl.MENU_VALUE
-    @menubar\menuitem_setp @pause, 'flags', state
+    @paused = not @menubar\menuitem_value @runcode
 
-    if @paused
-      "Paused."
+    @status.value = if not @active_module
+      "no script"
+    elseif @paused
+      "paused | #{@active_module\basename!}"
     else
-      "Running."
+      "running | #{@active_module\basename!}"
+    @window\redraw!
+
+  eval: (dirty) =>
+    if @menubar\menuitem_value @autoclear
+      @clear!
+
+    super dirty
+
+  clear: =>
+    @run_out.browser\clear!
+    @eval_out.browser\clear!
 
   run: =>
     FLTKLogger\init @args.log, @eval_out, @run_out

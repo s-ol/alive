@@ -62,7 +62,11 @@ class Module
   destroy: =>
     @registry\destroy!
 
-  __tostring: => "<Module #{@file}>"
+  --- get the module basename.
+  -- @treturn string
+  basename: => @file\match '([^/\\]+)$'
+
+  __tostring: => "<Module #{@basename!}>"
 
   --- the last updated AST tree for this module.
   -- @tfield ?AST ast
