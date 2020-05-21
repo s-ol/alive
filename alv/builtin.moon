@@ -250,7 +250,8 @@ Evaluate `expr1`, `expr2`, … and return the value of the last expression."
     eval: (scope, tail) =>
       scope = Scope scope
       children = [expr\eval scope for expr in *tail]
-      RTNode :children, result: children[#children].result
+      last = children[#children]
+      RTNode :children, result: last and last.result
 
 if_ = Constant.meta
   meta:
