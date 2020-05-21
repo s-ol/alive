@@ -4,7 +4,7 @@
 -- Please see the [reference](../../reference/index.html#builtins) for
 -- documentation.
 --
--- @module builtin
+-- @module builtins
 import Builtin, Op, PureOp, T, FnDef, Input, const, val, evt, Struct, Array
   from require 'alv.base'
 import Constant from require 'alv.result'

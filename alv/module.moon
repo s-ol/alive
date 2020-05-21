@@ -6,7 +6,7 @@ import Registry from require 'alv.registry'
 import Error from require 'alv.error'
 import Scope from require 'alv.scope'
 import program from require 'alv.parsing'
-builtin = require 'alv.builtin'
+builtins = require 'alv.builtins'
 
 slurp = (file) ->
   file = assert (io.open file, 'r'), Error 'io', "couldn't open '#{file}'"
@@ -46,7 +46,7 @@ class Module
     @ast = Error.wrap "parsing '#{@file}'", -> program\match slurp @file
     assert @ast, Error 'syntax', "failed to parse"
 
-    scope = Scope builtin
+    scope = Scope builtins
     @root = Error.wrap "evaluating '#{@file}'", @ast\eval, scope, @registry
 
   --- rollback the last evaluation cycle.

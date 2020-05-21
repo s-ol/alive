@@ -27,7 +27,7 @@ import program from require 'alv.parsing'
 
 cycle\resolve!
 
-globals = require 'alv.builtin'
+globals = require 'alv.builtins'
 
 cycle\resolve!
 

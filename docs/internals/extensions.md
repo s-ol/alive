@@ -177,7 +177,7 @@ how their arguments are evaluated. They roughly correspond to *macros* in Lisps.
 There is less of a concrete guideline for implementing Builtins because there
 are a lot more options, and it really depends a lot on what the Builtin should
 achieve. Nevertheless, a good starting point is to read the `Builtin` class
-documentation, take a look at `Builtin`s in `alv/builtin.moon` and get
+documentation, take a look at `Builtin`s in `alv/builtins.moon` and get
 familiar with the relevant internal interfaces (especially `AST`, `Result`, and
 `Scope`).
 
