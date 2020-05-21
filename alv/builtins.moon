@@ -379,8 +379,8 @@ to_evt = Constant.meta
     examples: { '(! val)', '(! sig trig)' }
     description: "Casts anything to a !-stream depending on arguments:
 
-- if `val` is a ~-stream, emits events on change.s
-- if `val` is a !-stream, emits a bang for each incoming even.t
+- if `val` is a ~-stream, emits events on changes.
+- if `val` is a !-stream, emits a bang for each incoming event.
 - if `trig` is given, samples `sig` as a new event when `trig` arrives."
   value: class extends Op
     pattern = (val! + evt.bang) / (val! / evt!)\rep(1,1)

@@ -79,7 +79,7 @@ trigseq = Constant.meta
   meta:
     name: 'trigseq'
     summary: "Generate rhythms based on a trigger-sequence"
-    examples: { '(trigseq trig! [s1 s2…])', '(trigseq i [s1 s2…])' }
+    examples: { '(trigseq trig! s1 s2…)', '(trigseq i s1 s2…)' }
     description: "Generates bangs according to the sequence `s1`, `s2`, …
 
 Each step should be a bool~ that determines whether a bang should be emitted on

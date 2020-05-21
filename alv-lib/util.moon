@@ -11,7 +11,7 @@ switch_ = Constant.meta
   meta:
     name: 'switch'
     summary: "Switch between multiple inputs."
-    examples: { '(switch i v0 [v1 v2…])' }
+    examples: { '(switch i v1 v2…)' }
     description: "
 - when `i` is `true`, the first value is reproduced.
 - when `i` is `false`, the second value is reproduced.
@@ -64,41 +64,7 @@ edge = Constant.meta
         @out\set true
       @state = now
 
-change = Constant.meta
-  meta:
-    name: 'change'
-    summary: "Convert value changes to events."
-    examples: { '(change val)' }
-
-  value: class extends Op
-    setup: (inputs) =>
-      value = val!\match inputs
-      @out or= value\type!\mk_evt!
-      super value: Input.hot value
-
-    tick: =>
-      now = @inputs.value!
-      if now != @state
-        @out\set @inputs.value!
-        @state = now
-
-hold = Constant.meta
-  meta:
-    name: 'hold'
-    summary: "Convert events to value changes."
-    examples: { '(hold evt)' }
-
-  value: class extends Op
-    setup: (inputs) =>
-      event = evt!\match inputs
-      @out or= event\type!\mk_sig!
-      super event: Input.hot event
-
-    tick: => @out\set @inputs.event!
-
 {
   'switch': switch_
   :edge
-  :change
-  :hold
 }
