@@ -263,6 +263,15 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 3, str)
     assert.has.error -> rep\match (times 2, num)
 
+  it 'works with complex inner types', ->
+    rep = (val.num + val.str)\rep 2, 2
+    assert.has.error -> rep\match {}
+    assert.has.error -> rep\match {num, str}
+    assert.has.error -> rep\match {num, num}
+    assert.is.same {{num, str}, {num, str}}, rep\match {num, str, num, str}
+    assert.has.error -> rep\match {str, str, str, str}
+    assert.has.error -> rep\match {num, str, num, str, num, str}
+
   it 'stringifies well', ->
     assert.is.equal 'str~{1-3}', tostring val.str*3
     assert.is.equal 'str~{1-*}', tostring val.str*0

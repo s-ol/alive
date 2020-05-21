@@ -129,20 +129,21 @@ class Repeat extends Pattern
   new: (@inner, @min, @max) =>
 
   capture: (seq, i) =>
-    take, all = 0, {}
+    total, rep, all = 0, 0, {}
     while true
-      num, cap = @inner\capture seq, i+take
+      num, cap = @inner\capture seq, i+total
       break unless num
 
-      take += num
+      total += num
+      rep += 1
       table.insert all, cap
 
-      break if @max and take >= @max
+      break if @max and rep >= @max
 
-    return if @min and take < @min
-    return if @max and take > @max
+    return if @min and rep < @min
+    return if @max and rep > @max
 
-    take, all
+    total, all
 
   reset: =>
     @inner\reset!
@@ -188,7 +189,7 @@ class Sequence extends Pattern
     @@ [e for e in *@elements], { ... }
 
   __call: =>
-    @@ [e! for e in *@elements]
+    @@ [e! for e in *@elements], @keys
 
   __add: (other) =>
     elements = [e for e in *@elements]
