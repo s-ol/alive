@@ -5,7 +5,8 @@
 -- documentation.
 --
 -- @module builtin
-import Builtin, Op, T, FnDef, Input, const, val, evt from require 'alv.base'
+import Builtin, Op, PureOp, T, FnDef, Input, const, val, evt, Struct, Array
+  from require 'alv.base'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
@@ -400,6 +401,45 @@ to_evt = Constant.meta
     tick: =>
       @out\set @inputs.sig!
 
+array = Constant.meta
+  meta:
+    name: 'array'
+    summary: "Construct an array."
+    examples: { '(array a b c…)' }
+    description: "Produces an array of values."
+
+  value: do
+    any = val! / evt!
+
+    class extends PureOp
+      pattern: any!*0
+      type: (args) => Array #args, args[1]\type!
+
+      tick: =>
+        args = @unwrap_all!
+        @out\set args
+
+struct = Constant.meta
+  meta:
+    name: 'struct'
+    summary: "Construct an struct."
+    examples: { '(struct key1 val1 [key2 val2…])' }
+    description: "Produces an struct of values."
+
+  value: do
+    key = const.str / const.sym
+    val = val! / evt!
+    pair = (key + val)\named 'key', 'val'
+
+    class extends PureOp
+      pattern: pair*0
+      type: (pairs) =>
+        Struct {key.result!, val\type! for {:key, :val} in *pairs}
+
+      tick: =>
+        pairs = @unwrap_all!
+        @out\set {key, val for {:key, :val} in *pairs}
+
 get = Constant.meta
   meta:
     name: 'get'
@@ -446,7 +486,7 @@ Scope.from_table {
   '~': to_sig
   '!': to_evt
 
-  :get
+  :array, :struct, :get
 
   true: Constant.meta
     meta:
