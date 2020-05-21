@@ -30,6 +30,7 @@ class PureOp extends Op
   --
   -- Can be either a method or just a fixed type.
   --
+  -- @function type
   -- @tparam table args as parsed by `pattern`
   -- @treturn type.Type
 
