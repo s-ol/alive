@@ -96,6 +96,7 @@ class Struct extends Type
 
   eq: (a, b) =>
     return false unless (type a) == (type b)
+    return true if a == b
     for key, type in pairs @types
       if not type\eq a[key], b[key]
         return false

@@ -2,7 +2,7 @@
 -- Persistent expression Operator.
 --
 -- @classmod Op
-import deep_copy, deep_iter from require 'alv.util'
+import deep_copy, deep_iter, deep_map from require 'alv.util'
 
 class Op
 --- members
@@ -117,7 +117,7 @@ class Op
       cur_plain = cur_val and not cur_val.__class
       old_plain = old_val and not old_val.__class
 
-      if cur_plain and old_plain
+      if cur_plain
         -- both are tables, recurse
         do_setup old_val, cur_val
       elseif not (cur_plain or old_plain)
@@ -134,16 +134,11 @@ class Op
       @inputs = inputs
       do_setup old_inputs, @inputs
 
-  do_unwrap = (value) ->
-    if value.__class
-      value\unwrap!
-    else
-      {k, do_unwrap v for k,v in pairs value}
   --- `\unwrap` all `Input`s in `@inputs` and return a table with the same
   -- shape.
   --
   -- @treturn table the values of all `Input`s
-  unwrap_all: => do_unwrap @inputs
+  unwrap_all: => deep_map @inputs, (i) -> i\unwrap!
 
   __tostring: => "<op: #{@@__name}>"
   __inherited: (cls) => cls.__base.__tostring = @__tostring

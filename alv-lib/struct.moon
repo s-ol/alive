@@ -1,6 +1,6 @@
-import PureOp, Constant, T, Struct, val, evt from require 'alv.base'
+import PureOp, Constant, T, Struct, const, val, evt from require 'alv.base'
 
-key = val.str / val.sym
+key = const.str / const.sym
 val = val! / evt!
 pair = (key + val)\named 'key', 'val'
 

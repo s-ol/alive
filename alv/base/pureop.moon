@@ -49,18 +49,10 @@ class PureOp extends Op
 
     if trigger
       super deep_map args, (a) ->
-        if a == trigger
-          Input.hot trigger
-        else
-          Input.cold a
-      -- super for a in *args
-      --   if a == trigger
-      --     Input.hot trigger
-      --   else
-      --     Input.cold a
+        Inp = if a == trigger then Input.hot else Input.cold
+        Inp a
       @out = typ\mk_evt!
     else
-      -- super [Input.hot a for a in *args]
       super deep_map args, (a) -> Input.hot a
       @out or= typ\mk_sig!
 
