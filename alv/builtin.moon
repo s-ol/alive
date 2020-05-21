@@ -400,6 +400,37 @@ to_evt = Constant.meta
     tick: =>
       @out\set @inputs.sig!
 
+get = Constant.meta
+  meta:
+    name: 'get'
+    summary: "Index into Arrays and Structs."
+    examples: { '(get val key [key2…])' }
+
+  value: class extends Op
+    pattern = (val! / evt!) + (const.str / const.sym / const.num)*0
+    setup: (inputs) =>
+      { val, keys } = pattern\match inputs
+      super val: Input.hot val
+
+      @state = [key.result! for key in *keys]
+
+      type = val\type!
+      for key in *@state
+        type = type\get key
+
+      if val\metatype == '!'
+        @out = type\mk_evt!
+      else
+        @out = type\mk_sig!
+
+    tick: =>
+      val = @inputs.val!
+      for key in *@state
+        if type(key) == 'number'
+          key = key + 1
+        val = val[key]
+      @out\set val
+
 Scope.from_table {
   :doc
   :trace, 'trace=': trace_, print: print_
@@ -414,6 +445,8 @@ Scope.from_table {
   '=': to_const
   '~': to_sig
   '!': to_evt
+
+  :get
 
   true: Constant.meta
     meta:
