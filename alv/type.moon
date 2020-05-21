@@ -4,6 +4,7 @@
 -- @module type
 import opairs from require 'alv.util'
 import result from require 'alv.cycle'
+import Error from require 'alv.error'
 
 shared_shape = (a, b) ->
   for key in pairs a
@@ -34,6 +35,11 @@ class Type
   -- @tparam any a
   -- @tparam any b
   -- @treturn bool
+
+  --- index into this type or throw a error.
+  -- @function get
+  -- @tparam any key
+  -- @treturn Type
 
   --- create a `SigStream` of this type.
   -- @tparam ?any init initial value
@@ -67,6 +73,8 @@ class Primitive extends Type
 
   eq: (a, b) => a == b
 
+  get: (key) => error "cannot index into Primitive type '#{@}'"
+
   __eq: (other) => @name == other.name
   __tostring: => @name
 
@@ -93,10 +101,8 @@ class Struct extends Type
         return false
     true
 
-  __eq: (other) => same @types, other.types
-  __tostring: =>
-    inner = table.concat ["#{k}: #{v}" for k, v in opairs @types], ' '
-    "{#{inner}}"
+  get: (key) =>
+    assert @types[key], Error 'index', "#{@} has no '#{key}' key"
 
   --- create a new struct type with a subset of keys.
   project: (keys) =>
@@ -104,6 +110,11 @@ class Struct extends Type
     for key in *keys
       types[key] = @types[key]
     @@ types
+
+  __eq: (other) => same @types, other.types
+  __tostring: =>
+    inner = table.concat ["#{k}: #{v}" for k, v in opairs @types], ' '
+    "{#{inner}}"
 
   --- instantiate a Primitive type.
   -- @classmethod
@@ -126,6 +137,11 @@ class Array extends Type
       if not @type\eq a[i], b[i]
         return false
     true
+
+  get: (key) =>
+    assert (type key) == 'number'
+    assert key >= 0 and key < @size, Error 'index', "index '#{key}' out of range!"
+    @type
 
   __eq: (other) => @size == other.size and @type == other.type
   __tostring: => "#{@type}[#{@size}]"

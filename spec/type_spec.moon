@@ -36,6 +36,11 @@ describe 'Primitive', ->
     assert.is.true num\eq a, a
     assert.is.false num\eq a, b
 
+  it ':get errors', ->
+    assert.has.error -> bool\get 'hello'
+    assert.has.error -> bool\get 2
+    assert.has.error -> bool\get!
+
 describe 'Array', ->
   vec3 = Array 3, num
   str32 = Array 2, Array 3, str
@@ -69,6 +74,18 @@ describe 'Array', ->
     assert.is.false str32\eq { {'a', 'b', 'c'}, {'d', 'e', 'f'} },
                              { {'a', 'b', 'c'}, {'d', 'e', 'g'} }
 
+  it ':get verifies size range', ->
+    assert.has.error -> vec3\get -1
+    assert.is.equal num, vec3\get 0
+    assert.is.equal num, vec3\get 1
+    assert.is.equal num, vec3\get 2
+    assert.has.error -> vec3\get 3
+
+    assert.is.equal (Array 3, str), str32\get 1
+
+    assert.has.error -> vec3\get!
+    assert.has.error -> vec3\get 'fail'
+
 describe 'Struct', ->
   play = Struct { note: str, dur: num }
   abc = Struct { c: num, b: num, a: num }
@@ -97,6 +114,13 @@ describe 'Struct', ->
     assert.is.false play\eq a, { dur: 0.5, note: 'b' }
     assert.is.true  play\eq { dur: 0.5, note: c }, { dur: 0.5, note: c }
     assert.is.false play\eq { dur: 0.5, note: c }, { dur: 0.5, note: {} }
+
+  it ':get verifies key exists', ->
+    assert.is.equal str, play\get 'note'
+    assert.is.equal num, play\get 'dur'
+    assert.has.error -> play\get!
+    assert.has.error -> play\get ''
+    assert.has.error -> play\get 'something'
 
 describe 'T', ->
   it 'provides shorthand for Primitives', ->
