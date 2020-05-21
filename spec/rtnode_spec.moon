@@ -18,8 +18,7 @@ dirty_op = ->
   result, input, op_with_inputs { input }
 
 node_with_sideinput = (result, input) ->
-  with RTNode :result
-    .side_inputs = { [result]: input }
+  RTNode :result, side_inputs: { [result]: input }
 
 describe 'RTNode', ->
   it 'wraps result, children', ->
