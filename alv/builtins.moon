@@ -471,6 +471,83 @@ get = Constant.meta
         val = val[key]
       @out\set val
 
+loop = Constant.meta
+  meta:
+    name: 'loop'
+    summary: "Loop on arbitrary data via recursion."
+    examples: { '(loop (k1 v1 [k2 v2…]) body)' }
+    description: "
+Defines a recursive loop function `*recur*` with parameters `k1`, `k2`, … and
+function body `body`, then invokes it immediately with arguments `v1`, `v2`, …
+
+Inside the `body`, `(recur)` is used to recursively restart loop evaluation
+with a different set of arguments, e.g. to sum the first `5` integers:
+
+    (loop (n 5)
+      (if (= n 0)
+        0
+        (+ n (recur (n - 1)))))"
+
+  value: class extends Builtin
+    eval: (scope, tail) =>
+      L\trace "evaling #{@}"
+      assert #tail == 2, "'loop' takes exactly two arguments"
+      { binds, body } = tail
+
+      assert binds.__class == Cell, "loops bindings have to be an cell"
+      assert #binds.children % 2 == 0, "key without binding in loop binding"
+
+      names = {}
+      inner = { Constant.sym '*recur*' }
+      for i=1,#binds.children,2
+        table.insert names, binds.children[i]
+        table.insert inner, binds.children[i+1]
+
+      loop_fn = FnDef names, body, scope
+
+      def_scope = Scope scope
+      def_scope\set '*recur*', RTNode result: Constant.wrap loop_fn
+
+      tag = @tag\clone Tag.parse '-1'
+      inner = Cell tag, inner
+      inner\eval def_scope
+
+recur = Constant.meta
+  meta:
+    name: 'recur'
+    summary: "Reenter the innermost loop."
+    examples: { '(recur nv1 [nv2…])' }
+    description: "
+Reenters the innermost `(loop)` from the top, with `k1` bound to `nv1`, `k2`
+bound to `nv2`…
+
+`(recur nv1 [nv2…])` is equivalent to `(*recur* nv1 [nv2…])`."
+
+  value: class extends Builtin
+    eval: (caller_scope, tail) =>
+      L\trace "evaling #{@}"
+      recur_fn = assert caller_scope\get '*recur*', "not currently in any loop"
+      fndef = recur_fn.result\unwrap T.fndef, "*recur* has to be a fndef"
+
+      { :params, :body } = fndef
+      if #params != #tail
+        err = Error 'argument', "expected #{#params} loop arguments, found #{#tail}"
+        error err
+
+      fn_scope = Scope fndef.scope, caller_scope
+
+      children = for i=1,#params
+        name = params[i]\unwrap T.sym
+        with L\push tail[i]\eval, caller_scope
+          fn_scope\set name, \make_ref!
+
+      clone = body\clone @tag
+      node = clone\eval fn_scope
+
+      table.insert children, node
+      RTNode :children, result: node.result
+
+
 Scope.from_table {
   :doc
   :trace, 'trace=': trace_, print: print_
@@ -487,6 +564,8 @@ Scope.from_table {
   '!': to_evt
 
   :array, :struct, :get
+
+  :loop, :recur
 
   true: Constant.meta
     meta:
