@@ -1,4 +1,4 @@
-import Constant, Op, Input, T, val, evt from require 'alv.base'
+import Constant, Op, Input, T, sig, evt from require 'alv.base'
 import apply_range, bit from require 'alv-lib.midi.core'
 import bor, lshift from bit
 
@@ -22,8 +22,8 @@ range can be one of:
 - (num) [ 0 - num["
 
   value: class extends Op
-    num = val.num
-    pattern = -evt['midi/port'] + num + num + num + -num + -(val.str + num)
+    num = sig.num
+    pattern = -evt['midi/port'] + num + num + num + -num + -(sig.str + num)
     setup: (inputs, scope) =>
       { port, i, start, chan, steps, range } = pattern\match inputs
 
@@ -68,7 +68,7 @@ Send `true` or `false` for the `i`-th note-button (MIDI-notes starting from
 `start`). `steps` defaults to 8."
 
   value: class extends Op
-    pattern = -evt['midi/port'] + val.num + val.num + val.num + -val.num
+    pattern = -evt['midi/port'] + sig.num + sig.num + sig.num + -sig.num
     setup: (inputs, scope) =>
       @out or= T.bool\mk_sig!
       @state or= {}
@@ -130,7 +130,7 @@ Send bangs for the `i`-th note-button (MIDI-notes starting from `start`).
 `steps` defaults to 8."
 
   value: class extends Op
-    pattern = -evt['midi/port'] + val.num + val.num + val.num + -val.num
+    pattern = -evt['midi/port'] + sig.num + sig.num + sig.num + -sig.num
     setup: (inputs, scope) =>
       @out or= T.bang\mk_evt!
       @state or= {}

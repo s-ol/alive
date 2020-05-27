@@ -1,12 +1,12 @@
 import do_setup, do_teardown, invoke_op from require 'spec.test_setup'
-import PureOp, Input, T, val, evt from require 'alv.base'
+import PureOp, Input, T, sig, evt from require 'alv.base'
 import RTNode from require 'alv'
 
 setup do_setup
 teardown do_teardown
 
 class TestPureOp extends PureOp
-  pattern: (val.num / val.str / evt.num)*3
+  pattern: (sig.num / sig.str / evt.num)*3
   type: T.num
   tick: => @out\set 1
 
@@ -81,9 +81,9 @@ describe 'PureOp', ->
     assert.has.error -> invoke_op TestPureOp, { (literal a), (literal b) }
 
   it 'supports nested input patterns', ->
-    num = val.num / evt.num
+    num = sig.num / evt.num
     class NestedInputOp extends PureOp
-      pattern: (num + val.str)\named('a', 'b')\rep 2, 2
+      pattern: (num + sig.str)\named('a', 'b')\rep 2, 2
       type: T.num
       tick: => @out\set 1
 
@@ -106,7 +106,7 @@ describe 'PureOp', ->
 
   it 'supports dynamically generating the output type', ->
     class DynamicOp extends PureOp
-      pattern: val.num + (val! / evt!)
+      pattern: sig.num + (sig! / evt!)
       type: (inputs) => inputs[2]\type!
       tick: => @out\set @inputs[2]!
     typ = spy.on DynamicOp, 'type'

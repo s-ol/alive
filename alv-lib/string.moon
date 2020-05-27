@@ -1,6 +1,6 @@
-import PureOp, Constant, Input, T, val, evt from require 'alv.base'
+import PureOp, Constant, Input, T, sig, evt from require 'alv.base'
 
-any = val! / evt!
+any = sig! / evt!
 
 str = Constant.meta
   meta:

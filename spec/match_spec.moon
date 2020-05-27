@@ -1,4 +1,4 @@
-import const, val, evt from require 'alv.base.match'
+import const, sig, evt from require 'alv.base.match'
 import Op, Input from require 'alv.base'
 import RTNode, T, Error from require 'alv'
 
@@ -18,13 +18,13 @@ mk_evt = (type, const) ->
   result = T[type]\mk_evt!
   RTNode :result, op: op_with_inputs { Input.hot result }
 
-describe 'val and evt', ->
+describe 'sig and evt', ->
   describe 'type-less shorthand', ->
     it 'matches metatype', ->
       str = mk_val 'str'
       num = mk_val 'num'
-      assert.is.equal str, val!\match { str }
-      assert.is.equal num, val!\match { num }
+      assert.is.equal str, sig!\match { str }
+      assert.is.equal num, sig!\match { num }
       assert.has.error -> const!\match { str }
       assert.has.error -> const!\match { num }
       assert.has.error -> evt!\match { str }
@@ -32,8 +32,8 @@ describe 'val and evt', ->
 
       str = mk_evt 'str'
       num = mk_evt 'num'
-      assert.has.error -> val!\match { str }
-      assert.has.error -> val!\match { num }
+      assert.has.error -> sig!\match { str }
+      assert.has.error -> sig!\match { num }
       assert.has.error -> const!\match { str }
       assert.has.error -> const!\match { num }
       assert.is.equal str, evt!\match { str }
@@ -41,15 +41,15 @@ describe 'val and evt', ->
 
       str = mk_const 'str'
       num = mk_const 'num'
-      assert.is.equal str, val!\match { str }
-      assert.is.equal num, val!\match { num }
+      assert.is.equal str, sig!\match { str }
+      assert.is.equal num, sig!\match { num }
       assert.is.equal str, const!\match { str }
       assert.is.equal num, const!\match { num }
       assert.has.error -> evt!\match { str }
       assert.has.error -> evt!\match { num }
 
     it 'can recall the type', ->
-      value = val!!
+      value = sig!!
       event = evt!!
       two_equal_values = value + value
       two_equal_events = event + event
@@ -77,14 +77,14 @@ describe 'val and evt', ->
     it 'stringifies well', ->
       assert.is.equal 'any=', tostring const!
       assert.is.equal 'any!', tostring evt!
-      assert.is.equal 'any~', tostring val!
+      assert.is.equal 'any~', tostring sig!
 
   describe 'typed shorthand', ->
     it 'matches by metatype', ->
       str = mk_val 'str'
       num = mk_val 'num'
-      assert.is.equal str, val.str\match { str }
-      assert.is.equal num, val.num\match { num }
+      assert.is.equal str, sig.str\match { str }
+      assert.is.equal num, sig.num\match { num }
       assert.has.error -> const.str\match { str }
       assert.has.error -> const.num\match { num }
       assert.has.error -> evt.str\match { str }
@@ -92,8 +92,8 @@ describe 'val and evt', ->
 
       str = mk_evt 'str'
       num = mk_evt 'num'
-      assert.has.error -> val.str\match { str }
-      assert.has.error -> val.num\match { num }
+      assert.has.error -> sig.str\match { str }
+      assert.has.error -> sig.num\match { num }
       assert.has.error -> const.str\match { str }
       assert.has.error -> const.num\match { num }
       assert.is.equal str, evt.str\match { str }
@@ -101,8 +101,8 @@ describe 'val and evt', ->
 
       str = mk_const 'str'
       num = mk_const 'num'
-      assert.is.equal str, val.str\match { str }
-      assert.is.equal num, val.num\match { num }
+      assert.is.equal str, sig.str\match { str }
+      assert.is.equal num, sig.num\match { num }
       assert.is.equal str, const.str\match { str }
       assert.is.equal num, const.num\match { num }
       assert.has.error -> evt.str\match { str }
@@ -111,21 +111,21 @@ describe 'val and evt', ->
     it 'matches by type', ->
       str = mk_const 'str'
       num = mk_const 'num'
-      assert.is.equal str, val.str\match { str }
-      assert.is.equal num, val.num\match { num }
+      assert.is.equal str, sig.str\match { str }
+      assert.is.equal num, sig.num\match { num }
       assert.is.equal str, const.str\match { str }
       assert.is.equal num, const.num\match { num }
-      assert.has.error -> val.num\match { str }
-      assert.has.error -> val.str\match { num }
+      assert.has.error -> sig.num\match { str }
+      assert.has.error -> sig.str\match { num }
 
       str = mk_val 'str'
       num = mk_val 'num'
-      assert.is.equal str, val.str\match { str }
-      assert.is.equal num, val.num\match { num }
+      assert.is.equal str, sig.str\match { str }
+      assert.is.equal num, sig.num\match { num }
       assert.has.error -> const.num\match { str }
       assert.has.error -> const.str\match { num }
-      assert.has.error -> val.num\match { str }
-      assert.has.error -> val.str\match { num }
+      assert.has.error -> sig.num\match { str }
+      assert.has.error -> sig.str\match { num }
 
       str = mk_evt 'str'
       num = mk_evt 'num'
@@ -139,8 +139,8 @@ describe 'val and evt', ->
     it 'stringifies well', ->
       assert.is.equal 'str!', tostring evt.str
       assert.is.equal 'num!', tostring evt.num
-      assert.is.equal 'str~', tostring val.str
-      assert.is.equal 'num~', tostring val.num
+      assert.is.equal 'str~', tostring sig.str
+      assert.is.equal 'num~', tostring sig.num
       assert.is.equal 'str=', tostring const.str
       assert.is.equal 'num=', tostring const.num
 
@@ -148,7 +148,7 @@ describe 'choice', ->
   str = mk_val 'str'
   num = mk_val 'num'
   bool = mk_val 'bool'
-  choice = val.str / val.num
+  choice = sig.str / sig.num
 
   it 'matches either type', ->
     assert.is.equal str, choice\match { str }
@@ -167,7 +167,7 @@ describe 'choice', ->
     assert.has.error -> same\match { bool, bool }
 
   it 'makes inner types recall', ->
-    same = (val! / evt!)!
+    same = (sig! / evt!)!
     same = same + same
     assert.is.same { str, str }, same\match { str, str }
     assert.is.same { num, num }, same\match { num, num }
@@ -182,7 +182,7 @@ describe 'sequence', ->
   str = mk_val 'str'
   num = mk_val 'num'
   bool = mk_evt 'bool'
-  seq = val.str + val.num + evt.bool
+  seq = sig.str + sig.num + evt.bool
 
   it 'matches all types in order', ->
     assert.is.same { str, num, bool }, seq\match { str, num, bool }
@@ -199,14 +199,14 @@ describe 'sequence', ->
     assert.has.error -> seq\match { str, num, bool, bool }
 
   it 'can handle optional children', ->
-    opt = -val.str + val.num
+    opt = -sig.str + sig.num
     assert.is.same { str, num }, opt\match { str, num }
     assert.is.same { nil, num }, opt\match { num }
     assert.has.error -> opt\match { str, str, num }
     assert.has.error -> opt\match { str, num, num }
 
   it 'can handle repeat children', ->
-    rep = val.str + val.num*2
+    rep = sig.str + sig.num*2
     assert.is.same { str, {num} }, rep\match { str, num }
     assert.is.same { str, {num,num} }, rep\match { str, num, num }
     assert.has.error -> rep\match { str }
@@ -222,7 +222,7 @@ describe 'repeat', ->
   times = (n, arg) -> return for i=1,n do arg
 
   it '*x is [1,x[', ->
-    rep = val.str*3
+    rep = sig.str*3
     assert.has.error -> rep\match (times 0, str)
     assert.is.same (times 1, str), rep\match (times 1, str)
     assert.is.same (times 2, str), rep\match (times 2, str)
@@ -231,7 +231,7 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 3, num)
 
   it '*0 is [1,[', ->
-    rep = val.str*0
+    rep = sig.str*0
     assert.has.error -> rep\match (times 0, str)
     assert.is.same (times 1, str), rep\match (times 1, str)
     assert.is.same (times 2, str), rep\match (times 2, str)
@@ -239,7 +239,7 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 3, num)
 
   it '^x is [0,x[', ->
-    rep = val.str^3
+    rep = sig.str^3
     assert.is.same {}, rep\match {}
     assert.is.same (times 1, str), rep\match (times 1, str)
     assert.is.same (times 2, str), rep\match (times 2, str)
@@ -248,7 +248,7 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 3, num)
 
   it '^0 is [0,[', ->
-    rep = val.str^0
+    rep = sig.str^0
     assert.is.same {}, rep\match {}
     assert.is.same (times 1, str), rep\match (times 1, str)
     assert.is.same (times 2, str), rep\match (times 2, str)
@@ -256,7 +256,7 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 3, num)
 
   it ':rep(min, max) does anything else', ->
-    rep = val.str\rep 2, 2
+    rep = sig.str\rep 2, 2
     assert.has.error -> rep\match {}
     assert.has.error -> rep\match (times 1, str)
     assert.is.same (times 2, str), rep\match (times 2, str)
@@ -264,7 +264,7 @@ describe 'repeat', ->
     assert.has.error -> rep\match (times 2, num)
 
   it 'works with complex inner types', ->
-    rep = (val.num + val.str)\rep 2, 2
+    rep = (sig.num + sig.str)\rep 2, 2
     assert.has.error -> rep\match {}
     assert.has.error -> rep\match {num, str}
     assert.has.error -> rep\match {num, num}
@@ -273,18 +273,18 @@ describe 'repeat', ->
     assert.has.error -> rep\match {num, str, num, str, num, str}
 
   it 'stringifies well', ->
-    assert.is.equal 'str~{1-3}', tostring val.str*3
-    assert.is.equal 'str~{1-*}', tostring val.str*0
-    assert.is.equal 'str~{0-*}', tostring val.str^0
-    assert.is.equal 'str~{2-2}', tostring val.str\rep 2, 2
+    assert.is.equal 'str~{1-3}', tostring sig.str*3
+    assert.is.equal 'str~{1-*}', tostring sig.str*0
+    assert.is.equal 'str~{0-*}', tostring sig.str^0
+    assert.is.equal 'str~{2-2}', tostring sig.str\rep 2, 2
 
 describe 'complex nesting', ->
   bang = mk_evt 'bang'
   str = mk_val 'str'
   num = mk_val 'num'
   num_c = mk_const 'num'
-  pattern = -evt.bang + val.num*4 +
-            (val.str + (val.num / val.str))\named('key', 'val')^0
+  pattern = -evt.bang + sig.num*4 +
+            (sig.str + (sig.num / sig.str))\named('key', 'val')^0
 
   it 'just works', ->
     assert.is.same { bang, { num, num }, {} }, pattern\match { bang, num, num }

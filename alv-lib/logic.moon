@@ -1,4 +1,4 @@
-import PureOp, Constant, T, val, evt from require 'alv.base'
+import PureOp, Constant, T, sig, evt from require 'alv.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -14,7 +14,7 @@ tobool = (val) ->
     else
       true
 
-any = val! / evt!
+any = sig! / evt!
 
 class ReduceOp extends PureOp
   pattern: any\rep 2, nil

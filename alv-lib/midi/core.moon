@@ -1,4 +1,4 @@
-import Constant, IOStream, Op, Input, T, Error, val from require 'alv.base'
+import Constant, IOStream, Op, Input, T, Error, sig from require 'alv.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 
 bit = do
@@ -71,7 +71,7 @@ input = Constant.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      name = val.str\match inputs
+      name = sig.str\match inputs
       super inp: Input.hot name
 
 output = Constant.meta
@@ -82,7 +82,7 @@ output = Constant.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      name = val.str\match inputs
+      name = sig.str\match inputs
       super out: Input.hot name
 
 inout = Constant.meta
@@ -93,7 +93,7 @@ inout = Constant.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      { inp, out } = (val.str + val.str)\match inputs
+      { inp, out } = (sig.str + sig.str)\match inputs
       super
         inp: Input.hot inp
         out: Input.hot out

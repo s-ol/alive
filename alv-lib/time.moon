@@ -1,4 +1,4 @@
-import Constant, EvtStream, IOStream, Error, Op, Input, T, val, evt
+import Constant, EvtStream, IOStream, Error, Op, Input, T, sig, evt
   from require 'alv.base'
 import monotime from require 'system'
 
@@ -38,7 +38,7 @@ frame rate.
       @out or= Clock!
 
     setup: (inputs) =>
-      fps = (-val.num)\match inputs
+      fps = (-sig.num)\match inputs
       super fps: Input.hot fps or Constant.num 60
       @out.frametime = 1 / @inputs.fps!
 
@@ -60,7 +60,7 @@ scale_time = Constant.meta
       super ...
       @out or= T.clock\mk_evt!
 
-    pattern = -evt.clock + val.num + -val.str
+    pattern = -evt.clock + sig.num + -sig.str
     setup: (inputs, scope) =>
       { clock, scale } = pattern\match inputs
       super
@@ -92,7 +92,7 @@ lfo = Constant.meta
       @out or= T.num\mk_sig!
 
     default_wave = Constant.str 'sin'
-    pattern = -evt.clock + val.num + -val.str
+    pattern = -evt.clock + sig.num + -sig.str
     setup: (inputs, scope) =>
       { clock, freq, wave } = pattern\match inputs
       super
@@ -128,7 +128,7 @@ ramp = Constant.meta
       @state or= 0
       @out or= T.num\mk_sig!
 
-    pattern = -evt.clock + val.num + -val.num
+    pattern = -evt.clock + sig.num + -sig.num
     setup: (inputs, scope) =>
       { clock, period, max } = pattern\match inputs
       super
@@ -163,7 +163,7 @@ tick = Constant.meta
       @state or= { phase: 0, count: 0 }
       @out or= T.num\mk_sig @state.count
 
-    pattern = -evt.clock + val.num
+    pattern = -evt.clock + sig.num
     setup: (inputs, scope) =>
       { clock, period } = pattern\match inputs
       super
@@ -195,7 +195,7 @@ every = Constant.meta
       super ...
       @state or= 0
 
-    pattern = -evt.clock + val.num + -val!
+    pattern = -evt.clock + sig.num + -sig!
     setup: (inputs, scope) =>
       { clock, period, evt } = pattern\match inputs
       super
@@ -229,8 +229,8 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
       super ...
       @state or= { i: 1, t: 0 }
 
-    pair = (val! + val.num)\named('value', 'delay')
-    pattern = -evt.clock + val.num + pair*0
+    pair = (sig! + sig.num)\named('value', 'delay')
+    pattern = -evt.clock + sig.num + pair*0
 
     inputify = (step) ->
       {

@@ -79,14 +79,14 @@ and the `Scope` the evaluation happened in. Ops generally shouldn't use the
 scope, but might look up 'magic' dynamic symbols like `\*clock\*`.
 
 #### argument parsing
-Arguments should be parsed using `base.match`. The two exports `base.match.val`
+Arguments should be parsed using `base.match`. The two exports `base.match.sig`
 and `base.match.evt` are used to build complex patterns that can parse and
 validate the Op arguments into complex structures (see the module documentation
 for more information).
 
-    import val, evt from require 'alv.base'
+    import sig, evt from require 'alv.base'
 
-    pattern = evt.bang + val.str + val.num*3 + -evt!
+    pattern = evt.bang + sig.str + sig.num*3 + -evt!
     { trig, str, numbers, optional } = pattern\match inputs
 
 This example matches first an `EvtStream` of type `bang`, then a `SigStream`

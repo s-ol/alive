@@ -1,4 +1,4 @@
-import Constant, Error, Op, Input, T, Array, val, evt from require 'alv.base'
+import Constant, Error, Op, Input, T, Array, sig, evt from require 'alv.base'
 
 apply_range = (range, val) ->
   if range\type! == T.str
@@ -22,7 +22,7 @@ range can be one of:
 - 'deg' [ 0 - 360[
 - (num) [ 0 - num["
 
-pattern = -evt.bang + -(val.num / val.str)
+pattern = -evt.bang + -(sig.num / sig.str)
 
 num = Constant.meta
   meta:

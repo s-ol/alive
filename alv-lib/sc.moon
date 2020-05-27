@@ -1,4 +1,4 @@
-import Op, Constant, Input, val, evt from require 'alv.base'
+import Op, Constant, Input, sig, evt from require 'alv.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
@@ -18,7 +18,7 @@ Plays the synth `synth` on the `udp/socket` `socket` whenever `trig` is live.
 - `trig` is the trigger signal. It should be a stream of bang-events.
 - `param` is the name of a synthdef parameter. It should be a string-value."
   value: class extends Op
-    pattern = -val['udp/socket'] + val.str + evt.bang + (val.str + val.num)\rep 0
+    pattern = -sig['udp/socket'] + sig.str + evt.bang + (sig.str + sig.num)\rep 0
     setup: (inputs, scope) =>
       { socket, synth, trig, ctrls } = pattern\match inputs
 
@@ -55,7 +55,7 @@ Plays the synth `synth` on the `udp/socket` `socket` whenever any `evt` is live.
   streams. Incoming events will cause a note to be played, while value changes
   will not."
   value: class extends Op
-    pattern = -val['udp/socket'] + val.str + (val.str + (val.num / evt.num))\rep 0
+    pattern = -sig['udp/socket'] + sig.str + (sig.str + (sig.num / evt.num))\rep 0
     setup: (inputs, scope) =>
       { socket, synth, trig, ctrls } = pattern\match inputs
 

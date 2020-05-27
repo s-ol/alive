@@ -1,7 +1,7 @@
-import PureOp, Constant, T, val, evt from require 'alv.base'
+import PureOp, Constant, T, sig, evt from require 'alv.base'
 unpack or= table.unpack
 
-num = val.num / evt.num
+num = sig.num / evt.num
 
 class ReduceOp extends PureOp
   pattern: num\rep 2, nil

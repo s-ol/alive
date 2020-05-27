@@ -1,4 +1,4 @@
-import Constant, Op, Input, T, val, evt from require 'alv.base'
+import Constant, Op, Input, T, sig, evt from require 'alv.base'
 
 all_same = (list) ->
   for v in *list[2,]
@@ -19,8 +19,8 @@ switch_ = Constant.meta
   (indexed starting from 0) is reproduced."
 
   value: class extends Op
-    val_or_evt = (val! / evt!)!
-    pattern = (val.num / val.bool) + val_or_evt*0
+    val_or_evt = (sig! / evt!)!
+    pattern = (sig.num / sig.bool) + val_or_evt*0
     setup: (inputs) =>
       { i, values } = pattern\match inputs
 
@@ -55,7 +55,7 @@ edge = Constant.meta
   value: class extends Op
     setup: (inputs) =>
       @out or= T.bang\mk_evt!
-      value = val.bool\match inputs
+      value = sig.bool\match inputs
       super value: Input.hot value
 
     tick: =>

@@ -1,4 +1,4 @@
-import Op, Constant, SigStream, Input, T, val, evt from require 'alv.base'
+import Op, Constant, SigStream, Input, T, sig, evt from require 'alv.base'
 import pack from require 'osc'
 import dns, udp from require 'socket'
 
@@ -11,7 +11,7 @@ connect = Constant.meta
     examples: { '(osc/connect host port)' }
 
   value: class extends Op
-    pattern = val.str + val.num
+    pattern = sig.str + sig.num
     setup: (inputs) =>
       @out or= SigStream T['udp/socket']
       { host, port } = pattern\match inputs
@@ -38,7 +38,7 @@ send = Constant.meta
 - `path` is the OSC path to send the message to. It should be a string-value.
 - `evt` is the argument to send. It should be an event stream."
   value: class extends Op
-    pattern = -val['udp/socket'] + val.str + evt!
+    pattern = -sig['udp/socket'] + sig.str + evt!
     setup: (inputs, scope) =>
       { socket, path, value } = pattern\match inputs
       super
@@ -67,7 +67,7 @@ of the arguments change.
 - `val` is the value to Synchronize. It should be a value stream."
 
   value: class extends Op
-    pattern = -val['udp/socket'] + val.str + val!
+    pattern = -sig['udp/socket'] + sig.str + sig!
     setup: (inputs, scope) =>
       { socket, path, value } = pattern\match inputs
       super

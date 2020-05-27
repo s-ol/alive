@@ -1,4 +1,4 @@
-import Op, Constant, Input, val, evt from require 'alv.base'
+import Op, Constant, Input, sig, evt from require 'alv.base'
 import udp from require 'socket'
 
 local conn
@@ -20,7 +20,7 @@ send = (...) ->
   conn or= udp!
   conn\sendto str, '127.0.0.1', 49161
 
-arg = val.num / val.str
+arg = sig.num / sig.str
 
 play = Constant.meta
   meta:
@@ -69,7 +69,7 @@ effect = Constant.meta
     description: "`effect` should be one of 'DIS', 'CHO', 'REV' or 'FEE'"
 
   value: class extends Op
-    pattern = val.str + arg + arg
+    pattern = sig.str + arg + arg
     setup: (inputs) =>
       { which, a, b } = pattern\match inputs
       super {

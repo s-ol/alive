@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtins
-import Builtin, Op, PureOp, T, FnDef, Input, const, val, evt, Struct, Array
+import Builtin, Op, PureOp, T, FnDef, Input, const, sig, evt, Struct, Array
   from require 'alv.base'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
@@ -329,7 +329,7 @@ print_ = Constant.meta
 
   value: class extends Op
     setup: (inputs) =>
-      value = (val.str / evt.str)\match inputs
+      value = (sig.str / evt.str)\match inputs
       super value: Input.hot value
 
     tick: =>
@@ -361,7 +361,7 @@ Casts !-stream to ~-stream by always reproducing the last received value.
 Since ~-streams cannot be emtpy, specifying an `initial` value is necessary."
   value: class extends Op
     setup: (inputs) =>
-      { event, initial } = (evt! + val!)\match inputs
+      { event, initial } = (evt! + sig!)\match inputs
       assert event\type! == initial\type!,
         Error 'argument', "~ arguments have to be of the same type"
 
@@ -383,7 +383,7 @@ to_evt = Constant.meta
 - if `val` is a !-stream, emits a bang for each incoming event.
 - if `trig` is given, samples `sig` as a new event when `trig` arrives."
   value: class extends Op
-    pattern = (val! + evt.bang) / (val! / evt!)\rep(1,1)
+    pattern = (sig! + evt.bang) / (sig! / evt!)\rep(1,1)
     setup: (inputs) =>
       { sig, trig } = pattern\match inputs
       if trig
@@ -409,7 +409,7 @@ array = Constant.meta
     description: "Produces an array of values."
 
   value: do
-    any = val! / evt!
+    any = sig! / evt!
 
     class extends PureOp
       pattern: any!*0
@@ -428,7 +428,7 @@ struct = Constant.meta
 
   value: do
     key = const.str / const.sym
-    val = val! / evt!
+    val = sig! / evt!
     pair = (key + val)\named 'key', 'val'
 
     class extends PureOp
@@ -447,7 +447,7 @@ get = Constant.meta
     examples: { '(get val key [key2…])' }
 
   value: class extends Op
-    pattern = (val! / evt!) + (const.str / const.sym / const.num)*0
+    pattern = (sig! / evt!) + (const.str / const.sym / const.num)*0
     setup: (inputs) =>
       { val, keys } = pattern\match inputs
       super val: Input.hot val

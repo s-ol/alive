@@ -9,9 +9,9 @@
 -- `Repeat`, `Sequence`, `Choice`, and `Optional`. They can be used directly,
 -- but there is also a number of shorthands for assembling patterns quickly:
 --
--- - `const()`, `val()` and `evt()`: Shorthands for `Type('='), Type('~'), Type('!')`
+-- - `const()`, `sig()` and `evt()`: Shorthands for `Type('='), Type('~'), Type('!')`
 -- - `const.sym`: Shorthand for `Type('=', T.sym)`
--- - `val.num`: Shorthand for `Type('~', T.num)`
+-- - `sig.num`: Shorthand for `Type('~', T.num)`
 -- - `evt.str`: Shorthand for `Type('!', T.str)`
 -- - `pat * 2`: Shorthand for `Repeat(pat, 1, 2)` (1-4 times `pat`)
 -- - `pat * 0`: Shorthand for `Repeat(pat, 1, nil)` (1-* times `pat`)
@@ -29,7 +29,7 @@
 -- Recalling patterns will memorize the first RTNode they match, and
 -- only match further RTNodes of the same type. For example
 --
---     arg = (val.num / val.str)!
+--     arg = (sig.num / sig.str)!
 --     pattern = arg + arg
 --
 -- ...will match either two numbers or two strings, but not one number and one
@@ -39,7 +39,7 @@
 -- sequence of keys that are used instead of integers when constructing the
 -- capture table:
 --
---     pattern = (val.str + val.num):named('key', 'value')
+--     pattern = (sig.str + sig.num):named('key', 'value')
 --     pattern:match(...)
 --     -- returns { {key='a', value=1}, {key='b', value=2}, ...}
 --
@@ -282,12 +282,12 @@ const = setmetatable {}, {
 -- Call or index with a string to obtain a `Type` instance.
 -- Call to obtain a wildcard pattern.
 --
---     val.str, val.num
---     val['vec3'], val(T.vec3)
---     val()
+--     sig.str, sig.num
+--     sig['vec3'], sig(T.vec3)
+--     sig()
 --
--- @table val
-val = setmetatable {}, {
+-- @table sig
+sig = setmetatable {}, {
   __index: (key) =>
     with v = Type '~', T[key]
       @[key] = v
@@ -315,5 +315,5 @@ evt = setmetatable {}, {
 
 {
   :Type, :Repeat, :Sequence, :Choice, :Optional
-  :const, :val, :evt
+  :const, :sig, :evt
 }

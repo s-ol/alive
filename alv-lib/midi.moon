@@ -1,4 +1,4 @@
-import Constant, Op, Input, T, val, evt from require 'alv.base'
+import Constant, Op, Input, T, sig, evt from require 'alv.base'
 import input, output, inout, apply_range from require 'alv-lib.midi.core'
 
 gate = Constant.meta
@@ -8,7 +8,7 @@ gate = Constant.meta
     examples: { '(midi/gate [port] note [chan])' }
 
   value: class extends Op
-    pattern = -evt['midi/port'] + val.num -val.num
+    pattern = -evt['midi/port'] + sig.num -sig.num
     setup: (inputs, scope) =>
       @out or= T.bool\mk_sig!
       { port, note, chan } = pattern\match inputs
@@ -37,7 +37,7 @@ trig = Constant.meta
     examples: { '(midi/trig [port] note [chan])' }
 
   value: class extends Op
-    pattern = -evt['midi/port'] + val.num -val.num
+    pattern = -evt['midi/port'] + sig.num -sig.num
     setup: (inputs, scope) =>
       @out or= T.bang\mk_evt!
       { port, note, chan } = pattern\match inputs
@@ -69,7 +69,7 @@ cc = Constant.meta
 - (num) [ 0 - num["
 
   value: class extends Op
-    pattern = -evt['midi/port'] + val.num + -val.num + -val.num
+    pattern = -evt['midi/port'] + sig.num + -sig.num + -sig.num
     setup: (inputs, scope) =>
       { port, cc, chan, range } = pattern\match inputs
       super
