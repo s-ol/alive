@@ -19,7 +19,7 @@ mspace = (comment + wc)^0 / 1            -- optional whitespace
 
 -- atoms
 digit = R '09'
-first = (R 'az', 'AZ') + S '-_+*/.=~!?%'
+first = (R 'az', 'AZ') + S '-_+*/.=~!?%><'
 sym = first * (first + digit)^0 / Constant\parse 'sym'
 
 strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Constant\parse 'str', '\"'
