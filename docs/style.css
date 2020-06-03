@@ -62,9 +62,10 @@ a {
 
 ul, ol {
   margin: 0.5em 0;
-  padding-left: 0.6em;
+  padding-left: 1em;
 }
 ul, .ldoc ol { list-style: '- '; }
+li > ul, li > ol { margin: 0; }
 
 header {
   position: fixed;

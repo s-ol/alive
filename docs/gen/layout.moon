@@ -67,7 +67,10 @@ link = (ref) ->
   return version.release if ref == '*release*'
 
   mod, sym = ref\match '^(.+)/(.*)$'
-  abs "reference/#{mod or 'index'}.html##{sym or ref}"
+  if mod
+    abs "reference/module/#{mod}.html##{sym or ref}"
+  else
+    abs "reference/builtins.html##{sym or ref}"
 
 -- link to a reference
 r = (text, ref) ->
@@ -88,9 +91,32 @@ autoref = (str) ->
 
 subnav = do
   split_name = (file) ->
-    href, label = file\match '^docs/(.*/([%w%-]+)%.html)'
+    if href = file\match '^docs/(.*/index.html)$'
+      return 'index', href
+
+    href, label = file\match '^docs/(.*/([%d%w-_]+)%.html)$'
+    label = (label\match '^[%d-]+_([%w-]+)$') or label
     label = label\gsub '-', ' '
     label, href
+
+  title = (file) ->
+    if file == 'docs/guide/index.html'
+      return "getting started guide"
+    if file == 'docs/reference/index.html'
+      return "<code>alv</code> language reference"
+    elseif mod = file\match '^docs/reference/module/(.*)%.html$'
+      return "<code>#{mod}</code> module reference"
+    elseif href = file\match '^docs/(.*/index.html)$'
+      error "index page without hardcoded name: #{href}"
+
+    num, label = file\match '/([%d-]+)_([%w%-]+)%.html$'
+    if num
+      num = num\gsub '%f[%d]0', ''
+      num = num\gsub '-', '.'
+      label = label\gsub '-', ' '
+      "#{num}. #{label}"
+    else
+      (file\match '/([%w%-]+)%.html$')
 
   subnav_link = (dir, file) ->
     import span, a, u from dom
@@ -119,7 +145,7 @@ subnav = do
 
     div {
       class: 'subheader'
-      h1 (split_name OUT)
+      h1 (title OUT)
       nav {
         subnav_link 'l', all[c-1]
         subnav_link 'r', all[c+1]
@@ -129,7 +155,7 @@ subnav = do
 aopts = (href, pat) ->
   {
     href: abs href
-    class: if OUT\match "^docs/#{pat}" then 'active'
+    class: if OUT\match pat then 'active'
   }
 
 -- layout and write a doc page
@@ -149,10 +175,10 @@ layout = (opts) ->
       ' documentation'
     }
     div class: 'grow'
-    a 'home', aopts 'index.html', 'index.html$'
-    a 'guide', aopts 'guide/getting-started-guide.html', 'guide'
-    a 'reference', aopts 'reference/index.html', 'reference'
-    a 'internals', aopts 'internals/index.html', 'ldoc'
+    a 'home', aopts 'index.html', '^docs/index.html$'
+    a 'guide', aopts 'guide/index.html', '^docs/guide'
+    a 'reference', aopts 'reference/index.html', '^docs/reference'
+    a 'internals', aopts 'internals/index.html', '^docs/ldoc'
   }
   body = article opts.body
   title = if opts.title

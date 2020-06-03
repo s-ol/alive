@@ -1,38 +1,51 @@
-MODULES=$(wildcard alv-lib/*.moon) alv-lib/midi/launchctl.moon
-MODREFS=$(MODULES:alv-lib/%.moon=docs/reference/%.html)
+MODULES:=$(wildcard alv-lib/*.moon) alv-lib/midi/launchctl.moon
+MODULES:=$(MODULES:alv-lib/%.moon=docs/reference/module/%.html)
+REFERENCE=docs/reference/index.md $(wildcard docs/reference/[01]*.md) docs/reference/builtins.html $(MODULES)
+REFTOC=$(REFERENCE:%.md=%.html)
+
+GUIDE=docs/guide/index.md $(wildcard docs/guide/[01]*.md)
+GUIDETOC=$(GUIDE:%.md=%.html)
+
 CORE=$(wildcard alv/*.moon alv/**/*.moon) $(wildcard alv/*.md)
 DEPS=alv/version.moon $(wildcard docs/gen/*.moon)
+GEN=docs/gen/
 
-.PHONY: docs test release clean reference internals
+.PHONY: docs test release clean guide reference internals
 
-GUIDE  = getting-started-guide installation hello-world syntax
-GUIDE += working-with-the-copilot basic-types importing-operators defining-symbols
-GUIDE += scopes functions evaltime-and-runtime making-sound
-GUIDE := $(addprefix docs/guide/,$(addsuffix .md,$(GUIDE)))
-docs: docs/index.html $(GUIDE:%.md=%.html) reference internals
+docs: docs/index.html guide reference internals
 
 test:
 	busted
 
 # docs parts
-reference: $(MODREFS) docs/reference/index.html
+guide: $(GUIDETOC)
+reference: $(REFTOC)
 internals: docs/internals/index.html
 
-docs/guide/%.html: docs/guide/%.md $(DEPS) $(GUIDE)
+docs/guide/%.html: docs/guide/%.md $(GUIDE) $(DEPS) $(GEN)md
 	@echo "building page $<"
-	docs/gen/md $@ $< $(GUIDE:%.md=%.html)
+	docs/gen/md $@ $< $(GUIDETOC)
 
-docs/%.html: docs/%.md $(DEPS)
-	@echo "building page $<"
-	docs/gen/md $@ $<
-
-docs/reference/%.html: alv-lib/%.moon $(DEPS) 
+docs/reference/module/%.html: alv-lib/%.moon $(DEPS) $(GEN)module
 	@echo "building docs for $<"
 	@mkdir -p `dirname $@`
-	docs/gen/module $@ alv-lib.$(subst /,.,$*) $(subst /,.,$*)
+	docs/gen/module $@ alv-lib.$(subst /,.,$*) $(subst /,.,$*) $(REFTOC)
 
-docs/reference/index.html: alv/builtins.moon $(MODREFS) $(DEPS)
-	docs/gen/index $@ $(MODULES)
+docs/reference/builtins.html: alv/builtins.moon $(DEPS) $(GEN)module
+	@echo "building docs for $<"
+	docs/gen/module $@ alv.builtins "builtins" $(REFTOC)
+
+docs/reference/index.html: docs/reference/index.md alv/builtins.moon $(MODULES) $(DEPS) $(GEN)index
+	@echo "building reference index"
+	docs/gen/index $@ $< $(REFTOC)
+	
+docs/reference/%.html: docs/reference/%.md $(REFERENCE) $(DEPS) $(GEN)md
+	@echo "building page $<"
+	docs/gen/md $@ $< $(REFTOC)
+
+docs/%.html: docs/%.md $(DEPS) $(GEN)md
+	@echo "building page $<"
+	docs/gen/md $@ $<
 
 docs/ldoc.ltp: $(DEPS)
 	docs/gen/ldoc $@
@@ -41,6 +54,6 @@ docs/internals/index.html: alv/config.ld docs/ldoc.ltp $(CORE)
 	ldoc alv
 
 clean:
-	rm -rf docs/reference
+	rm -rf docs/reference/*.html docs/reference/modules
 	rm -rf docs/internals/*/ docs/internals/*.css docs/internals/*.html
-	rm -f docs/index.html $(GUIDE:%.md=%.html) docs/ldoc.*
+	rm -f docs/index.html $(GUIDETOC) docs/ldoc.*

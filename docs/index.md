@@ -20,11 +20,11 @@ it to).
 [on github][:*repo*:], and is licensed under [GPLv3][license].
 
 If you want to learn more or try out `alv` yourself, the
-[getting started][guide] page is a good place to start. On the other hand, if
+[getting started guide][guide] is a good place to start. On the other hand, if
 you are a curious about the motivations and concepts behind `alv`, you can find
 more in-depth information on these topics in the
 ['persistent expressions' article][rationale].
 
-[guide]: guide/getting-started-guide.html
+[guide]: guide/index.html
 [rationale]: https://s-ol.nu/alivecoding
 [license]: https://github.com/s-ol/alive/blob/master/LICENSE

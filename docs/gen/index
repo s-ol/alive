@@ -1,8 +1,8 @@
 #!/usr/bin/env moon
 require 'alv'
-import render, layout, autoref from require 'docs.gen.layout'
+import render, layout, autoref, subnav from require 'docs.gen.layout'
 import section, h1, h2, p, ul, li, a, code from require 'docs.gen.dom'
-import opairs from require 'alv.util'
+import compile from require 'discount'
 
 export OUT
 
@@ -16,34 +16,15 @@ spit = (file, str) ->
   file\write str
   file\close!
 
-{ OUT } = arg
+{ OUT, file } = arg
 
+md = slurp file
+for file in *arg[3,]
+  if mod = file\match '/module/(.*)%.html'
+    name = mod\gsub '/', '.'
+    md ..= "   - [`#{name}`](module/#{mod}.html)\n"
+
+content = compile (autoref md), 'githubtags', 'fencedcode'
+sub = subnav [a for a in *arg[3,]]
 spit OUT, layout
-  title: 'reference'
-  body: {
-    h1 (code 'alive'), " language reference"
-    p "This section documents all builtins and modules that are currently
-      available in the alive programming language."
-    p autoref "If you are new to alive, the [getting started guide][:../guide/:] is
-      the recommended place to start. If you are looking for
-      information on adding your own module or contributing to alive, check
-      out the [developer documentation][:../internals/index/:]."
-    section {
-      id: 'modules'
-      h2 a "module index", href: '#modules'
-      p autoref "These modules can be imported using [require][], " ..
-        "[import][] and [import*][]."
-      ul for file in *arg[2,]
-        path = file\match '^alv%-lib/(.*)%.moon$'
-        name = path\gsub '/', '.'
-        li a (code name), href: "#{path}.html"
-    }
-    section {
-      id: 'builtins'
-      h2 a "builtins", href: '#builtins'
-      p "These definitions are automatically loaded into the global Scope of
-        every alive session."
-      ul for key, val in opairs (require 'alv.builtins').values
-        li render key, val.result
-    }
-  }
+  body: table.concat { sub, content.body }, '\n\n'
