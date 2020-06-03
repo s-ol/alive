@@ -16,6 +16,7 @@ apply_range = (range, val) ->
 
 range_doc = "
 range can be one of:
+
 - 'uni' [ 0 - 1[ (default)
 - 'bip' [-1 - 1[
 - 'rad' [ 0 - tau[

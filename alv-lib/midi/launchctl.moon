@@ -14,6 +14,7 @@ returns the value for the i-th step steps (buttons starting from start).
 steps defaults to 8.
 
 range can be one of:
+
 - 'raw' [ 0 - 128[
 - 'uni' [ 0 - 1[ (default)
 - 'bip' [-1 - 1[
