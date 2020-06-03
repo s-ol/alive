@@ -1,9 +1,9 @@
-MODULES:=$(wildcard alv-lib/*.moon) alv-lib/midi/launchctl.moon
+MODULES:=$(sort $(wildcard alv-lib/*.moon)) alv-lib/midi/launchctl.moon
 MODULES:=$(MODULES:alv-lib/%.moon=docs/reference/module/%.html)
-REFERENCE=docs/reference/index.md $(wildcard docs/reference/[01]*.md) docs/reference/builtins.html $(MODULES)
+REFERENCE=docs/reference/index.md $(sort $(wildcard docs/reference/[01]*.md)) docs/reference/builtins.html $(MODULES)
 REFTOC=$(REFERENCE:%.md=%.html)
 
-GUIDE=docs/guide/index.md $(wildcard docs/guide/[01]*.md)
+GUIDE=docs/guide/index.md $(sort $(wildcard docs/guide/[01]*.md))
 GUIDETOC=$(GUIDE:%.md=%.html)
 
 CORE=$(wildcard alv/*.moon alv/**/*.moon) $(wildcard alv/*.md)
