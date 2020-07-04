@@ -28,8 +28,7 @@ class WXLogger extends Logger
 
 class WXCopilot extends Copilot
   new: (arg) =>
-    @args = parse_args arg
-    super @args[1]
+    super parse_args arg
 
     @app = wx.wxGetApp!
     @app.VendorName = 'alive'

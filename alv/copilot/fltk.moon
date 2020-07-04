@@ -24,8 +24,6 @@ class FLTKLogger extends Logger
 
 class FLTKCopilot extends Copilot
   new: (arg) =>
-    @args = parse_args arg
-
     @window = with fl.Window { 400, 240, "alv copilot", xclass: 'alv' }
       \size_range 400, 220, nil, nil, 20, 20
 
@@ -67,7 +65,7 @@ class FLTKCopilot extends Copilot
     tile\end_group!
     @window\end_group!
 
-    super @args[1]
+    super parse_args arg
 
   about: =>
     fl.alert "alive #{version.tag} fltkCopilot.

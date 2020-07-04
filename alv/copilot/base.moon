@@ -34,11 +34,11 @@ class Copilot
   --- create a new Copilot.
   -- @classmethod
   -- @tparam string file name/path of the alive file to watch and execute
-  new: (file) =>
+  new: (@args) =>
     @T = 0
     @last_modification = 0
     @last_modules = {}
-    @open file if file
+    @open @args[1] if @args[1]
 
 --- members
 -- @section members
