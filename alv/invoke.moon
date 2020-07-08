@@ -75,7 +75,7 @@ class op_invoke extends Builtin
       for input in @op\all_inputs!
         input\finish_setup!
 
-    RTNode :children, result: @op.out, op: @op
+    super RTNode :children, result: @op.out, op: @op
 
   --- The `Op` instance.
   --
@@ -123,7 +123,7 @@ class fn_invoke extends Builtin
     node = Error.wrap frame, clone\eval, fn_scope
 
     table.insert children, node
-    RTNode :children, result: node.result
+    super RTNode :children, result: node.result
 
 {
   :op_invoke, :fn_invoke

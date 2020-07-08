@@ -29,10 +29,18 @@ class Builtin
   -- - perform scope effects
   -- - wrap all child-results
   --
+  -- @function eval
   -- @tparam Scope scope the active scope
   -- @tparam {AST,...} tail the arguments to this expression
   -- @treturn RTNode the result of this evaluation
-  eval: (scope, tail) => error "not implemented"
+
+  --- store the evaluation result for access by editor and return it.
+  --
+  -- This should always be called via `super` as the last statement in all
+  -- overriden `eval` methods.
+  --
+  -- @tparam RTNode node the evaluation result
+  eval: (@node) => @node
 
   --- free resources
   destroy: =>
@@ -53,6 +61,9 @@ class Builtin
 
   --- the identity of `cell`.
   -- @tfield Tag tag
+
+  --- the last result of `eval`.
+  -- @tfield RTNode node
 
 --- static functions
 -- @section static

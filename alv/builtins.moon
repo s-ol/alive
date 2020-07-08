@@ -37,7 +37,7 @@ doc = Constant.meta
       assert #tail == 1, "'doc' takes exactly one parameter"
 
       node = L\push tail[1]\eval, scope
-      with RTNode children: { def }
+      super with RTNode children: { def }
         meta = node.result.meta
         L\print "(doc #{tail[1]}):\n#{format_meta meta}\n"
 
@@ -64,7 +64,7 @@ Define the symbols `sym1`, `sym2`, … to resolve to the values of `val-expr1`,
           with val_expr\eval scope
             scope\set name, \make_ref!
 
-      RTNode :children
+      super RTNode :children
 
 use = Constant.meta
   meta:
@@ -83,7 +83,7 @@ All arguments have to be evaltime constant."
         value = node\const!
         scope\use value\unwrap 'scope', "'use' only works on scopes"
 
-      RTNode!
+      super RTNode!
 
 require_ = Constant.meta
   meta:
@@ -101,7 +101,7 @@ require_ = Constant.meta
       name = node\const!\unwrap 'str'
 
       L\trace @, "loading module #{name}"
-      COPILOT\require name
+      super COPILOT\require name
 
 import_ = Constant.meta
   meta:
@@ -121,7 +121,7 @@ current scope."
         name = child\unwrap T.sym
         with COPILOT\require name
           scope\set name, \make_ref!
-      RTNode :children
+      super RTNode :children
 
 import_star = Constant.meta
   meta:
@@ -139,7 +139,7 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
       children = for i, child in ipairs tail
         with COPILOT\require child\unwrap T.sym
           scope\use .result\unwrap T.scope
-      RTNode :children
+      super RTNode :children
 
 export_ = Constant.meta
   meta:
@@ -153,7 +153,7 @@ Evaluate `expr1`, `expr2`, … in a new Scope and return scope."
     eval: (scope, tail) =>
       new_scope = Scope scope
       children = [expr\eval new_scope for expr in *tail]
-      RTNode :children, result: Constant.wrap new_scope
+      super RTNode :children, result: Constant.wrap new_scope
 
 export_star = Constant.meta
   meta:
@@ -180,7 +180,7 @@ Copies the containing scope if no symbols are given."
           with node = scope\get name
             new_scope\set name, node
 
-      RTNode :children, result: Constant.wrap new_scope
+      super RTNode :children, result: Constant.wrap new_scope
 
 fn = Constant.meta
   meta:
@@ -202,7 +202,7 @@ function is invoked."
         assert param.type == T.sym, "function parameter declaration has to be a symbol"
         param
 
-      RTNode result: with Constant.wrap FnDef param_symbols, body, scope
+      super RTNode result: with Constant.wrap FnDef param_symbols, body, scope
         .meta = {
           summary: "(user defined function)"
           examples: { "(??? #{table.concat [p! for p in *param_symbols], ' '})" }
@@ -237,7 +237,7 @@ function is invoked."
           examples: { "(#{name} #{table.concat [p! for p in *param_symbols], ' '})" }
 
       scope\set name, RTNode :result
-      RTNode!
+      super RTNode!
 
 do_expr = Constant.meta
   meta:
@@ -252,7 +252,7 @@ Evaluate `expr1`, `expr2`, … and return the value of the last expression."
       scope = Scope scope
       children = [expr\eval scope for expr in *tail]
       last = children[#children]
-      RTNode :children, result: last and last.result
+      super RTNode :children, result: last and last.result
 
 if_ = Constant.meta
   meta:
@@ -274,10 +274,12 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
       xif = L\push xif\eval, scope
       xif = xif\const!\unwrap!
 
-      if xif
+      super if xif
         xthen\eval scope
       elseif xelse
         xelse\eval scope
+      else
+        RTNode!
 
 trace_ = Constant.meta
   meta:
@@ -290,7 +292,7 @@ trace_ = Constant.meta
       L\trace "evaling #{@}"
       assert #tail == 1, "'trace!' takes exactly one parameter"
 
-      with node = L\push tail[1]\eval, scope
+      super with node = L\push tail[1]\eval, scope
         L\print "trace! #{tail[1]\stringify 2}: #{node.result}"
 
 trace = Constant.meta
@@ -319,7 +321,7 @@ trace = Constant.meta
         Constant.str tail[1]\stringify 2
         tail[1]
       }
-      inner\eval scope
+      super inner\eval scope
 
 print_ = Constant.meta
   meta:
@@ -510,7 +512,7 @@ with a different set of arguments, e.g. to sum the first `5` integers:
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, inner
-      inner\eval def_scope
+      super inner\eval def_scope
 
 recur = Constant.meta
   meta:
@@ -545,7 +547,7 @@ bound to `nv2`…
       node = clone\eval fn_scope
 
       table.insert children, node
-      RTNode :children, result: node.result
+      super RTNode :children, result: node.result
 
 
 Scope.from_table {
