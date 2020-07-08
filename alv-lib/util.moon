@@ -35,16 +35,13 @@ switch_ = Constant.meta
 
     tick: =>
       { :i, :values } = @inputs
-      active = switch i!
-        when true
-          values[1]
-        when false
-          values[2]
-        else
-          i = 1 + (math.floor i!) % #values
-          values[i]
+      ii = switch i!
+        when true then 1
+        when false then 2
+        else 1 + (math.floor i!) % #values
 
-      @out\set active and active!
+      @state = ii - 1
+      @out\set values[ii] and values[ii]!
 
 edge = Constant.meta
   meta:
