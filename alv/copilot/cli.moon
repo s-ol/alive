@@ -15,7 +15,7 @@ class ColorLogger extends Logger
 
 class CLICopilot extends Copilot
   new: (arg) =>
-    super parse_args arg, { nocolor: false }
+    super parse_args arg, { nocolor: false, 'udp-server': false }
     assert @args[1], "no filename given"
 
   run: =>

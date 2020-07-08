@@ -9,7 +9,7 @@ import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
 import Constant from require 'alv.result'
 
-parse_args = (args, out={}) ->
+parse_args = (args, out={ 'udp-server': false }) ->
   local key
   for a in *args
     if key
@@ -39,6 +39,10 @@ class Copilot
     @last_modification = 0
     @last_modules = {}
     @open @args[1] if @args[1]
+
+    if @args['udp-server']
+      import UDPServer from require 'alv.copilot.udp'
+      @adapter = UDPServer @
 
 --- members
 -- @section members
@@ -94,6 +98,8 @@ class Copilot
 
   --- poll for changes and tick.
   tick: =>
+    @adapter\tick! if @adapter
+
     assert not COPILOT, "another Copilot is already running!"
     return unless @last_modules.__root
 
