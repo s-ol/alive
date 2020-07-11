@@ -26,12 +26,12 @@ clock = Constant.meta
     name: 'clock'
     summary: "Create a clock source."
     examples: { '(clock)', '(clock fps)' }
-    description: "Creates a new clock event stream.
+    description: "Creates a new `time/clock!` stream.
 
 The clock event stream is an IO that triggers other operators at a fixed
 frame rate.
 
-- `fps` has to be an eval-time constant and defaults to `60` if omitted."
+- `fps` has to be a num= constant and defaults to `60` if omitted."
   value: class extends Op
     new: (...) =>
       super ...
@@ -52,9 +52,9 @@ scale_time = Constant.meta
     examples: { '(scale-time [clock] scale)' }
     description: "Creates a new clock event stream scaled by `scale`.
 
-- `clock` should be a `time/clock` event stream. This argument can be omitted
+- `clock` should be a `time/clock!` stream. This argument can be omitted
   and the stream be passed as a dynamic definition in `*clock*` instead.
-- `scale` should be a num-value."
+- `scale` should be a num~ stream."
   value: class extends Op
     new: (...) =>
       super ...
@@ -78,9 +78,9 @@ lfo = Constant.meta
     examples: { '(lfo [clock] freq [wave])' }
     description: "Oscillates betwen `0` and `1` at the frequency `freq`.
 
-- `clock` should be a `time/clock` event stream. This argument can be omitted
+- `clock` should be a `time/clock!` stream. This argument can be omitted
   and the stream be passed as a dynamic definition in `*clock*` instead.
-- `freq` should be a num-value.
+- `freq` should be a num~ stream.
 - `wave` selects the wave shape from one of the following:
   - `'sin'` (the default)
   - `'saw'`
@@ -118,10 +118,10 @@ ramp = Constant.meta
     examples: { '(ramp [clock] period [max])' }
     description: "Ramps from `0` to `max` once every `period` seconds.
 
-- `clock` should be a `time/clock` event stream. This argument can be omitted
+- `clock` should be a `time/clock!` stream. This argument can be omitted
   and the stream be passed as a dynamic definition in `*clock*` instead.
-- `period` should be a num-value.
-- `max` should be a num-value and defaults to `period` if omitted."
+- `period` should be a num~ stream.
+- `max` should be a num~ stream and defaults to `period` if omitted."
   value: class extends Op
     new: (...) =>
       super ...
@@ -153,10 +153,10 @@ tick = Constant.meta
     examples: { '(tick [clock] period)' }
     description: "Counts upwards by one every `period` seconds.
 
-- `clock` should be a `time/clock` event stream. This argument can be omitted
+- `clock` should be a `time/clock!` stream. This argument can be omitted
   and the stream be passed as a dynamic definition in `*clock*` instead.
-- `period` should be a num-value.
-- returns a `num` value that increases by 1 every `period`."
+- `period` should be a num~ stream.
+- returns a `num~` stream that increases by 1 every `period`."
   value: class extends Op
     new: (...) =>
       super ...
@@ -185,9 +185,9 @@ every = Constant.meta
     examples: { '(every [clock] period [evt])' }
     description: "Emits `evt` as an event once every `period` seconds.
 
-- `clock` should be a `time/clock` event stream. This argument can be omitted
+- `clock` should be a `time/clock!` stream. This argument can be omitted
   and the stream be passed as a dynamic definition in `*clock*` instead.
-- `period` should be a num-value.
+- `period` should be a num~ stream.
 - `evt` can be a value of any type. It defaults to `bang`.
 - the return type will be an event stream with the same type as `evt`."
   value: class extends Op
@@ -211,18 +211,18 @@ every = Constant.meta
         @state -= 1
         @out\set @inputs.evt!
 
-sequence = Constant.meta
+val_seq = Constant.meta
   meta:
-    name: 'sequence'
+    name: 'val-seq'
     summary: "Emit a sequence of values as events over time."
-    examples: { '(sequence [clock] delay0 evt1 delay1 evt2 delay2…)' }
+    examples: { '(val-seq [clock] delay0 evt1 delay1 evt2 delay2…)' }
     description: "
 Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in between.
 
-- `clock` should be a `time/clock` event stream. This argument can be omitted
+- `clock` should be a `time/clock!` stream. This argument can be omitted
   and the stream be passed as a dynamic definition in `*clock*` instead.
-- `delay0`, `delay1`, … must be num-values.
-- `evt1`, `evt2`, … must be values of the same type.
+- `delay0`, `delay1`, … must be num~ streams.
+- `evt1`, `evt2`, … must be signal streams of the same type.
 - the return type will be an event stream with the same type as the `evt`s."
   value: class extends Op
     new: (...) =>
@@ -263,6 +263,49 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
       if current.value and (change or current.value\dirty!)
         @out\set current.value!
 
+bang_seq = Constant.meta
+  meta:
+    name: 'bang-seq'
+    summary: "Generate rhythms based on a sequence of delays"
+    examples: { '(bang-seq [clock] delay0 delay1…)' }
+    description: "
+Emits `bang!`s with delays `delay0`, `delay1`, … in between.
+
+- `clock` should be a `time/clock!` stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `delay0`, `delay1`, … must be num~ streams."
+
+  value: class extends Op
+    new: (...) =>
+      super ...
+      @out = T.bang\mk_evt!
+      @state or= { i: 1, t: 0 }
+
+    pattern = -evt.clock + sig.num*0
+    setup: (inputs, scope) =>
+      { clock, steps } = pattern\match inputs
+
+      super
+        clock: Input.hot clock or scope\get '*clock*'
+        steps: [Input.cold step for step in *steps]
+
+    tick: =>
+      if tick = @inputs.clock!
+        @state.t += tick.dt
+
+      bang = false
+      while true
+        current = @inputs.steps[@state.i]!
+        if @state.t >= current
+          @state.t -= current
+          @state.i = 1 + (@state.i % #@inputs.steps)
+          bang = true
+        else
+          break
+
+      if bang
+        @out\set true
+
 {
   :clock
   'scale-time': scale_time
@@ -270,7 +313,9 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
   :ramp
   :tick
   :every
-  :sequence
+  'val-seq': val_seq
+  'bang-seq': bang_seq
+
   '*clock*': with Clock 1/60
     .meta =
       name: '*clock*'

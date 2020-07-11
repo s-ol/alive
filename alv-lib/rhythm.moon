@@ -52,15 +52,15 @@ When fed a num~ or num! stream, outputs a bang if the corresponding step is on."
 
       @out or= T.bang\mk_evt!
 
+      if trig\type! == T.bang
+        @state or= 1
+      else
+        @state = nil
+
       super
         trig: Input.hot trig
         n: Input.cold n
         k: Input.cold k
-
-      if @inputs.trig\type! == T.bang
-        @state or= 1
-      else
-        @state = nil
 
     tick: =>
       { :trig, :n, :k } = @unwrap_all!
