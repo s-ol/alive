@@ -35,16 +35,12 @@ class UDPServer
     switch msg.type
       when 'tick'
         res.tick = @copilot.T
-      -- when 'sub'
-      --   @subs[client] = true
-      --   res.ok = true
-      -- when 'unsub'
-      --   @subs[client] = nil
-      --   res.ok = true
       when 'modules'
         res.modules = [name for name in pairs @copilot.last_modules]
       when 'info'
-        mod = @copilot.last_modules[msg.module or '__root']
+        res.tag = msg.tag
+        res.module = msg.module or '__root'
+        mod = @copilot.last_modules[res.module]
         builtin = mod.registry\last msg.tag
         if builtin and builtin.__class.__name ~= 'DummyReg'
           res.head_meta = builtin.head.meta
@@ -56,12 +52,13 @@ class UDPServer
         else
           res.error = 'not_registered'
       when 'state'
-        mod = @copilot.last_modules[msg.module or '__root']
+        res.tag = msg.tag
+        res.module = msg.module or '__root'
+        mod = @copilot.last_modules[res.module]
         builtin = mod.registry\last msg.tag
         if builtin and builtin.__class.__name ~= 'DummyReg'
           res.value = encode_res builtin.node.result, @copilot
-          if op = builtin.op
-            res.state = op.state
+          res.state = if builtin.op then builtin.op.state
         else
           res.error = 'not_registered'
       else
