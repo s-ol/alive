@@ -272,7 +272,10 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
       { xif, xthen, xelse } = tail
 
       xif = L\push xif\eval, scope
-      xif = xif\const!\unwrap!
+      if not xif\is_const!
+        msg = "'if'-expression needs to be constant, did you mean 'switch'?"
+        error Error 'argument', msg
+      xif = xif\result!\unwrap!
 
       super if xif
         xthen\eval scope
@@ -280,6 +283,55 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
         xelse\eval scope
       else
         RTNode!
+
+switch_ = Constant.meta
+  meta:
+    name: 'switch'
+    summary: "Switch between multiple inputs."
+    examples: { '(switch i v1 v2…)' }
+    description: "
+- When fed a bang! trigger, steps forward to the next step on each trigger.
+- When fed a num~ or num! stream, reproduces the matching argument (indexed
+  starting from 0).
+- When fed a bool~ or bool! stream, outputs the first or second argument for
+  `true` and `false` respectively. This version takes at most two argumetns."
+
+  value: class extends Op
+    val_or_evt = (sig! / evt!)!
+    pattern = (sig.num / sig.bool / evt.num / evt.bool / evt.bang) + val_or_evt*0
+    setup: (inputs) =>
+      { i, values } = pattern\match inputs
+
+      @out = if values[1].result.metatype ~= '!'
+        values[1]\type!\mk_sig!
+      else
+        values[1]\type!\mk_evt!
+
+      if i\type! == T.bang
+        @state or= 1
+      else
+        @state = nil
+
+      super
+        i: Input.hot i
+        values: [Input.hot v for v in *values]
+
+    tick: =>
+      { :i, :values } = @inputs
+
+      ii = if i\type! == T.bang
+        if i\dirty!
+          @state += 1
+          while @state >= #values
+            @state -= #values
+        @state
+      else
+        switch i!
+          when true then 0
+          when false then 1
+          else (math.floor i!) % #values
+
+      @out\set if v = values[ii + 1] then v!
 
 trace_ = Constant.meta
   meta:
@@ -561,6 +613,11 @@ Scope.from_table {
   export: export_
   'export*': export_star
 
+  :fn, :defn
+  'do': do_expr
+  'if': if_
+  'switch': switch_
+
   '=': to_const
   '~': to_sig
   '!': to_evt
@@ -586,8 +643,4 @@ Scope.from_table {
       name: 'bang'
       summary: "A `bang` value-constant."
     value: Constant T.bang, true
-
-  :fn, :defn
-  'do': do_expr
-  if: if_
 }
