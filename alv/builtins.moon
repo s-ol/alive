@@ -331,6 +331,7 @@ switch_ = Constant.meta
           when false then 1
           else (math.floor i!) % #values
 
+      @vis.step = ii
       @out\set if v = values[ii + 1] then v!
 
 trace_ = Constant.meta

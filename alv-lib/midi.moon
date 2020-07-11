@@ -80,6 +80,7 @@ cc = Constant.meta
         range: Input.cold range or Constant.str 'uni'
 
       @out or= T.num\mk_sig apply_range @inputs.range, 0
+      @vis.bar = 0
 
     tick: =>
       { :port, :cc, :chan, :range } = @inputs
@@ -88,6 +89,7 @@ cc = Constant.meta
            (chan! == -1 or msg.chan == chan!) and
            msg.a == cc!
           @out\set apply_range range, msg.b
+          @vis.bar = msg.b / 127
 
 {
   :input

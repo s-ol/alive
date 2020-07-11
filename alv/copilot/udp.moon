@@ -2,7 +2,7 @@ import udp from require 'socket'
 import encode, decode from require 'dkjson'
 import fn_invoke, op_invoke from require 'alv.invoke'
 
-encode_res = (copilot) =>
+encode_res = =>
   return unless @
 
   {
@@ -45,20 +45,11 @@ class UDPServer
         if builtin and builtin.__class.__name ~= 'DummyReg'
           res.head_meta = builtin.head.meta
           res.result = encode_res builtin.node.result
+          res.vis = if builtin.op then builtin.op.vis
           res.kind = switch builtin.__class
             when op_invoke then 'op'
             when fn_invoke then 'fn'
             else 'builtin'
-        else
-          res.error = 'not_registered'
-      when 'state'
-        res.tag = msg.tag
-        res.module = msg.module or '__root'
-        mod = @copilot.last_modules[res.module]
-        builtin = mod.registry\last msg.tag
-        if builtin and builtin.__class.__name ~= 'DummyReg'
-          res.value = encode_res builtin.node.result, @copilot
-          res.state = if builtin.op then builtin.op.state
         else
           res.error = 'not_registered'
       else

@@ -22,7 +22,8 @@ class Op
   fork: =>
     out = if @out then @out\fork!
     state = if @state then deep_copy @state
-    @@ out, state
+    vis = if @vis then deep_copy @vis
+    @@ out, state, vis
 
   --- internal state of this Op.
   --
@@ -30,6 +31,16 @@ class Op
   -- no metatables, multiple references/loops, userdata etc.
   --
   -- @tfield table state
+
+  --- visualisation data of this Op.
+  --
+  -- This may be any simple Lua value, including Lua tables, as long as it has
+  -- no metatables, multiple references/loops, userdata etc.
+  --
+  -- This value is exposed to alv editors in order to render realtime
+  -- visualisations overlaid onto the program text.
+  --
+  -- @tfield table vis
 
   --- `Result` instance representing this Op's computed output value.
   --
@@ -107,7 +118,8 @@ class Op
   -- @classmethod
   -- @tparam ?Result out `out`
   -- @tparam ?table state `state`
-  new: (@out, @state) =>
+  -- @tparam ?table vis `vis`
+  new: (@out, @state, @vis={}) =>
 
   do_setup = (old, cur) ->
     for k, cur_val in pairs cur
