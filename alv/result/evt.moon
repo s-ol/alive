@@ -24,7 +24,6 @@ class EvtStream extends Result
   -- @treturn ?any `value`
   unwrap: (type, msg) =>
     assert type == @type, msg or "#{@} is not a #{type}" if type
-    @value
     if @dirty! then @value
 
   --- create a mutable copy of this stream.
