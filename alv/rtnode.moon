@@ -129,7 +129,7 @@ class RTNode
 
     if @result
       if next @side_inputs
-        assert @result.metatype != '=', "Const result has side_inputs"
+        assert @result.metatype != '=', "Const result #{@result} has side_inputs"
       elseif @result.metatype == '~'
         @result = @result.type\mk_const @result\unwrap!
 

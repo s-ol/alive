@@ -251,8 +251,11 @@ Evaluate `expr1`, `expr2`, … and return the value of the last expression."
     eval: (scope, tail) =>
       scope = Scope scope
       children = [expr\eval scope for expr in *tail]
-      last = children[#children]
-      super RTNode :children, result: last and last.result
+      result = if last = children[#children] then last.result
+      if result and result.metatype == '='
+        result = result.type\mk_sig result\unwrap!
+
+      super RTNode :children, result
 
 if_ = Constant.meta
   meta:
