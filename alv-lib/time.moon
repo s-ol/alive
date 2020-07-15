@@ -110,7 +110,12 @@ lfo = Constant.meta
         when 'saw' then @state % 1
         when 'tri' then math.abs (2*@state % 2) - 1
         else error Error 'argument', "unknown wave type '#{wave}'"
-      @vis.bar = @out!
+
+    vis: =>
+      {
+        type: 'bar'
+        bar: @.out!
+      }
 
 ramp = Constant.meta
   meta:
@@ -145,8 +150,13 @@ ramp = Constant.meta
       while @state >= 1
         @state -= 1
 
-      @vis.bar = @state
       @out\set @state * max
+
+    vis: =>
+      {
+        type: 'bar'
+        bar: @state
+      }
 
 tick = Constant.meta
   meta:
@@ -164,7 +174,6 @@ tick = Constant.meta
       super ...
       @state or= { phase: 0, count: 0 }
       @out or= T.num\mk_sig @state.count
-      @vis.onchange = true
 
     pattern = -evt.clock + sig.num
     setup: (inputs, scope) =>
@@ -180,6 +189,8 @@ tick = Constant.meta
         @state.phase -= 1
         @state.count += 1
         @out\set @state.count
+
+    vis: => type: 'event'
 
 every = Constant.meta
   meta:
@@ -231,7 +242,6 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
     new: (...) =>
       super ...
       @state or= { i: 1, t: 0 }
-      @vis.step = @state.i
 
     pair = (sig! + sig.num)\named('value', 'delay')
     pattern = -evt.clock + sig.num + pair*0
@@ -260,13 +270,14 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
         if @state.t >= current.delay!
           @state.t -= current.delay!
           @state.i = 1 + (@state.i % #@inputs.steps)
-          @vis.step = @state.i
           change = true
         else
           break
 
       if current.value and (change or current.value\dirty!)
         @out\set current.value!
+
+    vis: => step: @state.i
 
 bang_seq = Constant.meta
   meta:
@@ -285,7 +296,6 @@ Emits `bang!`s with delays `delay0`, `delay1`, … in between.
       super ...
       @out = T.bang\mk_evt!
       @state or= { i: 1, t: 0 }
-      @vis.step = @state.i
 
     pattern = -evt.clock + sig.num*0
     setup: (inputs, scope) =>
@@ -305,13 +315,14 @@ Emits `bang!`s with delays `delay0`, `delay1`, … in between.
         if @state.t >= current
           @state.t -= current
           @state.i = 1 + (@state.i % #@inputs.steps)
-          @vis.step = @state.i
           bang = true
         else
           break
 
       if bang
-        @out\set true
+        @out
+
+    vis: => step: @state.i\set true
 
 {
   :clock

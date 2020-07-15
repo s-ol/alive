@@ -45,7 +45,7 @@ class UDPServer
         if builtin and builtin.__class.__name ~= 'DummyReg'
           res.head_meta = builtin.head.meta
           res.result = encode_res builtin.node.result
-          res.vis = if builtin.op then builtin.op.vis
+          res.vis = if builtin.op then builtin.op\vis!
           res.kind = switch builtin.__class
             when op_invoke then 'op'
             when fn_invoke then 'fn'

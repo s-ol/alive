@@ -3,6 +3,7 @@
 --
 -- @classmod Op
 import deep_copy, deep_iter, deep_map from require 'alv.util'
+import T from require 'alv.type'
 
 class Op
 --- members
@@ -22,8 +23,7 @@ class Op
   fork: =>
     out = if @out then @out\fork!
     state = if @state then deep_copy @state
-    vis = if @vis then deep_copy @vis
-    @@ out, state, vis
+    @@ out, state
 
   --- internal state of this Op.
   --
@@ -31,16 +31,6 @@ class Op
   -- no metatables, multiple references/loops, userdata etc.
   --
   -- @tfield table state
-
-  --- visualisation data of this Op.
-  --
-  -- This may be any simple Lua value, including Lua tables, as long as it has
-  -- no metatables, multiple references/loops, userdata etc.
-  --
-  -- This value is exposed to alv editors in order to render realtime
-  -- visualisations overlaid onto the program text.
-  --
-  -- @tfield table vis
 
   --- `Result` instance representing this Op's computed output value.
   --
@@ -105,6 +95,23 @@ class Op
   --- called when the Op is destroyed (optional).
   destroy: =>
 
+  --- collect visualisation data (optional).
+  --
+  -- This may return any simple Lua value, including Lua tables, as long as it
+  -- has no metatables, multiple references/loops, userdata etc.
+  --
+  -- This value is exposed to alv editors in order to render realtime
+  -- visualisations overlaid onto the program text.
+  --
+  -- @treturn table vis
+  vis: =>
+    if @out and @out.metatype == '!'
+      { type: 'event' }
+    elseif @out and @out.type == T.bool
+      { type: 'bool' }
+    else
+      {}
+
 --- implementation utilities.
 --
 -- super-methods and utilities for use by implementations.
@@ -118,8 +125,7 @@ class Op
   -- @classmethod
   -- @tparam ?Result out `out`
   -- @tparam ?table state `state`
-  -- @tparam ?table vis `vis`
-  new: (@out, @state, @vis={}) =>
+  new: (@out, @state) =>
 
   do_setup = (old, cur) ->
     for k, cur_val in pairs cur

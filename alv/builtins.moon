@@ -309,8 +309,6 @@ switch_ = Constant.meta
 
       if i\type! == T.bang
         @state or= 1
-      else
-        @state = nil
 
       super
         i: Input.hot i
@@ -319,20 +317,22 @@ switch_ = Constant.meta
     tick: =>
       { :i, :values } = @inputs
 
-      ii = if i\type! == T.bang
+      if i\type! == T.bang
         if i\dirty!
           @state += 1
           while @state >= #values
             @state -= #values
         @state
       else
-        switch i!
+        @state = switch i!
           when true then 0
           when false then 1
           else (math.floor i!) % #values
+        @state
 
-      @vis.step = ii
-      @out\set if v = values[ii + 1] then v!
+      @out\set if v = values[@state + 1] then v!
+
+    vis: => step: @state
 
 trace_ = Constant.meta
   meta:
