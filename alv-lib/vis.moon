@@ -1,4 +1,4 @@
-import Constant, Op, T, Input, sig, evt from require 'alv.base'
+import Constant, Op, T, Array, Input, sig, evt from require 'alv.base'
 
 bar = Constant.meta
   meta:
@@ -17,7 +17,10 @@ Visualizes `val` as a bar with range `min, max`.
       if not max
         min, max = nil, min
 
-      @out = val.result\fork!
+      @out = if val.result.metatype ~= '!'
+        val\type!\mk_sig!
+      else
+        val\type!\mk_evt!
 
       super
         val: Input.hot val
@@ -36,6 +39,45 @@ Visualizes `val` as a bar with range `min, max`.
         bar: @state
       }
 
+rgb = Constant.meta
+  meta:
+    name: 'rgb'
+    summary: "visualize an array as an RGB color."
+    examples: { '(vis/rgb val [range])' }
+    description: "
+Visualizes `val` as an RGB(A) color with each component in range `0 - range`.
+`val` needs to be a `[3]num~`, `[3]num!`, `[4]num~`, or `[4]num!`.
+`range` is a `num~` and defaults to `1`."
+
+  value: class extends Op
+    a3 = (Array 3, T.num)
+    a4 = (Array 4, T.num)
+    color = (sig a3) / (sig a4) / (evt a3) / (evt a4)
+    pattern = color + -sig.num
+    setup: (inputs, scope) =>
+      { val, max } = pattern\match inputs
+
+      @out = if val.result.metatype ~= '!'
+        val\type!\mk_sig!
+      else
+        val\type!\mk_evt!
+
+      super
+        val: Input.hot val
+        max: Input.cold max or Constant.num 1
+
+    tick: =>
+      { :val, :max } = @unwrap_all!
+      @out\set val
+      @state = [i/max for i in *val]
+
+    vis: =>
+      {
+        type: 'rgb'
+        rgb: @state
+      }
+
 {
   :bar
+  :rgb
 }
