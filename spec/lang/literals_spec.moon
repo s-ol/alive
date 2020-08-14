@@ -13,21 +13,21 @@ describe "literal", ->
   assert.is.true test.active_module.root\is_const!
   scope = (assert test.active_module.root.result)\unwrap T.scope
 
-  it 'string', ->
+  it 'string is parsed and returned correctly', ->
     assert.is.equal (Constant.str 'hello'), (scope\get 'str')\const!
 
-  it 'number', ->
+  it 'number is parsed and returned correctly', ->
     assert.is.equal (Constant.num 2), (scope\get 'num')\const!
 
-  it 'boolean', ->
+  it 'boolean is parsed and returned correctly', ->
     assert.is.equal (Constant.bool true), (scope\get 'bool')\const!
 
-  it 'structs', ->
+  it 'struct is parsed and returned correctly', ->
     struct = (scope\get 'curl')\const!
     assert.is.equal (Struct a: T.num, b: T.bool), struct.type
     assert.is.same { a: 2, b: false }, struct!
 
-  it 'arrays', ->
+  it 'array is parsed and returned correctly', ->
     array = (scope\get 'sqre')\const!
     assert.is.equal (Array 4, T.num), array.type
     assert.is.same {1, 2, 3, 4}, array!
