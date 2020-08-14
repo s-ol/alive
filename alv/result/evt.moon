@@ -12,7 +12,7 @@ class EvtStream extends Result
 
   --- return whether this Result was changed in the current tick.
   -- @treturn bool
-  dirty: => @updated == COPILOT.T
+  dirty: => @updated == (COPILOT and COPILOT.T)
 
   --- get the sequence of current events (if any).
   --
@@ -37,7 +37,8 @@ class EvtStream extends Result
   __call: (...) => @unwrap ...
 
   __tostring: =>
-    "<#{@type}#{@metatype} #{if @dirty then @type\pp @value else 'nil'}>"
+    value = if @dirty! then @type\pp @value else 'nil'
+    "<#{@type}#{@metatype} #{value}>"
 
   --- the type of this Result's value.
   -- @tfield type.Type type

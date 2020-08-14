@@ -126,7 +126,7 @@ class Struct extends Type
       types[key] = @types[key]
     @@ types
 
-  __eq: (other) => same @types, other.types
+  __eq: (other) => other.__class == Struct and same @types, other.types
   __tostring: =>
     inner = table.concat ["#{k}: #{v}" for k, v in opairs @types], ' '
     "{#{inner}}"
@@ -161,7 +161,7 @@ class Array extends Type
     assert key >= 0 and key < @size, Error 'index', "index '#{key}' out of range!"
     @type
 
-  __eq: (other) => @size == other.size and @type == other.type
+  __eq: (other) => other.__class == Array and @size == other.size and @type == other.type
   __tostring: => "#{@type}[#{@size}]"
 
   --- instantiate an Array type.
