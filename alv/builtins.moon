@@ -98,7 +98,7 @@ require_ = Constant.meta
       assert #tail == 1, "'require' takes exactly one parameter"
 
       node = L\push tail[1]\eval, scope
-      name = node\const!\unwrap 'str'
+      name = node\const!\unwrap T.str
 
       L\trace @, "loading module #{name}"
       super COPILOT\require name
@@ -255,7 +255,7 @@ Evaluate `expr1`, `expr2`, … and return the value of the last expression."
       if result and result.metatype == '='
         result = result.type\mk_sig result\unwrap!
 
-      super RTNode :children, result
+      super RTNode :children, :result
 
 if_ = Constant.meta
   meta:
@@ -403,6 +403,7 @@ to_const = Constant.meta
     summary: "Assert expression is constant."
     examples: { '(= val)' }
     description: "Asserts that `val` is a constant expression and returns it."
+
   value: class extends Op
     setup: (inputs) =>
       super {}
@@ -417,6 +418,7 @@ to_sig = Constant.meta
     description: "
 Casts !-stream to ~-stream by always reproducing the last received value.
 Since ~-streams cannot be emtpy, specifying an `initial` value is necessary."
+
   value: class extends Op
     setup: (inputs) =>
       { event, initial } = (evt! + sig!)\match inputs
@@ -440,6 +442,7 @@ to_evt = Constant.meta
 - if `val` is a ~-stream, emits events on changes.
 - if `val` is a !-stream, emits a bang for each incoming event.
 - if `trig` is given, samples `sig` as a new event when `trig` arrives."
+
   value: class extends Op
     pattern = (sig! + evt.bang) / (sig! / evt!)\rep(1,1)
     setup: (inputs) =>
