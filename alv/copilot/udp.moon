@@ -1,3 +1,7 @@
+----
+-- Editor Integration UDP Server
+--
+-- @classmod UDPServer
 import udp from require 'socket'
 import encode, decode from require 'dkjson'
 import fn_invoke, op_invoke from require 'alv.invoke'
