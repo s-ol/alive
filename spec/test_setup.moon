@@ -1,20 +1,34 @@
 import Constant, Scope, Op, Tag from require 'alv'
 import Copilot from require 'alv.copilot.base'
-import Module from require 'alv.module'
+import Module, StringModule from require 'alv.module'
 import Logger from require 'alv.logger'
-Logger\init 'silent'
+import Error from require 'alv.error'
+import RTNode from require 'alv.rtnode'
+Logger\init 'error'
 
 class TestPilot extends Copilot
   new: (code) =>
-    @T = 0
-    @active_module = Module!
+    super!
+
+    if code
+      @active_module = StringModule 'main', code
+      @last_modules.__root = @active_module
+      @tick!
+    else
+      @active_module = Module!
+      @last_modules.__root = @active_module
 
   begin_eval: => @active_module.registry\begin_eval!
   end_eval: => @active_module.registry\end_eval!
   next_tick: => @T += 1
 
-  require: =>
-    error "not implemented"
+  require: (name) =>
+    Error.wrap "loading module '#{name}'", ->
+      ok, lua = pcall require, "alv-lib.#{name}"
+      if ok
+        RTNode result: Constant.wrap lua
+      else
+        error Error 'import', "module not found"
 
 export COPILOT
 
