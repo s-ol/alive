@@ -4,11 +4,21 @@ import Module, StringModule from require 'alv.module'
 import Logger from require 'alv.logger'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
+
 Logger\init 'error'
+os.time = do
+  t = 0
+  ->
+    t += 1
+    t
+
+export COPILOT
 
 class TestPilot extends Copilot
   new: (code) =>
     super!
+
+    COPILOT = @
 
     if code
       @active_module = StringModule 'main', code
@@ -22,6 +32,25 @@ class TestPilot extends Copilot
   end_eval: => @active_module.registry\end_eval!
   next_tick: => @T += 1
 
+  --- poll for changes and tick.
+  tick: =>
+    return unless @last_modules.__root
+
+    @T += 1
+
+    ok, err = @poll!
+    if not ok
+      error err
+
+    root = @last_modules.__root
+    if root and root.root
+      L\set_time 'run'
+      ok, error = Error.try "updating", ->
+        root.root\poll_io!
+        root.root\tick!
+      if not ok
+        error
+
   require: (name) =>
     Error.wrap "loading module '#{name}'", ->
       ok, lua = pcall require, "alv-lib.#{name}"
@@ -30,13 +59,11 @@ class TestPilot extends Copilot
       else
         error Error 'import', "module not found"
 
-export COPILOT
-
 {
   :TestPilot
 
   do_setup: ->
-    COPILOT = TestPilot!
+    TestPilot!
     COPILOT\begin_eval!
 
   do_teardown: ->

@@ -20,8 +20,9 @@ class Module
   -- @function poll
   -- @treturn number timestamp of last change
 
-  --- get the module basename.
+  --- get the module name.
   -- @function name
+  -- @tparam[default=false] boolean full path
   -- @treturn string
 
   --- get the module contents.
@@ -38,11 +39,11 @@ class Module
   -- Otherwise, register the module with the `Copilot`. Updates `root`.
   eval: =>
     @registry\begin_eval!
-    @ast = Error.wrap "parsing '#{@file}'", -> program\match @slurp!
+    @ast = Error.wrap "parsing '#{@name true}'", -> program\match @slurp!
     assert @ast, Error 'syntax', "failed to parse"
 
     scope = Scope builtins
-    @root = Error.wrap "evaluating '#{@file}'", @ast\eval, scope, @registry
+    @root = Error.wrap "evaluating '#{@name true}'", @ast\eval, scope, @registry
 
   --- rollback the last evaluation cycle.
   rollback: => @registry\rollback_eval!
@@ -90,7 +91,8 @@ class FSModule extends Module
     assert mode == 'file', Error 'io', "not a file: '#{@file}'"
     modification
 
-  name: => @file\match '([^/\\]+)$'
+  name: (full) =>
+    if full then @file else @file\match '([^/\\]+)$'
 
 --- Module type for modules loaded from RAM.
 -- @type StringModule

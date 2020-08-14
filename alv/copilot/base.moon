@@ -106,7 +106,9 @@ class Copilot
     COPILOT = @
     @T += 1
 
-    @poll!
+    ok, err = @poll!
+    if not ok
+      L\error err
 
     root = @last_modules.__root
     if root and root.root
@@ -123,17 +125,22 @@ class Copilot
   --
   -- Call `eval` if there are any, and write changed and newly added modules
   -- back to disk.
+  --
+  -- @treturn boolean ok
+  -- @treturn error err
   poll: =>
     dirty = {}
     for name, mod in pairs @last_modules
       if mod\poll! > @last_modification
         table.insert dirty, mod
 
-    return if #dirty == 0
+    return true if #dirty == 0
 
     @eval dirty
 
   --- try to re-evaluate in response to module changes.
+  -- @treturn boolean ok
+  -- @treturn error err
   eval: (dirty) =>
     @last_modification = os.time!
     L\set_time 'eval'
@@ -146,8 +153,7 @@ class Copilot
       for name, mod in pairs @modules
         mod\rollback!
       @modules = nil
-      L\error err
-      return
+      return false, err
 
     for name, mod in pairs @last_modules
       if not @modules[name]
@@ -158,6 +164,7 @@ class Copilot
 
     @last_modification = os.time!
     @last_modules, @modules = @modules, nil
+    true
 
 {
   :parse_args
