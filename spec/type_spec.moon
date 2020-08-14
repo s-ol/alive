@@ -10,6 +10,11 @@ describe 'Primitive', ->
   it 'inherits from Type', ->
     assert.is.equal Type, ancestor Primitive.__class
 
+  it 'exposes name', ->
+    assert.is.equal 'bool', bool.name
+    assert.is.equal 'num', num.name
+    assert.is.equal 'str', str.name
+
   it 'stringifies well', ->
     assert.is.equal 'bool', tostring bool
     assert.is.equal 'num', tostring num
@@ -47,6 +52,14 @@ describe 'Array', ->
 
   it 'inherits from Type', ->
     assert.is.equal Type, ancestor Array.__class
+
+  it 'exposes size', ->
+    assert.is.equal 3, vec3.size
+    assert.is.equal 2, str32.size
+
+  it 'exposes inner type', ->
+    assert.is.equal num, vec3.type
+    assert.is.equal (Array 3, str), str32.type
 
   it 'stringifies well', ->
     assert.is.equal 'num[3]', tostring vec3
@@ -92,6 +105,10 @@ describe 'Struct', ->
 
   it 'inherits from Type', ->
     assert.is.equal Type, ancestor Struct.__class
+
+  it 'exposes inner types', ->
+    assert.is.same { note: str, dur: num }, play.types
+    assert.is.same { c: num, b: num, a: num }, abc.types
 
   it 'stringifies well', ->
     assert.is.equal '{dur: num note: str}', tostring play

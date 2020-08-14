@@ -22,6 +22,17 @@ same = (a, b) ->
 
   true
 
+local Primitive
+
+--- Magic table containing all `Primitive` types.
+--
+-- When indexed with a string returns a (cached) instance of that type.
+--
+-- @table T
+T = setmetatable {}, __index: (key) =>
+  with type = Primitive key
+    rawset @, key, type
+
 --- Base class for types.
 -- @type Type
 class Type
@@ -84,6 +95,9 @@ class Primitive extends Type
   new: (@name) =>
     assert (type @name) == 'string', "Typename has to be a string: '#{@name}'"
 
+  --- the type's unique name.
+  -- @tfield string name
+
 --- Struct/Hashmap type.
 --
 -- Extends `Type`.
@@ -122,6 +136,9 @@ class Struct extends Type
   -- @tparam {string=Type} types
   new: (@types) =>
 
+  --- the shape and field types of the struct.
+  -- @tfield {string=Type} types
+
 --- Array type.
 --
 -- Extends `Type`.
@@ -153,14 +170,11 @@ class Array extends Type
   -- @tparam Type type
   new: (@size, @type) =>
 
---- Magic table containing all `Primitive` types.
---
--- When indexed with a string returns a (cached) instance of that type.
---
--- @table T
-T = setmetatable {}, __index: (key) =>
-  with type = Primitive key
-    rawset @, key, type
+  --- the number of elements in this array.
+  -- @tfield number size
+
+  --- the element type of this array.
+  -- @tfield Type type
 
 {
   :Type
