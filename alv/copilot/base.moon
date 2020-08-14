@@ -4,7 +4,7 @@
 -- @classmod Copilot
 lfs = require 'lfs'
 import Scope from require 'alv.scope'
-import Module from require 'alv.module'
+import FSModule from require 'alv.module'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
 import Constant from require 'alv.result'
@@ -33,8 +33,8 @@ class Copilot
 
   --- create a new Copilot.
   -- @classmethod
-  -- @tparam string file name/path of the alive file to watch and execute
-  new: (@args) =>
+  -- @tparam table args
+  new: (@args={}) =>
     @T = 0
     @last_modification = 0
     @last_modules = {}
@@ -62,7 +62,7 @@ class Copilot
     @active_modules = nil
     @last_modules.__root = nil
 
-    @last_modules.__root = Module file
+    @last_modules.__root = FSModule file
     @active_module = @last_modules.__root
 
     COPILOT = nil
@@ -84,7 +84,7 @@ class Copilot
         else
           last = @active_module
           prefix = if b = last.file\match'(.*)/[^/]*$' then b .. '/' else ''
-          mod = @last_modules[name] or Module "#{prefix}#{name}.alv"
+          mod = @last_modules[name] or FSModule "#{prefix}#{name}.alv"
           L\trace "entering module #{mod}"
           @modules[name] = mod
           @active_module = mod

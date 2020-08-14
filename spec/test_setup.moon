@@ -4,10 +4,8 @@ import Module from require 'alv.module'
 import Logger from require 'alv.logger'
 Logger\init 'silent'
 
-class TestModule extends Module
-
-class TestCopilot extends Copilot
-  new: =>
+class TestPilot extends Copilot
+  new: (code) =>
     @T = 0
     @active_module = Module!
 
@@ -21,10 +19,10 @@ class TestCopilot extends Copilot
 export COPILOT
 
 {
-  :TestCopilot
+  :TestPilot
 
   do_setup: ->
-    COPILOT = TestCopilot!
+    COPILOT = TestPilot!
     COPILOT\begin_eval!
 
   do_teardown: ->

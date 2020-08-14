@@ -86,9 +86,9 @@ visit #{version.web} for more information."
     @status.value = if not @active_module
       "no script"
     elseif @paused
-      "paused | #{@active_module\basename!}"
+      "paused | #{@active_module\name!}"
     else
-      "running | #{@active_module\basename!}"
+      "running | #{@active_module\name!}"
     @window\redraw!
 
   eval: (dirty) =>
