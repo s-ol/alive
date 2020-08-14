@@ -4,7 +4,7 @@ import T, Struct, Array, Constant from require 'alv'
 describe "function", ->
   COPILOT = TestPilot ''
 
-  it 'returns constant results when constant', ->
+  it "returns constant results when constant", ->
     COPILOT.active_module\spit '
     (import* math)
 
@@ -17,7 +17,7 @@ describe "function", ->
     result = assert COPILOT.active_module.root.result
     assert.is.equal (Constant.num 5), result
 
-  it 'checks argument arity when invoked', ->
+  it "checks argument arity when invoked", ->
     COPILOT.active_module\spit '
     ([1]import* math)
 
@@ -40,7 +40,7 @@ describe "function", ->
     assert.matches "argument error: expected 2 arguments, found 3", err
     assert.matches "while invoking function 'my%-plus' at %[3%]", err
 
-  it 'can be anonymously invoked', ->
+  it "can be anonymously invoked", ->
     COPILOT.active_module\spit '
     ([1]
       ([2]fn (a b) b)
