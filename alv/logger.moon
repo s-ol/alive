@@ -13,8 +13,8 @@ class Logger
     trace: 1
     log:   2
     warn:  3
-    error: 4
-    print: 5
+    print: 4
+    error: 5
     silent: 6
   }
 
