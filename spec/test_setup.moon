@@ -32,6 +32,11 @@ class TestPilot extends Copilot
   end_eval: => @active_module.registry\end_eval!
   next_tick: => @T += 1
 
+  eval_once: (code) =>
+    @active_module\spit code
+    @tick!
+    @active_module.root
+
   --- poll for changes and tick.
   tick: =>
     return unless @last_modules.__root

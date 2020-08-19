@@ -2,7 +2,7 @@ import TestPilot from require 'spec.test_setup'
 import T, Struct, Array, Constant from require 'alv'
 
 describe "literal", ->
-  test = TestPilot '
+  TestPilot '
     (def str "hello"
          num   2
          bool  true
@@ -10,8 +10,8 @@ describe "literal", ->
          sqre  ([7]array 1 2 3 4))
     (export*)'
 
-  assert.is.true test.active_module.root\is_const!
-  scope = (assert test.active_module.root.result)\unwrap T.scope
+  assert.is.true COPILOT.active_module.root\is_const!
+  scope = (assert COPILOT.active_module.root.result)\unwrap T.scope
 
   it "string is parsed and returned correctly", ->
     assert.is.equal (Constant.str 'hello'), (scope\get 'str')\const!

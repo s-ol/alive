@@ -5,29 +5,25 @@ describe "do", ->
   COPILOT = TestPilot ''
 
   it "can be empty", ->
-    COPILOT.active_module\spit '(do)'
-    COPILOT\tick!
-    assert.is.true COPILOT.active_module.root\is_const!
-    assert.is.nil COPILOT.active_module.root.result
+    rt = COPILOT\eval_once '(do)'
+    assert.is.true rt\is_const!
+    assert.is.nil rt.result
 
   it "returns the last result, if any", ->
-    COPILOT.active_module\spit '(do 1 2 3)'
-    COPILOT\tick!
-    assert.is.true COPILOT.active_module.root\is_const!
-    assert.is.equal (Constant.num 3), COPILOT.active_module.root.result
+    rt = COPILOT\eval_once '(do 1 2 3)'
+    assert.is.true rt\is_const!
+    assert.is.equal (Constant.num 3), rt.result
 
-    COPILOT.active_module\spit '(do 1 2 (trace 3))'
-    COPILOT\tick!
-    assert.is.true COPILOT.active_module.root\is_const!
-    assert.is.nil COPILOT.active_module.root.result
+    rt = COPILOT\eval_once '(do 1 2 (trace 3))'
+    assert.is.true rt\is_const!
+    assert.is.nil rt.result
 
   it "passes through side-effects", ->
-    COPILOT.active_module\spit '
+    rt = COPILOT\eval_once '
       (import* time)
       (do
         (every 0.5 "bang! side-effect")
         3)'
-    COPILOT\tick!
-    assert.is.false COPILOT.active_module.root\is_const!
-    assert.is.equal (Constant.num 3), COPILOT.active_module.root.result
+    assert.is.false rt\is_const!
+    assert.is.equal (Constant.num 3), rt.result
 
