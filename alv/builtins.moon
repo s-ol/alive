@@ -532,6 +532,39 @@ get = Constant.meta
         val = val[key]
       @out\set val
 
+set = Constant.meta
+  meta:
+    name: 'set'
+    summary: "Update Arrays and Structs."
+    examples: { '(set val key new-val)' }
+
+  value: class extends PureOp
+    pattern: (sig! / evt!) + (const.str / const.sym / const.num) + (sig! / evt!)
+    type: (inputs) => inputs[1]\type!
+
+    setup: (...) =>
+      super ...
+
+      { val, key, new_val } = @inputs
+
+      expected_val_typ = val\type!\get key!
+      got_val_typ = new_val\type!
+      if expected_val_typ ~= got_val_typ
+        msg = string.format "expected value for key '%s' to be %s, not %s",
+                            key!, expected_val_typ, got_val_typ
+        error Error 'argument', msg
+
+    tick: =>
+      { val, key, new_val } = @unwrap_all!
+
+      if type(key) == 'number'
+        key = key + 1
+
+      val = {k,v for k,v in pairs val}
+      val[key] = new_val
+
+      @out\set val
+
 loop = Constant.meta
   meta:
     name: 'loop'
@@ -629,7 +662,8 @@ Scope.from_table {
   '~': to_sig
   '!': to_evt
 
-  :array, :struct, :get
+  :array, :struct
+  :get, :set
 
   :loop, :recur
 

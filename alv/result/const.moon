@@ -45,7 +45,7 @@ class Constant extends Result
   --- compare two values.
   --
   -- Compares two `SigStream`s by comparing their types and their Lua values.
-  __eq: (other) => other.type == @type and other.value == @value
+  __eq: (other) => other.type == @type and @type\eq other.value, @value
 
   --- Result metatype.
   -- @tfield string metatype (`=`)

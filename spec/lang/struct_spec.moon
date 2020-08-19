@@ -14,11 +14,11 @@ describe "struct", ->
 
     it "cannot add members", ->
       err = assert.has.error -> COPILOT\eval_once '(set (struct "a" 1) "b" 2)'
-      assert.matches "argument error: TBD", err
+      assert.matches "{a: num} has no 'b' key", err
 
     it "checks value type", ->
       err = assert.has.error -> COPILOT\eval_once '(set (struct "a" 1) "a" "str")'
-      assert.matches "argument error: TBD", err
+      assert.matches "expected value for key 'a' to be num, not str", err
 
   describe "(get)", ->
     it "can get values", ->

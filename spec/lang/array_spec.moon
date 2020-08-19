@@ -33,11 +33,11 @@ describe "array", ->
 
     it "checks value type", ->
       err = assert.has.error -> COPILOT\eval_once '(set (array 1) 0 "a")'
-      assert.matches "argument error: TBD", err
+      assert.matches "expected value for key '0' to be num, not str", err
 
     it "checks index range", ->
       err = assert.has.error -> COPILOT\eval_once '(set (array 1 2) -1 0)'
-      assert.matches "index '-1' out of range!", err
+      assert.matches "index '%-1' out of range!", err
 
       COPILOT\eval_once '(set (array 1 2) 0 0)'
 
@@ -75,21 +75,21 @@ describe "array", ->
       assert.is.equal svec3\mk_const({ 'a', 'b', 'c' }), rt.result
 
     it "can insert a value", ->
-      rt = COPILOT\eval_once '(set (array "b" "c") 0 "a")'
+      rt = COPILOT\eval_once '(insert (array "b" "c") 0 "a")'
       assert.is.true rt\is_const!
       assert.is.equal svec3\mk_const({ 'a', 'b', 'c' }), rt.result
 
-      rt = COPILOT\eval_once '(set (array "a" "c") 1 "b")'
+      rt = COPILOT\eval_once '(insert (array "a" "c") 1 "b")'
       assert.is.true rt\is_const!
       assert.is.equal svec3\mk_const({ 'a', 'b', 'c' }), rt.result
 
-      rt = COPILOT\eval_once '(set (array "a" "b") 1 "c")'
+      rt = COPILOT\eval_once '(insert (array "a" "b") 1 "c")'
       assert.is.true rt\is_const!
       assert.is.equal svec3\mk_const({ 'a', 'b', 'c' }), rt.result
 
     it "checks index range", ->
       err = assert.has.error -> COPILOT\eval_once '(insert (array 1 2) -1 0)'
-      assert.matches "index '-1' out of range!", err
+      assert.matches "index '%-1' out of range!", err
 
       COPILOT\eval_once '(insert (array 1 2) 0 0)'
 
@@ -117,7 +117,7 @@ describe "array", ->
 
     it "checks index range", ->
       err = assert.has.error -> COPILOT\eval_once '(remove (array 1 2 3) -1)'
-      assert.matches "index '-1' out of range!", err
+      assert.matches "index '%-1' out of range!", err
 
       err = assert.has.error -> COPILOT\eval_once '(remove (array 1 2 3) 3)'
       assert.matches "index '3' out of range!", err
