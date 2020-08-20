@@ -605,7 +605,7 @@ insert = Constant.meta
 `array`/`struct` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: (sig! / evt!) + -(const.str / const.sym / const.num) + (sig! / evt!)
+    pattern: (sig! / evt!) + (const.str / const.sym / const.num) + (sig! / evt!)
     type: (inputs) =>
       { comp, key, val } = inputs
       before = comp\type!
@@ -632,7 +632,6 @@ insert = Constant.meta
 
     tick: =>
       { comp, key, val } = @unwrap_all!
-
       comp = {k,v for k,v in pairs comp}
 
       if type(key) == 'number'
@@ -641,6 +640,46 @@ insert = Constant.meta
         comp[key] = val
 
       @out\set comp
+
+remove = Constant.meta
+  meta:
+    name: 'remove'
+    summary: "Remove values from Arrays and Structs."
+    examples: { '(remove array key)', '(remove struct key)' }
+    description: "Remvoes the value for `key` from `array`/`struct`.
+
+`key` has to be a constant expression."
+
+  value: class extends PureOp
+    pattern: (sig! / evt!) + (const.str / const.sym / const.num)
+    type: (inputs) =>
+      { comp, key } = inputs
+      before = comp\type!
+
+      if before.__class == Array
+        Array before.size - 1, before.type
+      else
+        types = {k,v for k,v in pairs before.types}
+        types[key\const!!] = nil
+        Struct types
+
+    setup: (...) =>
+      super ...
+
+      { comp, key } = @inputs
+      comp\type!\get key!
+
+    tick: =>
+      { comp, key, val } = @unwrap_all!
+      comp = {k,v for k,v in pairs comp}
+
+      if type(key) == 'number'
+        table.remove comp, key + 1, val
+      else
+        comp[key] = nil
+
+      @out\set comp
+
 
 loop = Constant.meta
   meta:
@@ -740,7 +779,7 @@ Scope.from_table {
   '!': to_evt
 
   :array, :struct
-  :get, :set, :insert
+  :get, :set, :insert, :remove
 
   :loop, :recur
 
