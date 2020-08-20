@@ -467,7 +467,10 @@ array = Constant.meta
     name: 'array'
     summary: "Construct an array."
     examples: { '(array a b c…)' }
-    description: "Produces an array of values."
+    description: "Produces an array of values.
+
+`a`, `b`, `c`… have to be values of the same type.
+This is a pure op, so at most one !-stream input is allowed."
 
   value: do
     any = sig! / evt!
@@ -485,7 +488,10 @@ struct = Constant.meta
     name: 'struct'
     summary: "Construct an struct."
     examples: { '(struct key1 val1 [key2 val2…])' }
-    description: "Produces an struct of values."
+    description: "Produces a struct of values.
+
+`key1`, `key2`, … have to be constant expressions.
+This is a pure op, so at most one !-stream input is allowed."
 
   value: do
     key = const.str / const.sym
@@ -505,15 +511,34 @@ get = Constant.meta
   meta:
     name: 'get'
     summary: "Index into Arrays and Structs."
-    examples: { '(get val key [key2…])' }
+    examples: { '(get array [key])', '(get struct key [key2…])' }
+    description: "Get the value for `key`.
+
+For arrays, `key` can be omitted to peek at the last element in the array.
+If multiple keys are specified, they are used to recursively index, i.e.
+
+    (get struct 'a' 0 'note')
+
+is equivalent to
+
+    (get (get (get struct 'a') 0) 'note')
+"
 
   value: class extends Op
-    pattern = (sig! / evt!) + (const.str / const.sym / const.num)*0
+    pattern = (sig! / evt!) + (const.str / const.sym / const.num)^0
     setup: (inputs) =>
       { val, keys } = pattern\match inputs
       super val: Input.hot val
 
-      @state = [key.result! for key in *keys]
+      val_type = @inputs.val\type!
+
+      if #keys > 0
+        @state = [key.result! for key in *keys]
+      elseif val_type.__class == Array
+        assert val_type.size > 0, Error 'argument', "cannot (get) from empty Array"
+        @state = { val_type.size - 1 }
+      else
+        error Error 'argument', "missing key"
 
       type = val\type!
       for key in *@state
@@ -535,8 +560,12 @@ get = Constant.meta
 set = Constant.meta
   meta:
     name: 'set'
-    summary: "Update Arrays and Structs."
-    examples: { '(set val key new-val)' }
+    summary: "Update values in Arrays and Structs."
+    examples: { '(set array key val)', '(set struct key val)' }
+    description: "Set the value for `key` to `val`.
+
+`key` has to be a constant expression. This is a pure op, so at most one of
+`array`/`struct` and `val` may be a !-stream."
 
   value: class extends PureOp
     pattern: (sig! / evt!) + (const.str / const.sym / const.num) + (sig! / evt!)
@@ -545,25 +574,73 @@ set = Constant.meta
     setup: (...) =>
       super ...
 
-      { val, key, new_val } = @inputs
+      { comp, key, val } = @inputs
 
-      expected_val_typ = val\type!\get key!
-      got_val_typ = new_val\type!
+      expected_val_typ = comp\type!\get key!
+      got_val_typ = val\type!
       if expected_val_typ ~= got_val_typ
         msg = string.format "expected value for key '%s' to be %s, not %s",
                             key!, expected_val_typ, got_val_typ
         error Error 'argument', msg
 
     tick: =>
-      { val, key, new_val } = @unwrap_all!
+      { comp, key, val } = @unwrap_all!
 
       if type(key) == 'number'
         key = key + 1
 
-      val = {k,v for k,v in pairs val}
-      val[key] = new_val
+      comp = {k,v for k,v in pairs comp}
+      comp[key] = val
 
-      @out\set val
+      @out\set comp
+
+insert = Constant.meta
+  meta:
+    name: 'insert'
+    summary: "Insert new values into Arrays and Structs."
+    examples: { '(insert array key val)', '(insert struct key val)' }
+    description: "Insert `val` into `array`/`struct` at `key`.
+
+`key` has to be a constant expression. This is a pure op, so at most one of
+`array`/`struct` and `val` may be a !-stream."
+
+  value: class extends PureOp
+    pattern: (sig! / evt!) + -(const.str / const.sym / const.num) + (sig! / evt!)
+    type: (inputs) =>
+      { comp, key, val } = inputs
+      before = comp\type!
+
+      if before.__class == Array
+        Array before.size + 1, before.type
+      else
+        types = {k,v for k,v in pairs before.types}
+        types[key\const!!] = val\type!
+        Struct types
+
+    setup: (...) =>
+      super ...
+
+      { comp, key, val } = @inputs
+      before = comp\type!
+      key = key!
+      if before.__class == Array and (key > before.size or key < 0)
+        error Error 'argument', "index '#{key}' out of range!"
+      else if before.__class == Struct and before.types[key]
+        msg = string.format "key '%s' already exists in value of type %s",
+                            key, before
+        error Error 'argument', msg
+
+    tick: =>
+      { comp, key, val } = @unwrap_all!
+
+      comp = {k,v for k,v in pairs comp}
+
+      if type(key) == 'number'
+        table.insert comp, key + 1, val
+      else
+        comp[key] = val
+
+      @out\set comp
 
 loop = Constant.meta
   meta:
@@ -663,7 +740,7 @@ Scope.from_table {
   '!': to_evt
 
   :array, :struct
-  :get, :set
+  :get, :set, :insert
 
   :loop, :recur
 

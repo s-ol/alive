@@ -38,7 +38,7 @@ describe "struct", ->
 
     it "doesn't clobber existing members", ->
       err = assert.has.error -> COPILOT\eval_once '(insert (struct "a" 1) "a" 2)'
-      assert.matches "TBD", err
+      assert.matches "key 'a' already exists in value of type {a: num}", err
 
   describe "(remove)", ->
     it "can remove members", ->

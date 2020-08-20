@@ -83,7 +83,7 @@ describe "array", ->
       assert.is.true rt\is_const!
       assert.is.equal svec3\mk_const({ 'a', 'b', 'c' }), rt.result
 
-      rt = COPILOT\eval_once '(insert (array "a" "b") 1 "c")'
+      rt = COPILOT\eval_once '(insert (array "a" "b") 2 "c")'
       assert.is.true rt\is_const!
       assert.is.equal svec3\mk_const({ 'a', 'b', 'c' }), rt.result
 
