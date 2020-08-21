@@ -14,7 +14,7 @@ own module or contributing to alive, check out the
 2. [evaltime and runtime](02_evaltime-and-runtime.html)
 3. evaltime
    1. [symbol resolution](03-1_symbol-resolution.html)
-   2. if and switch
+   2. [conditionals](03-2_conditionals.html)
    3. [functions](03-3_functions.html)
    4. dynamic symbols
    5. [loops](03-5_loops.html)
@@ -22,5 +22,8 @@ own module or contributing to alive, check out the
 4. runtime
    1. result kinds
    2. pure operators
-5. [builtin listing](builtins.html)
-6. included modules
+5. compound types
+   1. arrays
+   2. structs
+6. [builtin listing](builtins.html)
+7. included modules
