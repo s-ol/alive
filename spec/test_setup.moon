@@ -15,13 +15,13 @@ os.time = do
 export COPILOT
 
 class TestPilot extends Copilot
-  new: (code) =>
+  new: (code, @preamble) =>
     super!
 
     COPILOT = @
 
     if code
-      @active_module = StringModule 'main', code
+      @active_module = StringModule 'main', @preamble .. code
       @last_modules.__root = @active_module
       @tick!
     else
@@ -33,7 +33,7 @@ class TestPilot extends Copilot
   next_tick: => @T += 1
 
   eval_once: (code) =>
-    @active_module\spit code
+    @active_module\spit @preamble .. code
     @tick!
     @active_module.root
 
