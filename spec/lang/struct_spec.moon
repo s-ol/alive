@@ -2,7 +2,7 @@ import TestPilot from require 'spec.test_setup'
 import T, Struct, Constant from require 'alv'
 
 describe "struct", ->
-  test = TestPilot ''
+  test = TestPilot '', '(import* struct)\n'
 
   ab = Struct { a: T.num, b: T.bool }
 

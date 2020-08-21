@@ -1,16 +1,18 @@
 import Array, Op, PureOp, Constant, Error, const, sig, evt from require 'alv.base'
 
+any = sig! / evt!
+
 get = Constant.meta
   meta:
     name: 'get'
-    summary: "Index into Arrays."
+    summary: "Index into an array."
     examples: { '(get array i)' }
     description: "Get the value at index `i` (starting at 0).
 
 `i` has to be a constant expression."
 
   value: class extends PureOp
-    pattern: (sig! / evt!) + const.num
+    pattern: any + const.num
     type: (inputs) =>
       { array, i } = inputs
       array\type!\get i.result!
@@ -22,7 +24,7 @@ get = Constant.meta
 set = Constant.meta
   meta:
     name: 'set'
-    summary: "Update values in Arrays."
+    summary: "Update a value in an array."
     examples: { '(set array i val)' }
     description: "Set the value for `i` to `val`.
 
@@ -30,7 +32,7 @@ set = Constant.meta
 `array` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: (sig! / evt!) + const.num + (sig! / evt!)
+    pattern: any + const.num + any
     type: (inputs) =>
       { array, i, val } = inputs
       type = array\type!
@@ -58,7 +60,7 @@ head = Constant.meta
     examples: { '(head array)' }
 
   value: class extends PureOp
-    pattern: (sig! / evt!)*1
+    pattern: any*1
     type: (inputs) =>
       type = inputs[1]\type!
 
@@ -78,7 +80,7 @@ tail = Constant.meta
     examples: { '(tail array)' }
 
   value: class extends PureOp
-    pattern: (sig! / evt!)*1
+    pattern: any*1
     type: (inputs) =>
       type = inputs[1]\type!
 
@@ -94,14 +96,14 @@ tail = Constant.meta
 prepend = Constant.meta
   meta:
     name: 'prepend'
-    summary: "Prepend a new value at the start of an Array."
+    summary: "Prepend a new value at the start of an array."
     examples: { '(prepend array val)' }
     description: "Prepend `val` to `array` at index `0`, moving other values back.
 
 This is a pure op, so at most one of `array` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: (sig! / evt!) + (sig! / evt!)
+    pattern: any + any
     type: (inputs) =>
       { array, val } = inputs
       type = array\type!
@@ -124,7 +126,7 @@ This is a pure op, so at most one of `array` and `val` may be a !-stream."
 insert = Constant.meta
   meta:
     name: 'insert'
-    summary: "Insert new values into Arrays."
+    summary: "Insert a new value into an array."
     examples: { '(insert array i val)' }
     description: "Insert `val` into `array` at `i`, moving other values back if
 necessary.
@@ -133,7 +135,7 @@ necessary.
 `array` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: (sig! / evt!) + const.num + (sig! / evt!)
+    pattern: any + const.num + any
     type: (inputs) =>
       { array, i, val } = inputs
       type = array\type!
@@ -159,14 +161,14 @@ necessary.
 remove = Constant.meta
   meta:
     name: 'remove'
-    summary: "Remove values from Arrays."
+    summary: "Remove a value from an Array."
     examples: { '(remove array i)' }
     description: "Removes the value at index `i` from `array`.
 
 `i` has to be a constant expression."
 
   value: class extends PureOp
-    pattern: (sig! / evt!) + const.num
+    pattern: any + const.num
     type: (inputs) =>
       { array, i } = inputs
       type = array\type!
@@ -187,7 +189,7 @@ remove = Constant.meta
 size = Constant.meta
   meta:
     name: 'size'
-    summary: "Get Array size"
+    summary: "Get the size of an array."
     examples: { '(size array)' }
 
   value: class extends Op
@@ -203,11 +205,11 @@ size = Constant.meta
 concat = Constant.meta
   meta:
     name: 'concat'
-    summary: "Concatenate Arrays"
+    summary: "Concatenate Arrays."
     examples: { '(concat arr1 arr2 [arr3…])' }
 
   value: class extends PureOp
-    pattern: (sig! / evt!)\rep 2
+    pattern: any\rep 2
     type: (inputs) =>
       size = 0
       type = inputs[1]\type!.type

@@ -15,7 +15,7 @@ os.time = do
 export COPILOT
 
 class TestPilot extends Copilot
-  new: (code, @preamble) =>
+  new: (code, @preamble='') =>
     super!
 
     COPILOT = @
