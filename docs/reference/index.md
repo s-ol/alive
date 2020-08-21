@@ -17,7 +17,7 @@ own module or contributing to alive, check out the
    2. if and switch
    3. [functions](03-3_functions.html)
    4. dynamic symbols
-   5. loops
+   5. [loops](03-5_loops.html)
    6. modules and loading
 4. runtime
    1. result kinds
