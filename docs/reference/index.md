@@ -18,7 +18,7 @@ own module or contributing to alive, check out the
    3. [functions](03-3_functions.html)
    4. [dynamic symbols](03-4_dynamic-symbols.html)
    5. [loops](03-5_loops.html)
-   6. modules and loading
+   6. [modules and loading](03-6_modules-and-loading.html)
 4. runtime
    1. result kinds
    2. pure operators
