@@ -29,7 +29,7 @@ symbols starting and ending with asterisks (`*clock*`):
   example, `math/+` is found by first looking for a value for the symbol `math`,
   and then looking for the symbol `+` in that value. If the value for the
   symbol `math` is not a scope, an error is thrown.
-- Symbols starting and ending with asterisks are called `dynamic symbols` and
+- Symbols starting and ending with asterisks are called *dynamic symbols* and
   are looked up in a different way inside user-defined functions. This will be
   covered in detail later.
 - The two special formats can be mixed: when evaluating `*hello*/world`,

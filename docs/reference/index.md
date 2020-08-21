@@ -16,7 +16,7 @@ own module or contributing to alive, check out the
    1. [symbol resolution](03-1_symbol-resolution.html)
    2. [conditionals](03-2_conditionals.html)
    3. [functions](03-3_functions.html)
-   4. dynamic symbols
+   4. [dynamic symbols](03-4_dynamic-symbols.html)
    5. [loops](03-5_loops.html)
    6. modules and loading
 4. runtime
