@@ -239,7 +239,7 @@ function is invoked."
       scope\set name, RTNode :result
       super RTNode!
 
-do_expr = Constant.meta
+do_ = Constant.meta
   meta:
     name: 'do'
     summary: "Evaluate multiple expressions in a new scope."
@@ -278,12 +278,43 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
       if not xif\is_const!
         msg = "'if'-expression needs to be constant, did you mean 'switch'?"
         error Error 'argument', msg
-      xif = xif\result!\unwrap!
+      xif = xif.result\unwrap!
 
       super if xif
         xthen\eval scope
       elseif xelse
         xelse\eval scope
+      else
+        RTNode!
+
+when_ = Constant.meta
+  meta:
+    name: 'when'
+    summary: "Make an evaltime const choice with side effects"
+    examples: { '(when bool then-exprs…)' }
+    description: "
+`bool` has to be an evaltime constant. If it is truthy, this expression is equivalent
+to `(do then-exprs…)`, otherwise it results in nil."
+
+  value: class extends Builtin
+    eval: (scope, tail) =>
+      L\trace "evaling #{@}"
+      assert #tail >= 2, "'when' needs at least two parameters"
+
+      xif = L\push tail[1]\eval, scope
+      if not xif\is_const!
+        msg = "'when'-expression needs to be constant, did you mean 'switch'?"
+        error Error 'argument', msg
+      xif = xif.result\unwrap!
+
+      super if xif
+        scope = Scope scope
+        children = [expr\eval scope for expr in *tail[2,]]
+        result = if last = children[#children] then last.result
+        if result and result.metatype == '='
+          result = result.type\mk_sig result\unwrap!
+
+        RTNode :children, :result
       else
         RTNode!
 
@@ -596,8 +627,9 @@ Scope.from_table {
   'export*': export_star
 
   :fn, :defn
-  'do': do_expr
+  'do': do_
   'if': if_
+  'when': when_
   'switch': switch_
 
   '=': to_const
