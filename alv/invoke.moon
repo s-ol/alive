@@ -77,6 +77,13 @@ class op_invoke extends Builtin
 
     super RTNode :children, result: @op.out, op: @op
 
+  --- `Builtin:vis` implementation.
+  --
+  -- calls `op`:@{Op:vis|vis}.
+  --
+  -- @treturn table vis
+  vis: => if @op then @op\vis!
+
   --- The `Op` instance.
   --
   -- @tfield Op op

@@ -279,6 +279,7 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
         msg = "'if'-expression needs to be constant, did you mean 'switch'?"
         error Error 'argument', msg
       xif = xif.result\unwrap!
+      @state = xif
 
       super if xif
         xthen\eval scope
@@ -286,6 +287,8 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
         xelse\eval scope
       else
         RTNode!
+
+    vis: => step: if @state then 0 else 1
 
 when_ = Constant.meta
   meta:
@@ -366,7 +369,9 @@ switch_ = Constant.meta
 
       @out\set if v = values[@state + 1] then v!
 
-    vis: => step: @state
+    vis: =>
+      with Op.vis @
+        .step = @state
 
 trace_ = Constant.meta
   meta:

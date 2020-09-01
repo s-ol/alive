@@ -53,6 +53,17 @@ class Builtin
   -- @tparam ?Builtin prev the previous Builtin instance
   setup: (prev) =>
 
+  --- collect visualisation data (optional).
+  --
+  -- This may return any simple Lua value, including Lua tables, as long as it
+  -- has no metatables, multiple references/loops, userdata etc.
+  --
+  -- This value is exposed to alv editors in order to render realtime
+  -- visualisations overlaid onto the program text.
+  --
+  -- @treturn table vis
+  vis: => {}
+
   --- the `Cell` this Builtin was created for.
   -- @tfield Cell cell
 
