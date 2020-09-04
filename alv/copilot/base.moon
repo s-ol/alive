@@ -104,7 +104,6 @@ class Copilot
     return unless @last_modules.__root
 
     COPILOT = @
-    @T += 1
 
     ok, err = @poll!
     if not ok
@@ -114,8 +113,9 @@ class Copilot
     if root and root.root
       L\set_time 'run'
       ok, error = Error.try "updating", ->
-        root.root\poll_io!
-        root.root\tick!
+        if root.root\poll_io!
+          root.root\tick!
+          @T += 1
       if not ok
         L\print error
 
