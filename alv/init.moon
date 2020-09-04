@@ -63,13 +63,13 @@ cycle\resolve!
   :Registry, :SimpleRegistry, :Tag
   :Logger
 
-  :globals
+  globals: globals!
 
   parse: (str) ->
     assert (program\match str), Error 'syntax', "failed to parse"
 
   eval: (str, inject) ->
-    scope = Scope globals
+    scope = Scope globals!
     scope\use inject if inject
 
     ast = assert (program\match str), "failed to parse"

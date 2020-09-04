@@ -42,7 +42,7 @@ class Module
     @ast = Error.wrap "parsing '#{@name true}'", -> program\match @slurp!
     assert @ast, Error 'syntax', "failed to parse"
 
-    scope = Scope builtins
+    scope = Scope builtins!
     @root = Error.wrap "evaluating '#{@name true}'", @ast\eval, scope, @registry
 
   --- rollback the last evaluation cycle.

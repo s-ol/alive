@@ -58,9 +58,10 @@ class TestPilot extends Copilot
 
   require: (name) =>
     Error.wrap "loading module '#{name}'", ->
-      ok, lua = pcall require, "alv-lib.#{name}"
+      ok, result = pcall require, "alv-lib.#{name}"
       if ok
-        RTNode result: Constant.wrap lua
+        result = RTNode :result unless result.__class == RTNode
+        result
       else
         error Error 'import', "module not found"
 

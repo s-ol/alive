@@ -72,11 +72,12 @@ class Copilot
   -- @treturn RTNode root
   require: (name) =>
     Error.wrap "loading module '#{name}'", ->
-      ok, lua = pcall require, "alv-lib.#{name}"
+      ok, result = pcall require, "alv-lib.#{name}"
       if ok
-        RTNode result: Constant.wrap lua
-      elseif not lua\match "not found"
-        error lua
+        result = RTNode :result unless result.__class == RTNode
+        result
+      elseif not result\match "not found"
+        error result
       else
         assert @modules, "no current eval cycle?"
         if mod = @modules[name]

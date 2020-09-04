@@ -113,7 +113,10 @@ class Scope
   @from_table: (tbl) ->
     with Scope!
       for k, v in pairs tbl
-        \set_raw k, v
+        if type(v) == 'table' and v.__class == RTNode
+          \set k, v
+        else
+          \set_raw k, v
 
 {
   :Scope

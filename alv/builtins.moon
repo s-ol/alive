@@ -620,46 +620,49 @@ bound to `nv2`…
       super RTNode :children, result: node.result
 
 
-Scope.from_table {
-  :doc
-  :trace, 'trace=': trace_, print: print_
+Constant.meta
+  meta:
+    summary: "builtin operators and constants."
 
-  :def, :use
-  require: require_
-  import: import_
-  'import*': import_star
-  export: export_
-  'export*': export_star
+  value:
+    :doc
+    :trace, 'trace=': trace_, print: print_
 
-  :fn, :defn
-  'do': do_
-  'if': if_
-  'when': when_
-  'switch': switch_
+    :def, :use
+    require: require_
+    import: import_
+    'import*': import_star
+    export: export_
+    'export*': export_star
 
-  '=': to_const
-  '~': to_sig
-  '!': to_evt
+    :fn, :defn
+    'do': do_
+    'if': if_
+    'when': when_
+    'switch': switch_
 
-  :array, :struct
+    '=': to_const
+    '~': to_sig
+    '!': to_evt
 
-  :loop, :recur
+    :array, :struct
 
-  true: Constant.meta
-    meta:
-      name: 'true'
-      summary: "The boolean constant `true`."
-    value: Constant.bool true
+    :loop, :recur
 
-  false: Constant.meta
-    meta:
-      name: 'false'
-      summary: "The boolean constant `false`."
-    value: Constant.bool false
+    true: Constant.meta
+      meta:
+        name: 'true'
+        summary: "The boolean constant `true`."
+      value: Constant.bool true
 
-  bang: Constant.meta
-    meta:
-      name: 'bang'
-      summary: "A `bang` value-constant."
-    value: Constant T.bang, true
-}
+    false: Constant.meta
+      meta:
+        name: 'false'
+        summary: "The boolean constant `false`."
+      value: Constant.bool false
+
+    bang: Constant.meta
+      meta:
+        name: 'bang'
+        summary: "A `bang` value-constant."
+      value: Constant T.bang, true
