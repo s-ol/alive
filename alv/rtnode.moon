@@ -49,7 +49,7 @@ class RTNode
     dirty = false
 
     for op in *@io_ops
-      dirty or= op\poll!
+      dirty = op\poll! or dirty
 
     dirty
 
