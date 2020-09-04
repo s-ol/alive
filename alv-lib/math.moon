@@ -132,6 +132,9 @@ max = Constant.meta
     description: "Return the highest of arguments."
   value: func_op math.max, num*0
 
+inc = func_def 'inc', 'i', ((i) -> i + 1), "Increment by 1."
+dec = func_def 'dec', 'i', ((i) -> i - 1), "Decrement by 1."
+
 cos = func_def 'cos', 'alpha', math.cos, "Cosine function (radians)."
 sin = func_def 'sin', 'alpha', math.sin, "Sine function (radians)."
 tan = func_def 'tan', 'alpha', math.tan, "Tangent function (radians)."
@@ -169,6 +172,8 @@ Constant.meta
 
     :mix
     :min, :max
+
+    :inc, :dec
 
     pi: Constant.meta
       value: math.pi
