@@ -1,12 +1,8 @@
 import do_setup, do_teardown from require 'spec.test_setup'
-import Input, T, Result, IOStream from require 'alv.base'
+import Input, T, Result from require 'alv.base'
 
 setup do_setup
 teardown do_teardown
-
-class MyIO extends IOStream
-  new: => super T.my_io
-  dirty: => @is_dirty
 
 basic_tests = (result, input) ->
   it 'gives access to the Result', ->
@@ -103,38 +99,6 @@ describe 'Input.hot', ->
 
       COPILOT\next_tick!
       result\set 1
-
-      assert.is.true input\dirty!
-      assert.is.true result\dirty!
-
-      input\setup nil
-      assert.is.true input\dirty!
-      input\finish_setup!
-
-      assert.is.true input\dirty!
-      assert.is.true result\dirty!
-
-  describe 'with IOStream', ->
-    result = MyIO!
-    input = Input.hot result
-
-    basic_tests result, input
-
-    it 'is marked for lifting', ->
-      assert.is.equal 'io', input.mode
-
-    it 'is dirty when the IOStream is dirty', ->
-      result.is_dirty = false
-
-      assert.is.false input\dirty!
-      assert.is.false result\dirty!
-
-      input\setup nil
-      assert.is.false input\dirty!
-      input\finish_setup!
-
-      COPILOT\next_tick!
-      result.is_dirty = true
 
       assert.is.true input\dirty!
       assert.is.true result\dirty!

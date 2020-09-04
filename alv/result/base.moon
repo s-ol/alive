@@ -1,7 +1,7 @@
 ----
 -- base Result interface.
 --
--- implemented by `Constant`, `SigStream`, `EvtStream`, and `IOStream`.
+-- implemented by `Constant`, `SigStream`, and `EvtStream`.
 --
 -- @classmod Result
 import Type from require 'alv.type'
@@ -11,7 +11,7 @@ class Result
 --- Result interface.
 --
 -- Methods that have to be implemented by `Result` implementations
--- (`SigStream`, `EvtStream`, `IOStream`).
+-- (`Constant`, `SigStream`, `EvtStream`).
 --
 -- @section interface
 
@@ -38,8 +38,7 @@ class Result
 
   --- the metatype string for this Result.
   --
-  -- one of `=` (`Constant`), `~` (`SigStream`),
-  -- `!` (`EvtStream` and `IOStream`).
+  -- one of `=` (`Constant`), `~` (`SigStream`), `!` (`EvtStream`).
   --
   -- @tfield string metatype
 

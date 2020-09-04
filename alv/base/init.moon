@@ -16,7 +16,6 @@
 -- @see Constant
 -- @see SigStream
 -- @see EvtStream
--- @see IOStream
 -- @see type.T
 -- @see type.Primitive
 -- @see type.Array
@@ -30,7 +29,7 @@ import Builtin from require 'alv.base.builtin'
 import FnDef from require 'alv.base.fndef'
 import Input from require 'alv.base.input'
 import const, sig, evt from require 'alv.base.match'
-import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
+import Constant, SigStream, EvtStream from require 'alv.result'
 import T, Primitive, Array, Struct from require 'alv.type'
 import RTNode from require 'alv.rtnode'
 import Error from require 'alv.error'
@@ -45,7 +44,7 @@ import Error from require 'alv.error'
   -- redundant exports, to keep anything an extension might need in one import
 
   -- Results
-  :Constant, :SigStream, :EvtStream, :IOStream
+  :Constant, :SigStream, :EvtStream
 
   -- Types
   :T, :Primitive, :Array, :Struct

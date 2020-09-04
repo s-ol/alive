@@ -5,7 +5,6 @@
 -- between `Op`s.
 --
 -- @classmod RTNode
-
 import Error from require 'alv.error'
 
 class RTNode
@@ -35,29 +34,38 @@ class RTNode
     @result.metatype
 
   --- create a copy of this result with result-copy semantics.
-  -- the copy has the same @result and @side_inputs, but will not update
-  -- anything on \tick.
+  --
+  -- the copy has the same @result and @side_inputs, but will not (doubly)update
+  -- anything on `tick` or `poll`.
   make_ref: =>
     RTNode result: @result, side_inputs: @side_inputs
 
-  --- poll all IOStream instances that are effecting this (sub)tree.
+  --- poll all IO Ops effecting this (sub)tree for changes.
+  --
   -- should be called once per frame on the root, right before tick.
+  --
+  -- @treturn ?boolean whether any IO Op marked itself dirty.
   poll_io: =>
-    for result, input in pairs @side_inputs
-      result\poll! if input.mode == 'io'
+    dirty = false
+
+    for op in *@io_ops
+      dirty or= op\poll!
+
+    dirty
 
   --- in depth-first order, tick all Ops which have dirty Inputs.
   --
   -- short-circuits if there are no dirty Inputs in the entire subtree
   tick: =>
-    any_dirty = false
-    for result, input in pairs @side_inputs
-      if input\dirty!
-        any_dirty = true
-        break
+    if #@io_ops == 0
+      any_dirty = false
+      for result, input in pairs @side_inputs
+        if input\dirty!
+          any_dirty = true
+          break
 
-    -- early-out if no Inputs are dirty in this whole subtree
-    return unless any_dirty
+      -- early-out if no Inputs are dirty in this whole subtree
+      return unless any_dirty
 
     for child in *@children
       child\tick!
@@ -81,17 +89,17 @@ class RTNode
     buf ..= ">"
     buf
 
-  --- the `Result` result
-  --
+  --- the `Result` result.
   -- @tfield ?Result result
 
-  --- an Op
-  --
+  --- an Op.
   -- @tfield ?Op op
 
-  --- list of child `RTNode`s from subexpressions
-  --
-  -- @tfield {}|{RTNode,...} children
+  --- list of child `RTNode`s from subexpressions.
+  -- @tfield {RTNode,...} children
+
+  --- cached list of all IO Ops inside this RTNode and children.
+  -- @tfield {Op,...} io_ops
 
   --- cached mapping of all `Result`/`Input` pairs affecting this RTNode.
   --
@@ -110,28 +118,48 @@ class RTNode
     @result = params.result
     @op = params.op
     @children = params.children or {}
+    @io_ops = params.io_ops or {}
 
     if params.side_inputs
       @side_inputs = params.side_inputs
       return
 
-    @side_inputs, is_child = {}, {}
+    @side_inputs = {}
+    is_child = {}
+
     for child in *@children
+      -- collect child side_inputs
       for result, input in pairs child.side_inputs
         @side_inputs[result] = input
+
+      -- collect child io_ops
+      for op in *child.io_ops
+        table.insert @io_ops, op
+
       if child.result
         is_child[child.result] = true
 
     if @op
+      if @op.poll
+        table.insert @io_ops, @op
+
+      -- find inputs outside this tree
       for i in @op\all_inputs!
-        if i.mode == 'io' or (i.mode == 'hot' and not is_child[i.result])
+        if i.mode == 'hot' and not is_child[i.result]
           @side_inputs[i.result] = i
 
-    if @result
-      if next @side_inputs
-        assert @result.metatype != '=', "Const result #{@result} has side_inputs"
-      elseif @result.metatype == '~'
-        @result = @result.type\mk_const @result\unwrap!
+    -- "freeze" ~-streams if there are no IO Ops around
+    return unless @result and @result.metatype == '~'
+    return if #@io_ops > 0
+
+    all_const = true
+    for result, input in pairs @side_inputs
+      if result.metatype != '='
+        all_const = false
+        break
+    return unless all_const
+
+    @result = @result.type\mk_const @result\unwrap!
 
 {
   :RTNode

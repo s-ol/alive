@@ -295,7 +295,7 @@ sig = setmetatable {}, {
   __call: (...) => Type '~', ...
 }
 
---- `Type` shorthands for matching `EvtStream` and `IOStream`s.
+--- `Type` shorthands for matching `EvtStream`s.
 --
 -- Call or index with a string to obtain an `Type` instance.
 -- Call to obtain a wildcard pattern.

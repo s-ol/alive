@@ -15,7 +15,7 @@ version = require 'alv.version'
 import Logger from require 'alv.logger'
 
 import T, Primitive, Struct, Array from require 'alv.type'
-import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
+import Constant, SigStream, EvtStream from require 'alv.result'
 import RTNode from require 'alv.rtnode'
 import Scope from require 'alv.scope'
 import Error from require 'alv.error'
@@ -37,7 +37,6 @@ cycle\resolve!
 -- @tfield Constant Constant
 -- @tfield SigStream SigStream
 -- @tfield EvtStream EvtStream
--- @tfield IOStream IOStream
 -- @tfield type.T T
 -- @tfield type.Primitive Primitive
 -- @tfield type.Array Array
@@ -55,7 +54,7 @@ cycle\resolve!
 {
   :version
 
-  :Constant, :SigStream, :EvtStream, :IOStream
+  :Constant, :SigStream, :EvtStream
   :Cell, :RootCell
   :RTNode, :Scope, :Error
 

@@ -2,7 +2,7 @@
 -- Update scheduling policy for `Op` arguments.
 --
 -- @classmod Input
-import Constant, SigStream, EvtStream, IOStream from require 'alv.result'
+import Constant, SigStream, EvtStream from require 'alv.result'
 import RTNode from require 'alv.rtnode'
 
 inherits = (klass, frm) ->
@@ -112,9 +112,8 @@ class Input
   -- Behaviour depends on what kind of `Result` `value` is:
   --
   -- - `Constant`: treated like `cold`.
-  -- - `SigStream`: Marked dirty only if old and new `SigStream` differ.
-  -- - `EvtStream` and `IOStream`: Marked dirty only if the current
-  --   `EvtStream` is dirty.
+  -- - `SigStream`: Marked dirty only if old and new `result` differ.
+  -- - `EvtStream`: Marked dirty only if the current `result` is dirty.
   --
   -- This is the most common `Input` strategy.
   --
@@ -152,7 +151,6 @@ mapping = {
   [Constant]: ValueInput
   [SigStream]: ValueInput
   [EvtStream]: Input
-  [IOStream]: IOInput
 }
 
 {

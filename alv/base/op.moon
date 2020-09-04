@@ -112,6 +112,18 @@ class Op
     else
       {}
 
+  --- poll for external changes (optional).
+  --
+  -- If implemented, this method will be called at a high frequency and should
+  -- return `true` whenever processing is required due to an external event or
+  -- condition. After polling all such IO Ops a new tick will be executed if any
+  -- returned true. The implementation of `poll` is responsible for triggering
+  -- the `tick` method by writing to an internally allocated `Result` that has
+  -- been inserted into `inputs`.
+  --
+  -- @function poll
+  -- @treturn ?boolean dirty whether processing is required
+
 --- implementation utilities.
 --
 -- super-methods and utilities for use by implementations.
