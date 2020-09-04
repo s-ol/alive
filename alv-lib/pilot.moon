@@ -81,8 +81,12 @@ effect = Constant.meta
     tick: =>
       send @unwrap_all!
 
-{
-  :play
-  'play!': play_
-  :effect
-}
+Constant.meta
+  meta:
+    name: 'pilot'
+    summary: "Pilot integration."
+
+  value:
+    :play
+    'play!': play_
+    :effect

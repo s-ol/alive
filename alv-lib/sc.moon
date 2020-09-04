@@ -77,7 +77,11 @@ Plays the synth `synth` on the `udp/socket` `socket` whenever any `evt` is live.
       msg = pack '/s_new', synth, -1, 0, 1, unpack ctrls
       socket\send msg
 
-{
-  :play
-  'play!': play_
-}
+Constant.meta
+  meta:
+    name: 'sc'
+    summary: "SuperCollider integration."
+
+  value:
+    :play
+    'play!': play_

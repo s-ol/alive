@@ -123,11 +123,15 @@ bool = Constant.meta
     type: T.bool
     tick: => @out\set tobool @inputs[1]!
 
-{
-  :eq, '==': eq
-  'not-eq': not_eq, '!=': not_eq
-  and: and_
-  or: or_
-  not: not_
-  :bool
-}
+Constant.meta
+  meta:
+    name: 'logic'
+    summary: "Logical operations."
+
+  value:
+    :eq, '==': eq
+    'not-eq': not_eq, '!=': not_eq
+    and: and_
+    or: or_
+    not: not_
+    :bool

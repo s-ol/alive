@@ -80,8 +80,12 @@ of the arguments change.
       msg = pack path, if 'table' == type value then unpack value else value
       socket\send msg
 
-{
-  :connect
-  :send
-  :sync
-}
+Constant.meta
+  meta:
+    name: 'osc'
+    summary: "OSC integration."
+
+  value:
+    :connect
+    :send
+    :sync

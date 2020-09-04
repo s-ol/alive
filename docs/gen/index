@@ -2,6 +2,7 @@
 require 'alv'
 import render, layout, autoref, subnav from require 'docs.gen.layout'
 import section, h1, h2, p, ul, li, a, code from require 'docs.gen.dom'
+import get_module from require 'docs.gen.shim'
 import compile from require 'discount'
 
 export OUT
@@ -20,9 +21,11 @@ spit = (file, str) ->
 
 md = slurp file
 for file in *arg[3,]
-  if mod = file\match '/module/(.*)%.html'
-    name = mod\gsub '/', '.'
-    md ..= "   - [`#{name}`](module/#{mod}.html)\n"
+  if name = file\match '/module/(.*)%.html'
+    modname = name\gsub '/', '.'
+    mod = get_module "alv-lib.#{modname}"
+    summary = if mod.meta then ": #{mod.meta.summary}" else ''
+    md ..= "   - [`#{modname}`](module/#{name}.html)#{summary}\n"
 
 content = compile (autoref md), 'githubtags', 'fencedcode'
 sub = subnav [a for a in *arg[3,]]

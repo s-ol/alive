@@ -184,8 +184,12 @@ Send bangs for the `i`-th note-button (MIDI-notes starting from `start`).
         if @state[curr_i+1]
           @out\set true
 
-{
-  'cc-seq': cc_seq
-  'gate-seq': gate_seq
-  'trig-seq': trig_seq
-}
+Constant.meta
+  meta:
+    name: 'midi/launchctl'
+    summary: "MIDI sequencing with the LaunchControl MIDI controller"
+
+  value:
+    'cc-seq': cc_seq
+    'gate-seq': gate_seq
+    'trig-seq': trig_seq

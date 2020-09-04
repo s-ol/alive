@@ -77,7 +77,11 @@ Visualizes `val` as an RGB(A) color with each component in range `0 - range`.
         rgb: @state
       }
 
-{
-  :bar
-  :rgb
-}
+Constant.meta
+  meta:
+    name: 'vis'
+    summary: "Operators for in-editor visualisation."
+
+  value:
+    :bar
+    :rgb

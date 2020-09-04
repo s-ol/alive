@@ -152,35 +152,39 @@ log = func_def 'log', 'val [base]', math.log, "Logarithm with optional base.", n
 log10 = func_def 'log10', 'val', math.log10, "Logarithm with base 10."
 sqrt = func_def 'sqrt', 'val', math.sqrt, "Square root function."
 
-{
-  :add, '+': add
-  :sub, '-': sub
-  :mul, '*': mul
-  :div, '/': div
-  :pow, '^': pow
-  :mod, '%': mod
+Constant.meta
+  meta:
+    name: 'math'
+    summary: "Mathematical functions."
 
-  :even, :odd
+  value:
+    :add, '+': add
+    :sub, '-': sub
+    :mul, '*': mul
+    :div, '/': div
+    :pow, '^': pow
+    :mod, '%': mod
 
-  :mix
-  :min, :max
+    :even, :odd
 
-  pi: Constant.meta
-    value: math.pi
-    meta: summary: 'The pi constant.'
+    :mix
+    :min, :max
 
-  tau: Constant.meta
-    value: math.pi*2
-    meta: summary: 'The tau constant.'
+    pi: Constant.meta
+      value: math.pi
+      meta: summary: 'The pi constant.'
 
-  huge: Constant.meta
-    value: math.huge
-    meta: summary: 'Positive infinity constant.'
+    tau: Constant.meta
+      value: math.pi*2
+      meta: summary: 'The tau constant.'
 
-  :sin, :cos, :tan
-  :asin, :acos, :atan, :atan2
-  :sinh, :cosh, :tanh
+    huge: Constant.meta
+      value: math.huge
+      meta: summary: 'Positive infinity constant.'
 
-  :floor, :ceil, :abs
-  :exp, :log, :log10, :sqrt
-}
+    :sin, :cos, :tan
+    :asin, :acos, :atan, :atan2
+    :sinh, :cosh, :tanh
+
+    :floor, :ceil, :abs
+    :exp, :log, :log10, :sqrt

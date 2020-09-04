@@ -1,25 +1,6 @@
-import Constant, EvtStream, IOStream, Error, Op, Input, T, sig, evt
-  from require 'alv.base'
+import Constant, Error, Op, Input, T, sig, evt from require 'alv.base'
+import RTNode from require 'alv'
 import monotime from require 'system'
-
-class Clock extends IOStream
-  new: (@frametime) =>
-    super T.clock
-
-    return unless monotime
-    @last = monotime!
-    @dt = 0
-
-  poll: =>
-    time = monotime!
-    @dt = time - @last
-    if @dt >= @frametime
-      @set { dt: @dt, :time }
-      @last = time
-
-class ScaledClock extends EvtStream
-  set: (val) => @value
-  unwrap: => @value
 
 clock = Constant.meta
   meta:
@@ -35,15 +16,38 @@ frame rate.
   value: class extends Op
     new: (...) =>
       super ...
-      @out or= Clock!
+      @out or= T.clock\mk_evt!
 
     setup: (inputs) =>
       fps = (-sig.num)\match inputs
-      super fps: Input.hot fps or Constant.num 60
-      @out.frametime = 1 / @inputs.fps!
+      super
+        fps: Input.cold fps or Constant.num 60
+        io: Input.hot T.bang\mk_evt!
+
+    poll: =>
+      time = monotime!
+      @state or= time
+      dt = time - @state
+      ft = 1 / @inputs.fps!
+
+      if dt >= ft
+        @inputs.io.result\set true
+        true
 
     tick: =>
-      @out.frametime = 1 / @inputs.fps!
+      time = monotime!
+      dt = time - @state
+      @state = time
+
+      @out\set :time, :dt
+
+default_clock = do
+  op = clock!!
+  op\setup {}
+  op.out.meta =
+    name: '*clock*'
+    summary: 'Default clock source (60fps).'
+  RTNode :op, result: op.out
 
 scale_time = Constant.meta
   meta:
@@ -324,18 +328,22 @@ Emits `bang!`s with delays `delay0`, `delay1`, … in between.
 
     vis: => step: @state.i\set true
 
-{
-  :clock
-  'scale-time': scale_time
-  :lfo
-  :ramp
-  :tick
-  :every
-  'val-seq': val_seq
-  'bang-seq': bang_seq
+RTNode
+  children: { default_clock }
 
-  '*clock*': with Clock 1/60
-    .meta =
-      name: '*clock*'
-      summary: 'Default clock source (60fps).'
-}
+  result: Constant.meta
+    meta:
+      name: 'time'
+      summary: "Time-variant operators."
+
+    value:
+      :clock
+      'scale-time': scale_time
+      :lfo
+      :ramp
+      :tick
+      :every
+      'val-seq': val_seq
+      'bang-seq': bang_seq
+
+      '*clock*': default_clock

@@ -12,6 +12,10 @@ str = Constant.meta
     type: T.str
     tick: => @out\set table.concat [tostring i! for i in *@inputs]
 
-{
-  :str, '..': str
-}
+Constant.meta
+  meta:
+    name: 'string'
+    summary: "Utilities for dealing with strings."
+
+  value:
+    :str, '..': str

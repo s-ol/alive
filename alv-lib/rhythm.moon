@@ -115,7 +115,11 @@ When fed a num~ or num! stream, outputs a bang if the corresponding step is on."
       if @inputs.steps[i]!
         @out\set true
 
-{
-  :euclid
-  :trigseq
-}
+Constant.meta
+  meta:
+    name: 'rhythm'
+    summary: "Rhythm-generation and sequencing."
+
+  value:
+    :euclid
+    :trigseq

@@ -1,17 +1,11 @@
 #!/usr/bin/env moon
 import Constant from require 'alv'
-import render, layout, subnav from require 'docs.gen.layout'
-import h2, h3, ul, li, code from require 'docs.gen.dom'
+import render, render_meta, layout, subnav from require 'docs.gen.layout'
+import h2, h3, p, ul, li, code from require 'docs.gen.dom'
+import get_module from require 'docs.gen.shim'
 import opairs from require 'alv.util'
 
-export OUT, require
-
-require = do
-  old_require = require
-  blacklist = {k, true for k in *{'osc', 'socket', 'system', 'luartmidi'}}
-  (mod, ...) ->
-    return {} if blacklist[mod]
-    old_require mod, ...
+export OUT
 
 slurp = (file) ->
   file = io.open file, 'r'
@@ -26,18 +20,19 @@ spit = (file, str) ->
 { OUT, module, name } = arg
 
 name or= module
-const = Constant.wrap require module
-module = const\unwrap!
+module = get_module module
+raw = module!
 
 spit OUT, layout
   title: "#{name} module reference"
   body: table.concat {
     subnav [a for a in *arg[4,]]
     h2 (code name), ' module reference'
+    p if m = module.meta then m.summary else ''
     h3 'index'
-    ul for key, node in opairs module.values
+    ul for key, node in opairs raw.values
       li render key, node.result, nil, true
     h3 'details'
-    ul for key, node in opairs module.values
+    ul for key, node in opairs raw.values
       li render key, node.result
   }, ''

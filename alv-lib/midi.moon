@@ -96,11 +96,15 @@ cc = Constant.meta
         bar: @state
       }
 
-{
-  :input
-  :output
-  :inout
-  :gate
-  :trig
-  :cc
-}
+Constant.meta
+  meta:
+    name: 'midi'
+    summary: "MIDI integration."
+
+  value:
+    :input
+    :output
+    :inout
+    :gate
+    :trig
+    :cc

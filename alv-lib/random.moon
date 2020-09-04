@@ -79,9 +79,13 @@ vec = (n) ->
         @gen! if @inputs.trig and @inputs.trig\dirty!
         @out\set [apply_range @inputs.range, v for v in *@state]
 
-{
-  :num
-  vec2: vec 2
-  vec3: vec 3
-  vec4: vec 4
-}
+Constant.meta
+  meta:
+    name: 'random'
+    summary: "Random number generation."
+
+  value:
+    :num
+    vec2: vec 2
+    vec3: vec 3
+    vec4: vec 4

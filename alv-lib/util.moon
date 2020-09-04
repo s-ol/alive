@@ -18,6 +18,10 @@ edge = Constant.meta
         @out\set true
       @state = now
 
-{
-  :edge
-}
+Constant.meta
+  meta:
+    name: 'util'
+    summary: "Utility operators."
+
+  value:
+    :edge

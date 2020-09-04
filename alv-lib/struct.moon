@@ -119,7 +119,11 @@ remove = Constant.meta
 
       @out\set struct
 
-{
-  :get, :set
-  :insert, :remove
-}
+Constant.meta
+  meta:
+    name: 'struct'
+    summary: "Utilities for dealing with structs."
+
+  value:
+    :get, :set
+    :insert, :remove

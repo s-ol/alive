@@ -236,10 +236,14 @@ concat = Constant.meta
 
       @out\set out
 
-{
-  :get, :set
-  :head, :tail, :prepend
-  :insert, :remove
+Constant.meta
+  meta:
+    name: 'array'
+    summary: "Utilities for dealing with arrays."
 
-  :size, :concat
-}
+  value:
+    :get, :set
+    :head, :tail, :prepend
+    :insert, :remove
+
+    :size, :concat
