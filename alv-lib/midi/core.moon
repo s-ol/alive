@@ -1,7 +1,14 @@
-import Constant, IOStream, Op, Input, T, Error, sig from require 'alv.base'
+import Constant, T, Struct, Op, Input, T, Error, const from require 'alv.base'
 import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 
-bit = do
+bit = if _VERSION == 'Lua 5.4'
+  {
+    band: (a, b) -> a & b
+    bor: (a, b) -> a | b
+    lshift: (a, b) -> a << b
+    rshift: (a, b) -> a >> b
+  }
+else
   ok, bit = pcall require, 'bit32'
   if ok then bit else require 'bit'
 import band, bor, lshift, rshift from bit
@@ -30,38 +37,49 @@ find_port = (Klass, name) ->
 
     \openport id
 
-class MidiPort extends IOStream
-  new: => super T['midi/port']
-
-  setup: (inp, out) =>
-    @inp = inp and find_port RtMidiIn, inp
-    @out = out and find_port RtMidiOut, out
+class InPort
+  new: (@name) =>
+    @port = find_port RtMidiIn, @name
+    @msgs = {}
 
   poll: =>
-    return unless @inp
-    while true
-      delta, bytes = @inp\getmessage!
+    @msgs = while true
+      delta, bytes = @port\getmessage!
       break unless delta
-
       { status, a, b } = bytes
       chan = band status, 0xf
       status = MIDI[rshift status, 4]
-      @add { :status, :chan, :a, :b }
+      { :status, :chan, :a, :b }
+
+  __tostring: => "[#{@name}]"
+  __tojson: => string.format '%q', tostring @
+
+class OutPort
+  new: (@name) =>
+    @port = find_port RtMidiOut, @name
 
   send: (status, chan, a, b) =>
-    assert @out, Error 'type', "#{@} is not an output or bidirectional port"
     if 'string' == type 'status'
       status = bor (lshift rMIDI[status], 4), chan
-    @out\sendmessage status, a, b
+    @port\sendmessage status, a, b
+
+  __tostring: => "[#{@name}]"
+  __tojson: => string.format '%q', tostring @
 
 class PortOp extends Op
-  new: (...) =>
-    super ...
-    @out or= MidiPort!
-
-  tick: (inp, out) =>
+  setup: (inputs) =>
+    super inputs
     { :inp, :out } = @unwrap_all!
-    @out\setup inp, out
+
+    if inp and out
+      type = Struct in: T['midi/in'], out: T['midi/out']
+      @out = type\mk_const { 'in': InPort(inp), out: OutPort(out) }
+    elseif inp
+      @out = T['midi/in']\mk_const InPort inp
+    elseif out
+      @out = T['midi/out']\mk_const OutPort out
+    else
+      error "no port opened"
 
 input = Constant.meta
   meta:
@@ -71,8 +89,12 @@ input = Constant.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      name = sig.str\match inputs
+      name = const.str\match inputs
       super inp: Input.hot name
+
+    poll: =>
+      @.out!\poll!
+      false
 
 output = Constant.meta
   meta:
@@ -82,21 +104,25 @@ output = Constant.meta
 
   value: class extends PortOp
     setup: (inputs) =>
-      name = sig.str\match inputs
+      name = const.str\match inputs
       super out: Input.hot name
 
-inout = Constant.meta
+port = Constant.meta
   meta:
-    name: 'inout'
+    name: 'port'
     summary: "Create a bidirectional MIDI port."
-    examples: { '(midi/inout name)' }
+    examples: { '(midi/port name)' }
 
   value: class extends PortOp
     setup: (inputs) =>
-      { inp, out } = (sig.str + sig.str)\match inputs
+      { inp, out } = (const.str + const.str)\match inputs
       super
         inp: Input.hot inp
         out: Input.hot out
+
+    poll: =>
+      @.out!.in\poll!
+      false
 
 apply_range = (range, val) ->
   if range\type! == T.str
@@ -116,7 +142,7 @@ apply_range = (range, val) ->
 {
   :input
   :output
-  :inout
+  :port
   :apply_range
   :bit
 }

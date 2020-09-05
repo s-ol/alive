@@ -1,5 +1,5 @@
 import Constant, Op, Input, T, sig, evt from require 'alv.base'
-import input, output, inout, apply_range from require 'alv-lib.midi.core'
+import input, output, port, apply_range from require 'alv-lib.midi.core'
 
 gate = Constant.meta
   meta:
@@ -8,27 +8,40 @@ gate = Constant.meta
     examples: { '(midi/gate [port] note [chan])' }
 
   value: class extends Op
-    pattern = -evt['midi/port'] + sig.num -sig.num
+    pattern = -sig['midi/in'] + sig.num -sig.num
     setup: (inputs, scope) =>
-      @out or= T.bool\mk_sig!
       { port, note, chan } = pattern\match inputs
+      @out or= T.bool\mk_sig!
       super
-        port: Input.hot port or scope\get '*midi*'
+        port: Input.cold port or scope\get '*midi*'
         note: Input.hot note
         chan: Input.hot chan or Constant.num -1
 
+        internal: Input.hot T.bool\mk_sig!
+
+    poll: =>
+      { :port, :note, :chan, :internal } = @inputs
+
+      msgs = port!.msgs
+      for i = #msgs, 1, -1
+        msg = msgs[i]
+        if msg.a == note! and (chan! == -1 or msg.chan == chan!)
+          if msg.status == 'note-on'
+            internal.result\set true
+            return true
+          elseif msg.status == 'note-off'
+            internal.result\set false
+            return true
+
+      false
+
     tick: =>
-      { :port, :note, :chan } = @inputs
+      { :note, :chan, :internal } = @inputs
 
       if note\dirty! or chan\dirty!
         @out\set false
-
-      if msg = port!
-        if msg.a == note! and (chan! == -1 or msg.chan == chan!)
-          if msg.status == 'note-on'
-            @out\set true
-          elseif msg.status == 'note-off'
-            @out\set false
+      elseif internal\dirty!
+        @out\set internal!
 
 trig = Constant.meta
   meta:
@@ -37,22 +50,32 @@ trig = Constant.meta
     examples: { '(midi/trig [port] note [chan])' }
 
   value: class extends Op
-    pattern = -evt['midi/port'] + sig.num -sig.num
+    pattern = -sig['midi/in'] + sig.num -sig.num
     setup: (inputs, scope) =>
-      @out or= T.bang\mk_evt!
       { port, note, chan } = pattern\match inputs
+      @out or= T.bang\mk_evt!
       super
-        port: Input.hot port or scope\get '*midi*'
+        port: Input.cold port or scope\get '*midi*'
         note: Input.cold note
         chan: Input.cold chan or Constant.num -1
 
-    tick: =>
-      { :port, :note, :chan } = @inputs
+        internal: Input.hot T.bang\mk_evt!
 
-      if msg = port!
+    poll: =>
+      { :port, :note, :chan, :internal } = @inputs
+
+      msgs = port!.msgs
+      for i = #msgs, 1, -1
+        msg = msgs[i]
         if msg.a == note! and (chan! == -1 or msg.chan == chan!)
           if msg.status == 'note-on'
-            @out\set true
+            internal.result\set true
+            return true
+
+      false
+
+    tick: =>
+      @out\set @inputs.internal!
 
 cc = Constant.meta
   meta:
@@ -70,25 +93,38 @@ cc = Constant.meta
 - (num) [ 0 - num["
 
   value: class extends Op
-    pattern = -evt['midi/port'] + sig.num + -sig.num + -sig.num
+    pattern = -sig['midi/in'] + sig.num + -sig.num + -sig.num
     setup: (inputs, scope) =>
       { port, cc, chan, range } = pattern\match inputs
       super
-        port:  Input.hot port or scope\get '*midi*'
+        port:  Input.cold port or scope\get '*midi*'
         cc:    Input.cold cc
         chan:  Input.cold chan or Constant.num -1
         range: Input.cold range or Constant.str 'uni'
 
-      @out or= T.num\mk_sig apply_range @inputs.range, 0
+        internal: Input.hot T.num\mk_sig 0
+
+      @out or= T.num\mk_sig!
+
+    poll: =>
+      { :port, :cc, :chan, :internal } = @inputs
+
+      msgs = port!.msgs
+      for i = #msgs, 1, -1
+        msg = msgs[i]
+        if msg.a == cc! and (chan! == -1 or msg.chan == chan!)
+          if msg.status == 'control-change'
+            internal.result\set msg.b
+            return true
+
+      false
 
     tick: =>
-      { :port, :cc, :chan, :range } = @inputs
-      if msg = port!
-        if msg.status == 'control-change' and
-           (chan! == -1 or msg.chan == chan!) and
-           msg.a == cc!
-          @state = msg.b / 128
-          @out\set apply_range range, msg.b
+      { :range, :internal } = @inputs
+
+      value = internal!
+      @state = value / 128
+      @out\set apply_range range, value
 
     vis: =>
       {
@@ -104,7 +140,7 @@ Constant.meta
   value:
     :input
     :output
-    :inout
+    :port
     :gate
     :trig
     :cc
