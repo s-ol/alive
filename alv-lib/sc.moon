@@ -1,5 +1,5 @@
 import Op, Constant, Input, sig, evt from require 'alv.base'
-import pack from require 'osc'
+import pack from require 'oscpack'
 import dns, udp from require 'socket'
 
 unpack or= table.unpack

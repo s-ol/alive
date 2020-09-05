@@ -1,4 +1,4 @@
-MODULES:=$(sort $(wildcard alv-lib/*.moon)) alv-lib/midi/launchctl.moon
+MODULES:=$(sort $(wildcard alv-lib/*.moon))
 MODULES:=$(MODULES:alv-lib/%.moon=docs/reference/module/%.html)
 REFERENCE=docs/reference/index.md $(sort $(wildcard docs/reference/[01]*.md)) docs/reference/builtins.html $(MODULES)
 REFTOC=$(REFERENCE:%.md=%.html)
