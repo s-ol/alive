@@ -14,12 +14,12 @@ comment = P {
   expr: (P '(') * ((V 'expr') + (1 - P ')'))^0 * (P ')')
   comment: (P '#(') * ((V 'expr') + (1 - P ')'))^0 * (P ')')
 }
-space  = (wc^1 * (comment * wc^1)^0) / 1 -- required whitespace
 mspace = (comment + wc)^0 / 1            -- optional whitespace
+space  = (wc^1 * (comment^0 * wc)^0) / 1 -- required whitespace
 
 -- atoms
 digit = R '09'
-first = (R 'az', 'AZ') + S '-_+*/.=~!?%><'
+first = (R 'az', 'AZ') + S '-_+*/.,=~!?%$><'
 sym = first * (first + digit)^0 / Constant\parse 'sym'
 
 strd = '"' * (C ((P '\\"') + (P '\\\\') + (1 - P '"'))^0) * '"' / Constant\parse 'str', '\"'

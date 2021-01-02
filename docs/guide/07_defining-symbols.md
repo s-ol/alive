@@ -19,7 +19,13 @@ symbol `result`, and then refer to it by that symbol in the [trace][] operator:
     (def result (+ 1 2))
     (trace result)
 
-Symbols need to start with a letter or one of the characters `-_+*/.=~!?%`.
+Symbols need to start with a letter or one of the following special characters:
+
+    - + * /
+    _ . , =
+    ! ? % $
+    > < ~
+
 After the first character, numbers are also allowed. There are two types of
 symbols that are treated specially: symbols containing a slash (`math/+`), and
 symbols starting and ending with asterisks (`*clock*`):
