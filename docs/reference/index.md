@@ -10,7 +10,7 @@ own module or contributing to alive, check out the
 
 ## contents
 
-1. syntax
+1. [syntax](01_syntax.html)
 2. [evaltime and runtime](02_evaltime-and-runtime.html)
 3. evaltime
    1. [symbol resolution](03-1_symbol-resolution.html)
