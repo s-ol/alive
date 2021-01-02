@@ -12,18 +12,15 @@ to format code to your liking. The following are all equal and valid examples:
 
     (print "hello world")
 
-    (+ 1
-       2
-       3)
-
     (print
-    	"hello world")
+    	"hello world"
+    )
 
       ( print "hello world" )
 
 It is however recommended to follow the [clojure style guide][clojure-style] as
 much as it does apply to alv. All further examples in this guide will respect
-this guideline, so you might just pick it up simply by following this guide.
+this guideline, so you might just pick it up simply by following along.
 
 ## comments
 To annotate your code, you can use comments. In `alv`, comments begin with

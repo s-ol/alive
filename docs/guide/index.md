@@ -20,7 +20,7 @@ language and features like functions, loops, etc. take a look at the
 4. [syntax](04_syntax.html)
 5. [basic types](05_basic-types.html)
 6. [importing operators](06_importing-operators.html)
-7. [defining symbols](07_symbols.html)
+7. [defining symbols](07_defining-symbols.html)
 8. [making sound](08_making-sound.html)
 
 [supercollider]: https://supercollider.github.io/
