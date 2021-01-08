@@ -51,6 +51,8 @@ class Constant extends Result
   -- @tfield string metatype (`=`)
   metatype: '='
 
+-- @section
+
 --- AST interface
 --
 -- `Constant` implements the `AST` interface.
