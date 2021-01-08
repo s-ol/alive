@@ -134,7 +134,7 @@ apply_range = (range, val) ->
       when 'deg' then val / 128 * 360
       else
         error Error 'argument', "unknown range '#{range!}'"
-  elseif range.type == T.num
+  elseif range\type! == T.num
     val / 128 * range!
   else
     error Error 'argument', "range has to be a string or number"

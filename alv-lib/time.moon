@@ -149,6 +149,7 @@ ramp = Constant.meta
     tick: =>
       { :clock, :period, :max } = @unwrap_all!
       max or= period
+      return if period == 0
 
       @state += clock.dt / period
       while @state >= 1
@@ -187,7 +188,9 @@ tick = Constant.meta
         period: Input.cold period
 
     tick: =>
-      @state.phase += @inputs.clock!.dt / @inputs.period!
+      { :clock, :period } = @unwrap_all!
+      return if period == 0
+      @state.phase += clock.dt / period
 
       if @state.phase >= 1
         @state.phase -= 1
@@ -223,11 +226,13 @@ every = Constant.meta
       @out = @inputs.evt\type!\mk_evt!
 
     tick: =>
-      @state += @inputs.clock!.dt / @inputs.period!
+      { :clock, :period, :evt } = @unwrap_all!
+      return if period == 0
+      @state += clock.dt / period
 
       if @state >= 1
-        @state -= 1
-        @out\set @inputs.evt!
+        @state = @state % 1
+        @out\set evt
 
 val_seq = Constant.meta
   meta:

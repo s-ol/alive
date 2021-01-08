@@ -1,5 +1,6 @@
-import Constant, Op, Input, T, sig, evt from require 'alv.base'
+import Constant, Op, Input, T, Struct, sig, evt from require 'alv.base'
 import input, output, port, apply_range from require 'alv-lib.midi.core'
+import monotime from require 'system'
 
 gate = Constant.meta
   meta:
@@ -81,7 +82,7 @@ cc = Constant.meta
   meta:
     name: 'cc'
     summary: "`num` from cc-change messages."
-    examples: { '(midi/cc [port] cc [chan [range]])' }
+    examples: { '(midi/cc [port] cc [range] [chan])' }
     description: "
 `range` can be one of:
 
@@ -93,18 +94,19 @@ cc = Constant.meta
 - (num) [ 0 - num["
 
   value: class extends Op
-    pattern = -sig['midi/in'] + sig.num + -sig.num + -sig.num
+    pattern = -sig['midi/in'] + sig.num + -(sig.num / sig.str) + -sig.num
     setup: (inputs, scope) =>
-      { port, cc, chan, range } = pattern\match inputs
+      { port, cc, range, chan } = pattern\match inputs
       super
         port:  Input.cold port or scope\get '*midi*'
         cc:    Input.cold cc
-        chan:  Input.cold chan or Constant.num -1
         range: Input.cold range or Constant.str 'uni'
+        chan:  Input.cold chan or Constant.num -1
 
-        internal: Input.hot T.num\mk_sig 0
+        internal: Input.hot T.bang\mk_evt!
 
-      @out or= T.num\mk_sig!
+      @state or= 0
+      @out or= T.num\mk_sig apply_range @inputs.range, @state
 
     poll: =>
       { :port, :cc, :chan, :internal } = @inputs
@@ -114,7 +116,8 @@ cc = Constant.meta
         msg = msgs[i]
         if msg.a == cc! and (chan! == -1 or msg.chan == chan!)
           if msg.status == 'control-change'
-            internal.result\set msg.b
+            @state = msg.b
+            internal.result\set true
             return true
 
       false
@@ -122,15 +125,71 @@ cc = Constant.meta
     tick: =>
       { :range, :internal } = @inputs
 
-      value = internal!
-      @state = value / 128
-      @out\set apply_range range, value
+      if internal!
+        @out\set apply_range range, @state
 
     vis: =>
       {
         type: 'bar'
-        bar: @state
+        bar: @state / 128
       }
+
+send_notes = Constant.meta
+  meta:
+    name: 'send-notes'
+    summary: "`send MIDI note events."
+    examples: { '(midi/send-notes [port] [chan] note-events)' }
+    description: "
+`chan` can be
+`note-events` is a !-stream of structs with the following keys:
+
+- `pitch`: MIDI pitch (num)
+- `dur`: note duration in seconds (num)
+- `vel`: MIDI velocity (num, optional)"
+
+  value: class extends Op
+    thin = Struct pitch: T.num, dur: T.num
+    thiq = Struct pitch: T.num, dur: T.num, vel: T.num
+    pattern = -sig['midi/out'] + -sig.num + (evt(thin) / evt(thiq))
+    setup: (inputs, scope) =>
+      { port, chan, notes } = pattern\match inputs
+      @state = {}
+      super
+        port:  Input.cold port or scope\get '*midi*'
+        notes: Input.hot notes
+        chan:  Input.cold chan or Constant.num 0
+
+        note_off: Input.hot T.num\mk_evt!
+
+    poll: =>
+      time = monotime!
+
+      for pitch, endt in pairs @state
+        if endt <= time
+          @inputs.note_off.result\set pitch
+          return true
+
+      false
+
+    tick: =>
+      { :port, :chan, :notes, :note_off } = @unwrap_all!
+
+      if notes
+        { :pitch, :dur, :vel } = notes
+        pitch = math.floor pitch
+        vel = if vel then math.floor vel else 127
+        @state[pitch] = monotime! + dur
+        port\send 'note-on', chan, pitch, vel
+
+      if pitch = note_off
+        @state[pitch] = nil
+        port\send 'note-off', chan, pitch, 0
+
+  destroy: =>
+    { :port, :chan } = @unwrap_all!
+
+    for pitch, endt in pairs @state
+      port\send 'note-off', chan, pitch, 0
 
 Constant.meta
   meta:
@@ -141,6 +200,8 @@ Constant.meta
     :input
     :output
     :port
+
     :gate
     :trig
     :cc
+    'send-notes': send_notes

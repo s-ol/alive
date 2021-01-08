@@ -24,7 +24,7 @@ bjorklund2 = (n, k) ->
   b, bs = '0', n - k
 
   while true
-    if bs == 1 or bs == 0
+    if as < 2 or bs < 2
       break
     elseif as < bs
       a, b = a .. b, b
@@ -64,6 +64,8 @@ When fed a num~ or num! stream, outputs a bang if the corresponding step is on."
 
     tick: =>
       { :trig, :n, :k } = @unwrap_all!
+      n = math.floor n
+      k = math.floor k
 
       if @inputs.trig\type! == T.bang
         @state += 1
