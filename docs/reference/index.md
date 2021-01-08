@@ -21,7 +21,7 @@ own module or contributing to alive, check out the
    6. [modules and loading](03-6_modules-and-loading.html)
 4. runtime
    1. [result kinds](04-1_result-kinds.html)
-   2. pure operators
+   2. [pure operators](04-2_pure-operators.html)
 5. compound types
    1. arrays
    2. structs
