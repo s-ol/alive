@@ -21,23 +21,26 @@ As an example, let's consider [math/+][]:
     (import* math time)
 
     (trace (+ 1 2 3))
-    #((+ num= num= num=) -> num=
-      trace (+ 1 2 3): <num= 6>)
-
     (trace (+ 1 2 (lfo 2)))
-    #((+ num= num= num~) -> num~
-      trace (+ 1 2 (lfo 2)): <num~ 4.0>
-      trace (+ 1 2 (lfo 2)): <num~ 3.9882585630406>)
-
     (trace (+ 1 2 (every 1 3)))
-    #((+ num= num= num!) -> num!
-      trace (+ 1 2 (every 2 3)): <num! 6>
-      trace (+ 1 2 (every 2 3)): <num! 6>)
-
     (trace (+ 1 (lfo 2) (every 1 3)))
-    #((+ num= num~ num!) -> num!
-      trace (+ 1 (lfo 2) (every 2 3)): <num! 4.9950529446967>
-      trace (+ 1 (lfo 2) (every 2 3)): <num! 4.9950529446967>)
+
+<div />
+
+    (+ num= num= num=) -> num=
+    trace (+ 1 2 3): <num= 6>
+
+    (+ num= num= num~) -> num~
+    trace (+ 1 2 (lfo 2)): <num~ 4.0>
+    trace (+ 1 2 (lfo 2)): <num~ 3.9882585630406>
+
+    (+ num= num= num!) -> num!
+    trace (+ 1 2 (every 2 3)): <num! 6>
+    trace (+ 1 2 (every 2 3)): <num! 6>
+
+    (+ num= num~ num!) -> num!
+    trace (+ 1 (lfo 2) (every 2 3)): <num! 4.9950529446967>
+    trace (+ 1 (lfo 2) (every 2 3)): <num! 4.9950529446967>
 
 Sometimes a *Pure Op* will require additional constraints on the *kinds* of
 some of its inputs. These will be specified in the documentation.
