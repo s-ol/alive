@@ -7,11 +7,18 @@ import parse_args, Copilot from require 'alv.copilot.base'
 import sleep from require 'system'
 
 class ColorLogger extends Logger
+  new: (...) =>
+    super ...
+    @time_pref = ''
+
   set_time: (time) =>
     super time
-    @stream\write switch time
+    @time_pref = switch time
       when 'eval' then '\27[92m'
       when 'run' then '\27[0m'
+
+  put: (msg) =>
+    super @time_pref .. msg
 
 class CLICopilot extends Copilot
   new: (arg) =>
