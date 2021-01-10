@@ -15,6 +15,9 @@ traces, e.g:
 
 where `<num= 4>` denotes a constant of the type `num` with a value of `4`.
 
+The [=][] builtin can be used to assert that a result is a constant. There is
+no way to convert a signal or event stream to a constant.
+
 # Signal Streams (~-streams)
 Signal results contain a continuous value of a given type. A signal must have a
 defined value at any given moment in time, including each *evaltime* evaluation.
@@ -33,8 +36,10 @@ e.g.:
 where `<num~ 1.0>` denotes a signal-stream of the type `num` with a current
 value of `1.0`.
 
-Constants can be passed in place of signals and will be treated like signals
-that never change.
+The [~][] builtin can be used to convert event streams to signal streams that
+track the last received event. It is not possible or necessary to convert
+constants to signal streams, as constants can always be passed in place of
+signals.
 
 # Event Streams (!-streams)
 Event results may contain discrete values at instants in time, but are
@@ -54,3 +59,6 @@ traces, e.g.:
 
 where `<num~ 1.0>` denotes an event-stream of the type `bang` that fired with a
 value of `true`.
+
+The [!][] builtin can be used to convert signal streams or constants into
+events by using an external impulse source.
