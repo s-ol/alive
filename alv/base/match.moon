@@ -13,9 +13,9 @@
 -- - `const.sym`: Shorthand for `Type('=', T.sym)`
 -- - `sig.num`: Shorthand for `Type('~', T.num)`
 -- - `evt.str`: Shorthand for `Type('!', T.str)`
--- - `pat * 2`: Shorthand for `Repeat(pat, 1, 2)` (1-4 times `pat`)
+-- - `pat * 2`: Shorthand for `Repeat(pat, 1, 2)` (1-2 times `pat`)
 -- - `pat * 0`: Shorthand for `Repeat(pat, 1, nil)` (1-* times `pat`)
--- - `pat ^ 2`: Shorthand for `Repeat(pat, 0, 2)` (0-4 times `pat`)
+-- - `pat ^ 2`: Shorthand for `Repeat(pat, 0, 2)` (0-2 times `pat`)
 -- - `pat ^ 0`: Shorthand for `Repeat(pat, 0, nil)` (0-* times `pat`)
 -- - `a + b + … + z`: Shorthand for `Sequence{ a, b, ..., z }`
 -- - `a / b / … / z`: Shorthand for `Choice{ a, b, ..., z }`
