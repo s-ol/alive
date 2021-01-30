@@ -1,5 +1,5 @@
-import Op, Constant, SigStream, Input, T, sig, evt from require 'alv.base'
-import pack from require 'oscpack'
+import Op, PureOp, Constant, SigStream, Input, T, sig, evt from require 'alv.base'
+import new_message, add_item from require 'alv-lib._osc'
 import dns, udp from require 'socket'
 
 unpack or= table.unpack
@@ -29,56 +29,41 @@ connect = Constant.meta
 send = Constant.meta
   meta:
     name: 'send'
-    summary: "Send events via OSC."
-    examples: { '(osc/send [socket] path evt)' }
-    description: "Sends an OSC message with `evt` as an argument.
+    summary: "Send an OSC message."
+    examples: { '(osc/send [socket] path val…)' }
+    description: "Sends an OSC message to `path` with `val…` as arguments.
 
 - `socket` should be a `udp/socket` value. This argument can be omitted and the
   value be passed as a dynamic definition in `*sock*` instead.
 - `path` is the OSC path to send the message to. It should be a string-value.
-- `evt` is the argument to send. It should be an event stream."
-  value: class extends Op
-    pattern = -sig['udp/socket'] + sig.str + evt!
+- the arguments can be any type:
+  - `num` will be sent as `f`
+  - `str` will be sent as `s`
+  - `bool` will be sent as `T`/`F`
+  - `bang` will be sent as `T`
+  - arrays will be unwrapped
+  - structs will be sent as a series of key/value tuples
+
+This is a pure op, so between the values at most one !-stream input is allowed."
+
+  value: class extends PureOp
+    pattern: (evt! / sig!)^0
+
+    full_pattern = -sig['udp/socket'] + sig.str + (evt! / sig!)^0
     setup: (inputs, scope) =>
-      { socket, path, value } = pattern\match inputs
-      super
+      { socket, path, values } = full_pattern\match inputs
+      super values, scope, {
         socket: Input.cold socket or scope\get '*sock*'
         path:   Input.cold path
-        value:  Input.hot value
+      }
 
     tick: =>
-      { :socket, :path, :value } = @unwrap_all!
-      if value
-        msg = pack path, if 'table' == type value then unpack value else value
-        socket\send msg
-
-sync = Constant.meta
-  meta:
-    name: 'sync'
-    summary: "Synchronize a value via OSC."
-    examples: { '(osc/sync [socket] path val)' }
-    description: "sends a message whenever any parameter is dirty."
-    description: "Sends an OSC message with `val` as an argument whenever any
-of the arguments change.
-
-- `socket` should be a `udp/socket` value. This argument can be omitted and the
-  value be passed as a dynamic definition in `*sock*` instead.
-- `path` is the OSC path to send the message to. It should be a string-value.
-- `val` is the value to Synchronize. It should be a value stream."
-
-  value: class extends Op
-    pattern = -sig['udp/socket'] + sig.str + sig!
-    setup: (inputs, scope) =>
-      { socket, path, value } = pattern\match inputs
-      super
-        socket: Input.hot socket or scope\get '*sock*'
-        path:   Input.hot path
-        value:  Input.hot value
-
-    tick: =>
-      { :socket, :path, :value } = @unwrap_all!
-      msg = pack path, if 'table' == type value then unpack value else value
-      socket\send msg
+      args = @unwrap_all!
+      { :socket, :path } = args
+      msg = new_message path
+      for i=1,#args
+        add_item msg, @inputs[i]\type!, args[i]
+      socket\send msg.pack msg.content
 
 Constant.meta
   meta:

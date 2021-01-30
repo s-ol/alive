@@ -35,7 +35,7 @@ let
       url    = "mirror://luarocks//${pname}-${version}.src.rock";
       sha256 = "Dp3bKIG4swrD4+1NNtRTgyj68Di2cSUlh1r7Z2Rkzn0=";
     };
-    propagatedBuildInputs = [ pkgs.lua5_3 pkgs.git ];
+    propagatedBuildInputs = with pkgs; [ lua5_3 git ];
 
     meta = with pkgs.stdenv.lib; {
       homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
@@ -52,12 +52,30 @@ let
       url    = "mirror://luarocks//${pname}-${version}.src.rock";
       sha256 = "fD31FruqVriMecFcvSV4W7JRia38+bg7j3T5k5pFZec=";
     };
-    buildInputs = with pkgs; [ pkgs.fltk libjpeg ];
+    buildInputs = with pkgs; [ fltk libjpeg ];
     propagatedBuildInputs = [ pkgs.lua5_3 luarocks-build-cpp luarocks-fetch-gitrec ];
 
     meta = with pkgs.stdenv.lib; {
       homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
       description = "Lua binding to FLTK, the Fast Light ToolKit";
+      license.fullName = "MIT";
+    };
+  };
+
+  losc = pkgs.lua53Packages.buildLuarocksPackage rec {
+    pname = "losc";
+    version = "1.0.0-1";
+
+    src = pkgs.fetchurl {
+      url    = "mirror://luarocks//${pname}-${version}.src.rock";
+      sha256 = "MArhj51V1awF5k2zToFYEXpS2c6o8bnNDn4wLhooHos=";
+    };
+    buildInputs = with pkgs; [ stdenv.cc.cc.lib ];
+    propagatedBuildInputs = [ pkgs.lua5_3 ];
+
+    meta = with pkgs.stdenv.lib; {
+      homepage = "https://github.com/davidgranstrom/losc";
+      description = "Open Sound Control (OSC) for lua/luajit with no external dependencies.";
       license.fullName = "MIT";
     };
   };
@@ -117,7 +135,7 @@ in pkgs.mkShell {
   buildInputs = with pkgs; [
     (lua5_3.withPackages (p: with p; [
       moonscript lpeg
-      luafilesystem luasocket luasystem fltk4lua bit32
+      luafilesystem luasocket luasystem fltk4lua losc bit32
       ldoc busted discount
     ]))
   ];

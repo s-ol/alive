@@ -4,7 +4,7 @@ export require
 
 require = do
   old_require = require
-  blacklist = {k, true for k in *{'oscpack', 'socket', 'system', 'luartmidi'}}
+  blacklist = {k, true for k in *{'losc', 'socket', 'system', 'luartmidi'}}
   (mod, ...) ->
     return {} if blacklist[mod]
     old_require mod, ...

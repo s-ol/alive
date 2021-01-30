@@ -16,7 +16,7 @@ processes. For more information, visit the full [online documentation][docs].
 - [LPeg][lpeg]*:            `luarocks install lpeg`
 - [socket][socket]:         `luarocks install luasocket`
 - [system][system]:         `luarocks install luasystem`
-- [oscpack][oscpack]:       `luarocks install oscpack` (optional)
+- [losc][losc]:             `luarocks install losc` (optional)
 - [lua-rtmidi][rtmidi]:     `luarocks install
   https://raw.githubusercontent.com/s-ol/lua-rtmidi/master/lua-rtmidi-dev-1.rockspec` (optional)
 - [busted][busted]:         `luarocks install busted` (optional, for tests)
@@ -54,7 +54,7 @@ development, simply pass the files as arguments:
 [moonscript]: https://moonscript.org/
 [lfs]:        https://keplerproject.github.io/luafilesystem/
 [lpeg]:       http://www.inf.puc-rio.br/~roberto/lpeg/
-[oscpack]:        https://github.com/s-ol/lua-oscpack
+[losc]:       https://github.com/davidgranstrom/losc
 [system]:     https://github.com/o-lim/luasystem
 [socket]:     http://w3.impa.br/~diego/software/luasocket/
 [rtmidi]:     https://github.com/s-ol/lua-rtmidi/

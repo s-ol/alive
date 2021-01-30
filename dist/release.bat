@@ -19,7 +19,6 @@ xcopy /E /I dist\win\wrappers\* dist\%BUNDLE%\
 
 cd dist\%BUNDLE%\lua
 call luarocks install busted
-call luarocks install %DEPS%\osc-1.0.1-1.rockspec
 call luarocks install luarocks-fetch-gitrec
 call luarocks install luarocks-build-cpp
 call luarocks install %DEPS%\fltk4lua-0.1-1.rockspec FLTK_LIBDIR=%DEPS%\fltk-1.3.5\lib FLTK_INCDIR=%DEPS%\fltk-1.3.5

@@ -1,81 +1,88 @@
-import Op, Constant, Input, sig, evt from require 'alv.base'
-import pack from require 'oscpack'
-import dns, udp from require 'socket'
+import Op, Constant, Input, Array, Struct, T, sig, evt from require 'alv.base'
+import new_message, add_item from require 'alv-lib._osc'
 
 unpack or= table.unpack
 
-play = Constant.meta
+validate_ctrls = (type) ->
+  switch type.__class
+    when Array
+      assert (type.type == T.num) or (type.type == T.str),
+        "synthdef control values have to be either num or str"
+    when Struct
+      for k, t in pairs type.types
+        assert (t == T.num) or (t == T.str),
+          "synthdef control value '#{k}' has to be either num or str"
+
+play_ = Constant.meta
   meta:
-    name: 'play'
+    name: 'play!'
     summary: 'Play a SuperCollider SynthDef on bangs.'
-    examples: { '(play [socket] synth trig [param val…])' }
+    examples: { '(play [socket] synth trig ctrls)' }
     description: "
 Plays the synth `synth` on the `udp/socket` `socket` whenever `trig` is live.
 
 - `socket` should be a `udp/socket` value. This argument can be omitted and the
   value be passed as a dynamic definition in `*sock*` instead.
 - `synth` is the SC synthdef name. It should be a string-value.
-- `trig` is the trigger signal. It should be a stream of bang-events.
-- `param` is the name of a synthdef parameter. It should be a string-value."
+- `trig` is the trigger signal. It should be a !-stream of bang-events.
+- `ctrls` is a struct of synthdef controls. It should be a ~-stream."
   value: class extends Op
-    pattern = -sig['udp/socket'] + sig.str + evt.bang + (sig.str + sig.num)\rep 0
+    pattern = -sig['udp/socket'] + sig.str + evt.bang + sig!
     setup: (inputs, scope) =>
       { socket, synth, trig, ctrls } = pattern\match inputs
 
-      flat_ctrls = {}
-      for { key, value } in *ctrls
-        table.insert flat_ctrls, key
-        table.insert flat_ctrls, value
+      validate_ctrls ctrls\type!
 
       super
         trig:   Input.hot trig
         socket: Input.cold socket or scope\get '*sock*'
         synth:  Input.cold synth
-        ctrls: [Input.cold v for v in *flat_ctrls]
+        ctrls:  Input.cold ctrls
 
     tick: =>
-      if @inputs.trig\dirty! and @inputs.trig!
-        { :socket, :synth, :ctrls } = @unwrap_all!
-        msg = pack '/s_new', synth, -1, 0, 1, unpack ctrls
-        socket\send msg
+      { :socket, :synth, :ctrls } = @unwrap_all!
+      msg = new_message '/s_new'
+      msg\add 's', synth
+      msg\add 'i', -1
+      msg\add 'i', 0
+      msg\add 'i', 1
+      add_item msg, @inputs.ctrls\type!, ctrls
+      socket\send msg.pack msg.content
 
-play_ = Constant.meta
+
+play = Constant.meta
   meta:
-    name: 'play!'
+    name: 'play'
     summary: 'Play a SuperCollider SynthDef on events.'
-    examples: { '(play [socket] synth [param evt/val…])' }
+    examples: { '(play [socket] synth ctrls)' }
     description: "
-Plays the synth `synth` on the `udp/socket` `socket` whenever any `evt` is live.
+Plays the synth `synth` on the `udp/socket` `socket` whenever an event arrives.
 
 - `socket` should be a `udp/socket` value. This argument can be omitted and the
   value be passed as a dynamic definition in `*sock*` instead.
 - `synth` is the SC synthdef name. It should be a string-value.
-- `param` is the name of a synthdef parameter. It should be a string-value.
-- `val` and `evt` are the parameter values to send. They should be number
-  streams. Incoming events will cause a note to be played, while value changes
-  will not."
+- `ctrls` is a struct of synthdef controls. It should be a !-stream."
   value: class extends Op
-    pattern = -sig['udp/socket'] + sig.str + (sig.str + (sig.num / evt.num))\rep 0
+    pattern = -sig['udp/socket'] + sig.str + evt!
     setup: (inputs, scope) =>
-      { socket, synth, trig, ctrls } = pattern\match inputs
+      { socket, synth, ctrls } = pattern\match inputs
 
-      flat = {}
-      for { key, value } in *ctrls
-        table.insert flat, Input.cold key
-        table.insert flat, if value\metatype! == 'event'
-          Input.hot value
-        else
-          Input.cold value
+      validate_ctrls ctrls\type!
 
       super
         socket: Input.cold socket or scope\get '*sock*'
         synth:  Input.cold synth
-        ctrls:  flat
+        ctrls:  Input.hot ctrls
 
     tick: =>
       { :socket, :synth, :ctrls } = @unwrap_all!
-      msg = pack '/s_new', synth, -1, 0, 1, unpack ctrls
-      socket\send msg
+      msg = new_message '/s_new'
+      msg\add 's', synth
+      msg\add 'i', -1
+      msg\add 'i', 0
+      msg\add 'i', 1
+      add_item msg, @inputs.ctrls\type!, ctrls
+      socket\send msg.pack msg.content
 
 Constant.meta
   meta:

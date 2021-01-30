@@ -91,6 +91,7 @@ dependencies = {
   "luafilesystem",
   "luasystem",
   "luasocket",
+  "losc",
 }
 
 build = {
