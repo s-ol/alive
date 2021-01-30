@@ -16,6 +16,11 @@ import ancestor, deep_iter, deep_map from require 'alv.util'
 
 unpack or= table.unpack
 
+hot_if_trigger = (trigger) -> (a) ->
+  if a == trigger
+    return Input.hot a
+  Input.cold a
+
 class PureOp extends Op
 --- members.
 -- @section members
@@ -35,7 +40,11 @@ class PureOp extends Op
   -- @treturn type.Type
 
   --- set up inputs for a range of things.
-  setup: (inputs) =>
+  --
+  -- @tparam {RTNode,...} inputs a sequence of `RTNode`s
+  -- @tparam Scope scope (unused)
+  -- @tparam[opt] table extra_inputs table of `Input`s to merge into pureop result
+  setup: (inputs, scope, extra_inputs={}) =>
     args = @@pattern\match inputs
 
     local trigger
@@ -44,17 +53,16 @@ class PureOp extends Op
         assert not trigger, Error 'argument', "pure op can take at most one !-stream."
         trigger = arg
 
-    typ = if (type @type) == 'table' then @type else @type args
-    assert (ancestor typ.__class) == Type, "not a type: #{typ}"
+    typ = if (type @type) == 'function' then @type args else @type
+    if typ
+      assert (ancestor typ.__class) == Type, "not a type: #{typ}"
+      @out = if trigger then typ\mk_evt! else typ\mk_sig!
 
-    if trigger
-      super deep_map args, (a) ->
-        Inp = if a == trigger then Input.hot else Input.cold
-        Inp a
-      @out = typ\mk_evt!
-    else
-      super deep_map args, (a) -> Input.hot a
-      @out or= typ\mk_sig!
+    map_fn = if trigger then hot_if_trigger trigger else Input.hot
+    inputs = deep_map args, map_fn
+    for k,v in pairs extra_inputs
+      inputs[k] = v
+    super inputs
 
 {
   :PureOp

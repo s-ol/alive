@@ -80,7 +80,7 @@ class RTNode
 
       return unless self_dirty
 
-      Error.wrap "ticking #{op}", @op\tick
+      Error.wrap "ticking #{@op}", @op\tick
 
   __tostring: =>
     buf = "<RT=#{@result}"
