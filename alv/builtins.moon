@@ -512,7 +512,7 @@ This is a pure op, so at most one !-stream input is allowed."
     any = sig! / evt!
 
     class extends PureOp
-      pattern: any!*0
+      pattern: any*0
       type: (args) => Array #args, args[1]\type!
 
       tick: =>
