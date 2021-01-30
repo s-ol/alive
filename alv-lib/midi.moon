@@ -1,5 +1,5 @@
 import Constant, Op, Input, T, Struct, sig, evt from require 'alv.base'
-import input, output, port, apply_range from require 'alv-lib.midi.core'
+import input, output, port, apply_range from require 'alv-lib._midi'
 import monotime from require 'system'
 
 gate = Constant.meta
@@ -140,7 +140,6 @@ send_notes = Constant.meta
     summary: "`send MIDI note events."
     examples: { '(midi/send-notes [port] [chan] note-events)' }
     description: "
-`chan` can be
 `note-events` is a !-stream of structs with the following keys:
 
 - `pitch`: MIDI pitch (num)
