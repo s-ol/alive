@@ -4,7 +4,7 @@ recommended place to start. If you are looking for information on adding your
 own module or contributing to alive, check out the
 [developer documentation](../internals/index.html).
 
-[guide]: (../guide/index.html)
+[guide]: ../guide/index.html
 
 ## contents
 
