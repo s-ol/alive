@@ -105,7 +105,7 @@ class Type extends Pattern
     return unless seq[i]
     type, mt = seq[i]\type!, seq[i]\metatype!
 
-    if not casts[@metatype .. mt]
+    if @metatype and not casts[@metatype .. mt]
       return
 
     match = if @type then type == @type else @remember type
@@ -113,7 +113,7 @@ class Type extends Pattern
       1, seq[i]
 
   __call: => @@ @metatype, @type, true
-  __tostring: => "#{@type or 'any'}#{@metatype}"
+  __tostring: => "#{@type or 'any'}#{@metatype or ''}"
 
 --- Repeat a pattern.
 --
@@ -279,7 +279,7 @@ const = setmetatable {}, {
 
 --- `Type` shorthands for matching `ValueStream`s and `Constant`s.
 --
--- Call or index with a string to obtain a `Type` instance.
+-- Call or index with a type or string to obtain a `Type` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     sig.str, sig.num
@@ -297,7 +297,7 @@ sig = setmetatable {}, {
 
 --- `Type` shorthands for matching `EvtStream`s.
 --
--- Call or index with a string to obtain an `Type` instance.
+-- Call or index with a type or string to obtain an `Type` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     evt.bang, evt.str, evt.num
@@ -313,7 +313,25 @@ evt = setmetatable {}, {
   __call: (...) => Type '!', ...
 }
 
+--- `Type` shorthands for matching any `Result`s.
+--
+-- Call or index with a type or string to obtain an `Type` instance.
+-- Call to obtain a wildcard pattern.
+--
+--     any.bang, any.str, any.num
+--     any['midi/message'], any(Primitive 'midi/message')
+--     any()
+--
+-- @table evt
+any = setmetatable {}, {
+  __index: (key) =>
+    with v = Type nil, T[key]
+      @[key] = v
+
+  __call: (...) => Type nil, ...
+}
+
 {
   :Type, :Repeat, :Sequence, :Choice, :Optional
-  :const, :sig, :evt
+  :const, :sig, :evt, :any
 }

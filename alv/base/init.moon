@@ -28,7 +28,7 @@ import PureOp from require 'alv.base.pureop'
 import Builtin from require 'alv.base.builtin'
 import FnDef from require 'alv.base.fndef'
 import Input from require 'alv.base.input'
-import const, sig, evt from require 'alv.base.match'
+import const, sig, evt, any from require 'alv.base.match'
 import Constant, SigStream, EvtStream from require 'alv.result'
 import T, Primitive, Array, Struct from require 'alv.type'
 import RTNode from require 'alv.rtnode'
@@ -39,7 +39,7 @@ import Error from require 'alv.error'
   :Builtin
   :FnDef
   :Input
-  :const, :sig, :evt
+  :const, :sig, :evt, :any
 
   -- redundant exports, to keep anything an extension might need in one import
 
