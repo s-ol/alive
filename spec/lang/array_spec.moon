@@ -2,7 +2,7 @@ import TestPilot from require 'spec.test_setup'
 import T, Array, Constant from require 'alv'
 
 describe "array", ->
-  test = TestPilot '', '(import* array)\n'
+  test = TestPilot '', '(import* array-)\n'
 
   svec3 = Array 3, T.str
 
