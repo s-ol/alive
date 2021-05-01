@@ -1,5 +1,9 @@
-import Array, Op, PureOp, Constant, Error, const, sig, evt from require 'alv.base'
+import Array, Op, PureOp, Builtin, Constant, Error, const, sig, evt, T from require 'alv.base'
+import Cell from require 'alv.cell'
+import Tag from require 'alv.tag'
+builtins = require 'alv.builtins'
 
+unpack or= table.unpack
 any = sig! / evt!
 
 get = Constant.meta
@@ -236,6 +240,49 @@ concat = Constant.meta
 
       @out\set out
 
+array_constr = builtins!\get('array').result
+map = Constant.meta
+  meta:
+    name: 'map'
+    summary: "Apply an function to each value in an array."
+    examples: { '(map array fn)' }
+    description: "
+Invokes `fn` once for each element in `array` and returns an array of the results.
+`fn` must take one argument and return the same type consistently."
+
+  value: class extends Builtin
+    eval: (scope, tail) =>
+      L\trace "evaling #{@}"
+      assert #tail == 2, "'map' takes exactly two arguments"
+      tail = [L\push t\eval, scope for t in *tail]
+      { array, fn } = tail
+
+      fndef = fn.result
+      assert fn\type! == T.fndef, "fn has to be a fndef"
+      array_type = array\type!
+      assert array_type.__class == Array, Error 'argument', "expected an Array"
+
+      invocations = for i=1, array_type.size
+        tag_o = @tag\clone Tag.parse tostring i
+        tag_i = @tag\clone tag_o
+        Cell tag_o, {
+          with Constant.literal T.fndef, fndef!, 'fn'
+            .meta = fndef.meta
+          Cell tag_i, {
+            Constant.literal T.opdef, get!, 'get'
+            Constant.literal array_type, array.result!, 'array'
+            Constant.num i-1
+          }
+        }
+
+      tag = @tag\clone Tag.parse '-1'
+      inner = Cell tag, {
+        Constant.literal T.opdef, array_constr, 'array'
+        unpack invocations
+      }
+      super inner\eval scope
+
+
 Constant.meta
   meta:
     name: 'array'
@@ -245,5 +292,6 @@ Constant.meta
     :get, :set
     :head, :tail, :prepend
     :insert, :remove
+    :map
 
     :size, :concat
