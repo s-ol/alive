@@ -463,7 +463,7 @@ Since ~-streams cannot be emtpy, specifying an `initial` value is necessary."
 
       super event: Input.hot event
 
-      if not @out or @out.type != input\type!
+      if not @out or @out.type != event\type!
         @out = event\type!\mk_sig initial.result!
 
     tick: => @out\set @inputs.event!
