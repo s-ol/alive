@@ -1,6 +1,10 @@
-import Constant, Op, PureOp, Input, T, Struct, sig, evt from require 'alv.base'
+import Constant, Op, PureOp, Input, T, Array, any from require 'alv.base'
 
 unpack or= table.unpack
+
+vec2 = Array 2, T.num
+vec3 = Array 3, T.num
+vec4 = Array 4, T.num
 
 class DrawId
   new: =>
@@ -16,13 +20,16 @@ draw = Constant.meta
       super ...
       @state or= DrawId!
 
-    pattern = sig['love/shape']*0
+    pattern = any['love/shape']*0
     setup: (inputs, scope) =>
       shapes = pattern\match inputs
-      super [Input.hot shape for shape in *shapes]
+      inputs = [Input.hot shape for shape in *shapes]
+      inputs.num = Input.cold Constant.num #shapes
+      super inputs
 
     tick: =>
       shapes = @unwrap_all!
+      for i=1, shapes.num do shapes[i] or= ->
       COPILOT.drawlist[@state] = shapes
 
     destroy: =>
@@ -32,14 +39,15 @@ rectangle = Constant.meta
   meta:
     name: 'rectangle'
     summary: "create a rectangle shape."
-    examples: { '(love/rectangle mode w h)' }
+    examples: { '(love/rectangle mode size)', '(love/rectangle mode w h)' }
 
   value: class extends PureOp
-    pattern: sig.str + sig.num + sig.num
+    pattern: any.str + (any(vec2) / (any.num + any.num))
     type: T['love/shape']
 
     tick: =>
-      { mode, w, h } = @unwrap_all!
+      { mode, size } = @unwrap_all!
+      { w, h } = size
       x, y = -w/2, -h/2
 
       @out\set ->
@@ -52,7 +60,7 @@ color = Constant.meta
     examples: { '(love/color r g b [a] shape)' }
 
   value: class extends PureOp
-    pattern: sig.num\rep(3, 4) + sig['love/shape']
+    pattern: any.num\rep(3, 4) + any['love/shape']
     type: T['love/shape']
 
     tick: =>
@@ -68,14 +76,15 @@ translate = Constant.meta
   meta:
     name: 'translate'
     summary: "translate a shape."
-    examples: { '(love/translate x y hape)' }
+    examples: { '(love/translate [delta] shape)', '(love/translate x y shape)' }
 
   value: class extends PureOp
-    pattern: sig.num + sig.num + sig['love/shape']
+    pattern: (any(vec2) / (any.num + any.num)) + any['love/shape']
     type: T['love/shape']
 
     tick: =>
-      { x, y, shape } = @unwrap_all!
+      { pos, shape } = @unwrap_all!
+      { x, y } = pos
 
       @out\set ->
         love.graphics.push!
@@ -87,10 +96,10 @@ rotate = Constant.meta
   meta:
     name: 'rotate'
     summary: "rotate a shape."
-    examples: { '(love/rotate angle hape)' }
+    examples: { '(love/rotate angle shape)' }
 
   value: class extends PureOp
-    pattern: sig.num + sig['love/shape']
+    pattern: any.num + any['love/shape']
     type: T['love/shape']
 
     tick: =>
@@ -101,6 +110,72 @@ rotate = Constant.meta
         love.graphics.rotate angle
         shape!
         love.graphics.pop!
+
+scale = Constant.meta
+  meta:
+    name: 'scale'
+    summary: "scale a shape."
+    examples: { '(love/scale scale shape)', '(love/scale sx [sy] shape)' }
+
+  value: class extends PureOp
+    pattern: (any(vec2) / (any.num + -any.num)) + any['love/shape']
+    type: T['love/shape']
+
+    tick: =>
+      { pos, shape } = @unwrap_all!
+      { sx, sy } = pos
+
+      @out\set ->
+        love.graphics.push!
+        love.graphics.scale sx, sy
+        shape!
+        love.graphics.pop!
+
+shear = Constant.meta
+  meta:
+    name: 'shear'
+    summary: "shear a shape."
+    examples: { '(love/shear x y shape)' }
+
+  value: class extends PureOp
+    pattern: (any(vec2) / (any.num + any.num)) + any['love/shape']
+    type: T['love/shape']
+
+    tick: =>
+      { pos, shape } = @unwrap_all!
+      { sx, sy } = pos
+
+      @out\set ->
+        love.graphics.push!
+        love.graphics.shear sx, sy
+        shape!
+        love.graphics.pop!
+
+mouse_pos = Constant.meta
+  meta:
+    name: 'mouse-pos'
+    summary: "outputs current mouse position."
+    examples: { '(love/mouse-pos)' }
+
+  value: class extends Op
+    new: (...) =>
+      super ...
+      @out or= vec2\mk_evt!
+      @state = {}
+
+    setup: =>
+      super io: Input.hot T.bang\mk_evt!
+
+    poll: =>
+      x, y = love.mouse.getPosition!
+      if x != @state.x or y != @state.y
+        @state.x, @state.y = x, y
+        if not @inputs.io\dirty!
+          @inputs.io.result\set true
+          true
+
+    tick: =>
+      @out\set { @state.x, @state.y }
 
 Constant.meta
   meta:
@@ -139,5 +214,7 @@ macro [->>][]:
 
     :rectangle
 
-    :translate, :rotate
+    :translate, :rotate, :scale, :shear
     :color
+
+    'mouse-pos': mouse_pos
