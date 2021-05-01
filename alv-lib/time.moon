@@ -136,7 +136,7 @@ ramp = Constant.meta
     new: (...) =>
       super ...
       @state or= 0
-      @out or= T.num\mk_sig!
+      @out or= T.num\mk_sig 0
 
     pattern = -evt.clock + sig.num + -sig.num
     setup: (inputs, scope) =>
