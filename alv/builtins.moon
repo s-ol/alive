@@ -620,6 +620,50 @@ bound to `nv2`…
       table.insert children, node
       super RTNode :children, result: node.result
 
+mk_thread = (name, thread_first) ->
+  class extends Builtin
+    eval: (scope, tail) =>
+      L\trace "evaling #{@}"
+      assert #tail > 1, "'#{name}' requires at least 2 arguments"
+
+      last_result = tail[1]
+
+      for cell in *tail[2,]
+        assert cell.__class == Cell, "'#{name}'s arguments have to be expressions"
+
+        children = [c for c in *cell.children]
+        if thread_first
+          table.insert children, 2, last_result
+        else
+          table.insert children, last_result
+
+        last_result = Cell cell.tag, children
+
+      super last_result\eval scope, tail
+
+thread_first = Constant.meta
+  meta:
+    name: '->'
+    summary: "Thread first macro."
+    examples: { '(-> initial [expr1 expr2…])' }
+    description: "
+Evaluate expressions `expr1`, `expr2`, … while passing the result of the
+previous expression to the following one, starting with `initial`. The value
+is always inserted as the first argument."
+
+  value: mk_thread '->', true
+
+thread_last = Constant.meta
+  meta:
+    name: '->>'
+    summary: "Thread last macro."
+    examples: { '(->> initial [expr1 expr2…])' }
+    description: "
+Evaluate expressions `expr1`, `expr2`, … while passing the result of the
+previous expression to the following one, starting with `initial`. The value
+is always inserted as the last argument."
+
+  value: mk_thread '->>', false
 
 Constant.meta
   meta:
@@ -645,6 +689,9 @@ Constant.meta
     '=': to_const
     '~': to_sig
     '!': to_evt
+
+    '->': thread_first
+    '->>': thread_last
 
     :array, :struct
 
