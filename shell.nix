@@ -2,8 +2,12 @@
 }:
 
 let
+  # lua = pkgs.lua5_3;
+  # luaPkgs = pkgs.lua53Packages;
+  lua = pkgs.luajit;
+  luaPkgs = pkgs.luajitPackages;
 
-  luarocks-build-cpp = pkgs.lua53Packages.buildLuarocksPackage rec {
+  luarocks-build-cpp = luaPkgs.buildLuarocksPackage rec {
     pname = "luarocks-build-cpp";
     version = "0.2.0-1";
 
@@ -18,7 +22,7 @@ let
       rev = "v0.2.0";
       sha256 = "PamppWdV3cQMDK+t2V09/cNRskGuRNeuyvUODmopLaQ=";
     };
-    propagatedBuildInputs = [ pkgs.lua5_3 ];
+    propagatedBuildInputs = [ lua ];
 
     meta = with pkgs.stdenv.lib; {
       homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
@@ -27,7 +31,7 @@ let
     };
   };
 
-  luarocks-fetch-gitrec = pkgs.lua53Packages.buildLuarocksPackage rec {
+  luarocks-fetch-gitrec = luaPkgs.buildLuarocksPackage rec {
     pname = "luarocks-fetch-gitrec";
     version = "0.2-2";
 
@@ -35,7 +39,7 @@ let
       url    = "mirror://luarocks//${pname}-${version}.src.rock";
       sha256 = "Dp3bKIG4swrD4+1NNtRTgyj68Di2cSUlh1r7Z2Rkzn0=";
     };
-    propagatedBuildInputs = with pkgs; [ lua5_3 git ];
+    propagatedBuildInputs = with pkgs; [ lua git ];
 
     meta = with pkgs.stdenv.lib; {
       homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
@@ -44,7 +48,7 @@ let
     };
   };
 
-  fltk4lua = pkgs.lua53Packages.buildLuarocksPackage rec {
+  fltk4lua = luaPkgs.buildLuarocksPackage rec {
     pname = "fltk4lua";
     version = "0.2-1";
 
@@ -53,7 +57,7 @@ let
       sha256 = "fD31FruqVriMecFcvSV4W7JRia38+bg7j3T5k5pFZec=";
     };
     buildInputs = with pkgs; [ fltk libjpeg ];
-    propagatedBuildInputs = [ pkgs.lua5_3 luarocks-build-cpp luarocks-fetch-gitrec ];
+    propagatedBuildInputs = [ lua luarocks-build-cpp luarocks-fetch-gitrec ];
 
     meta = with pkgs.stdenv.lib; {
       homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
@@ -62,7 +66,7 @@ let
     };
   };
 
-  losc = pkgs.lua53Packages.buildLuarocksPackage rec {
+  losc = luaPkgs.buildLuarocksPackage rec {
     pname = "losc";
     version = "1.0.0-1";
 
@@ -71,7 +75,7 @@ let
       sha256 = "MArhj51V1awF5k2zToFYEXpS2c6o8bnNDn4wLhooHos=";
     };
     buildInputs = with pkgs; [ stdenv.cc.cc.lib ];
-    propagatedBuildInputs = [ pkgs.lua5_3 ];
+    propagatedBuildInputs = [ lua ];
 
     meta = with pkgs.stdenv.lib; {
       homepage = "https://github.com/davidgranstrom/losc";
@@ -80,7 +84,7 @@ let
     };
   };
 
-  discount = pkgs.lua53Packages.buildLuarocksPackage {
+  discount = luaPkgs.buildLuarocksPackage {
     pname = "discount";
     version = "0.4-1";
 
@@ -95,7 +99,7 @@ let
     };
 
     buildInputs = [ pkgs.discount ];
-    propagatedBuildInputs = [ pkgs.lua5_3 ];
+    propagatedBuildInputs = [ lua ];
 
     meta = with pkgs.stdenv.lib; {
       homepage = "https://github.com/craigbarnes/lua-discount";
@@ -104,7 +108,7 @@ let
     };
   };
 
-  ldoc = pkgs.lua53Packages.buildLuarocksPackage rec {
+  ldoc = luaPkgs.buildLuarocksPackage rec {
     pname = "ldoc";
     version = "scm-2";
 
@@ -119,8 +123,8 @@ let
       rev = "moonscript";
       sha256 = "3jieGp9++cWtLMKccP+xqrtdCiNG/9BYZlHmH1l8XV8=";
     };
-    propagatedBuildInputs = with pkgs.lua53Packages; [
-      pkgs.lua5_3 penlight markdown
+    propagatedBuildInputs = with luaPkgs; [
+      lua penlight markdown
     ];
 
     meta = with pkgs.stdenv.lib; {
@@ -133,11 +137,18 @@ let
 in pkgs.mkShell {
   name = "alv-env";
   buildInputs = with pkgs; [
-    (lua5_3.withPackages (p: with p; [
+    (lua.withPackages (p: with p; [
       moonscript lpeg
       luafilesystem luasocket luasystem fltk4lua losc bit32
       ldoc busted discount
     ]))
+    love_11
   ];
-  LUA_PATH = "?.lua;?/init.lua";
+  shellHook = ''
+    echo 'setting paths'
+    source <(
+      LUA_PATH="?.lua;?/init.lua" luajit -e \
+      "print(string.format('export LUA_PATH=%q; export LUA_CPATH=%q', package.path, package.cpath))"
+    )
+  '';
 }

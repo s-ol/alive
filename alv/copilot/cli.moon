@@ -25,11 +25,14 @@ class CLICopilot extends Copilot
     super parse_args arg, { nocolor: false, 'udp-server': false }
     assert @args[1], "no filename given"
 
-  run: =>
+  setup: =>
     if @args.nocolor
       Logger\init @args.log
     else
       ColorLogger\init @args.log
+
+  run: =>
+    @setup!
 
     while true
       @tick!

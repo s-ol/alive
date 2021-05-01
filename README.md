@@ -35,9 +35,16 @@ The latest documentation is publicly available online at [alv.s-ol.nu][docs].
  
 ## starting the copilot
 
-    $ moon init.moon <session.alv>
+    $ bin/alv <session.alv>
     
 For more information see the [getting started guide][guide].
+
+### LÖVE / visuals
+
+To use the 'love' module for relatime 2d graphics, the copilot needs to be
+started using [love2d][love] (0.11+):
+
+    $ love bin/alv-love <session.alv>
 
 ## running the tests
 
@@ -61,6 +68,7 @@ development, simply pass the files as arguments:
 [busted]:     https://olivinelabs.com/busted/
 [discount]:   https://luarocks.org/modules/craigb/discount
 [ldoc]:       https://github.com/s-ol/LDoc
+[love]:       https://love2d.org/
 
 [docs]:       https://alv.s-ol.nu
 [guide]:      https://alv.s-ol.nu/guide.html
