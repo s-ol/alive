@@ -105,7 +105,34 @@ rotate = Constant.meta
 Constant.meta
   meta:
     name: 'love'
-    summary: "LÖVE visuals."
+    summary: "LÖVE graphics."
+    description: "
+This module implements basic graphics using the [love2d game engine][love].
+
+#### running
+
+In order to use this module, the copilot has to be started in a specific way:
+
+    $ love bin/alv-love <session.alv>
+
+#### usage
+
+The [love/draw][] ops can be used to draw one or more `love/shape`s in a fixed
+stacking order. `love/shape`s can be created using [love/rectangle][] etc, and
+positioned and styled using the modifier ops like [love/translate][],
+[love/color][] and so on. All modifier ops take the shape as the last input and
+output a modified shape, and can be used comfortably with the thread-last
+macro [->>][]:
+
+    (import* love math)
+    (draw (->>
+      (rectangle 'fill' 100 100)
+      (color 1 0 0)
+      (rotate (/ pi 4))
+      (translate 150 150)))
+
+
+[love]: https://love2d.org"
 
   value:
     :draw

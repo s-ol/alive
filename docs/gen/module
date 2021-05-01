@@ -30,7 +30,7 @@ get_description = (module) ->
 
   buf = p m.summary
   if m.description
-    buf ..= (compile autoref m.description).body
+    buf ..= (compile autoref(m.description), 'nopants').body
 
   buf
 
