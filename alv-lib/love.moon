@@ -1,4 +1,4 @@
-import Constant, Op, PureOp, Input, T, Array, any from require 'alv.base'
+import Constant, Op, PureOp, Input, Error, T, Array, any from require 'alv.base'
 
 unpack or= table.unpack
 
@@ -93,6 +93,39 @@ rectangle = Constant.meta
       @out\set ->
         love.graphics.rectangle mode, x, y, w, h
 
+text = Constant.meta
+  meta:
+    name: 'text'
+    summary: "create a text shape."
+    examples: { '(love/text str [align] [font])' }
+    description: "
+Create a shape that draws the text `str` with font `font` (or the default font).
+`align` should be on of the following strings:
+- `center` (the default)
+- `left`
+- `right`"
+
+
+  value: class extends PureOp
+    pattern: any.str + -any.str + -any['love/font']
+    type: T['love/shape']
+
+    tick: =>
+      { text, align, font } = @unwrap_all!
+
+      wm = switch align or 'center'
+        when 'left' then 0
+        when 'center' then -0.5
+        when 'right' then -1
+        else
+          error Error 'argument', "unknown text alignment '#{align}'"
+
+      @out\set ->
+        font or= love.graphics.getFont!
+        width = font\getWidth text
+        height = font\getHeight!
+        love.graphics.print text, font, width*wm, -height/2
+
 color = Constant.meta
   meta:
     name: 'color'
@@ -110,7 +143,25 @@ color = Constant.meta
       @out\set ->
         love.graphics.setColor r, g, b, a
         shape!
-        love.graphics.setColor 255, 255, 255
+        love.graphics.setColor 1, 1, 1
+
+line_width = Constant.meta
+  meta:
+    name: 'line-width'
+    summary: "set line-width of a shape."
+    examples: { '(love/line-width width shape)' }
+
+  value: class extends PureOp
+    pattern: any.num + any['love/shape']
+    type: T['love/shape']
+
+    tick: =>
+      { width, shape } = @unwrap_all!
+
+      @out\set ->
+        love.graphics.setLineWidth width
+        shape!
+        love.graphics.setLineWidth 1
 
 translate = Constant.meta
   meta:
@@ -253,9 +304,9 @@ macro [->>][]:
     :draw
 
     'no-shape': no_shape
-    :circle, :ellipse, :line, :rectangle
+    :circle, :ellipse, :line, :rectangle, :text
 
     :translate, :rotate, :scale, :shear
-    :color
+    :color, 'line-width': line_width
 
     'mouse-pos': mouse_pos
