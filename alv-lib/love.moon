@@ -35,6 +35,46 @@ draw = Constant.meta
     destroy: =>
       COPILOT.drawlist[@state] = nil
 
+no_shape = Constant.meta
+  meta:
+    name: 'no-shape'
+    summary: "invisible null shape."
+
+  value: T['love/shape']\mk_const ->
+
+circle = Constant.meta
+  meta:
+    name: 'circle'
+    summary: "create a circle shape."
+    examples: { '(love/circle mode radius [segments])' }
+
+  value: class extends PureOp
+    pattern: any.str + any.num + -any.num
+    type: T['love/shape']
+
+    tick: =>
+      { mode, radius, segments } = @unwrap_all!
+
+      @out\set ->
+        love.graphics.circle mode, 0, 0, radius, segments
+
+ellipse = Constant.meta
+  meta:
+    name: 'ellipse'
+    summary: "create a ellipse shape."
+    examples: { '(love/ellipse mode size [segments])', '(love/ellipse mode rx ry [segments])' }
+
+  value: class extends PureOp
+    pattern: any.str + (any(vec2) / (any.num + any.num)) + -any.num
+    type: T['love/shape']
+
+    tick: =>
+      { mode, size, segments } = @unwrap_all!
+      { rx, ry } = size
+
+      @out\set ->
+        love.graphics.ellipse mode, 0, 0, rx, ry, segments
+
 rectangle = Constant.meta
   meta:
     name: 'rectangle'
@@ -57,10 +97,10 @@ color = Constant.meta
   meta:
     name: 'color'
     summary: "set color of a shape."
-    examples: { '(love/color r g b [a] shape)' }
+    examples: { '(love/color color shape)', '(love/color r g b [a] shape)' }
 
   value: class extends PureOp
-    pattern: any.num\rep(3, 4) + any['love/shape']
+    pattern: (any(vec3) / any(vec4) / any.num\rep(3, 4)) + any['love/shape']
     type: T['love/shape']
 
     tick: =>
@@ -212,7 +252,8 @@ macro [->>][]:
   value:
     :draw
 
-    :rectangle
+    'no-shape': no_shape
+    :circle, :ellipse, :line, :rectangle
 
     :translate, :rotate, :scale, :shear
     :color
