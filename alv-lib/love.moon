@@ -1,4 +1,5 @@
-import Constant, Op, PureOp, Input, Error, T, Array, any from require 'alv.base'
+import Constant, Op, PureOp, Input, Error, T, Array, any, sig from require 'alv.base'
+import RTNode from require 'alv'
 
 unpack or= table.unpack
 
@@ -12,8 +13,8 @@ class DrawId
 draw = Constant.meta
   meta:
     name: 'draw'
-    summary: "draw a love/shape shape."
-    examples: { '(love/draw shape)' }
+    summary: "draw one or more love/shape shapes."
+    examples: { '(love/draw shape1 …)', '(love/draw shapes)' }
 
   value: class extends Op
     new: (...) =>
@@ -22,6 +23,13 @@ draw = Constant.meta
 
     pattern = any['love/shape']*0
     setup: (inputs, scope) =>
+      if #inputs == 1
+        only = inputs[1]
+        type = only\type!
+        if type.__class == Array and type.type == T['love/shape']
+          super Input.hot only
+          return
+
       shapes = pattern\match inputs
       inputs = [Input.hot shape for shape in *shapes]
       inputs.num = Input.cold Constant.num #shapes
@@ -29,7 +37,8 @@ draw = Constant.meta
 
     tick: =>
       shapes = @unwrap_all!
-      for i=1, shapes.num do shapes[i] or= ->
+      num = shapes.num or #shapes
+      for i=1, num do shapes[i] or= ->
       COPILOT.drawlist[@state] = shapes
 
     destroy: =>
@@ -242,31 +251,120 @@ shear = Constant.meta
         shape!
         love.graphics.pop!
 
+wrap_stream = (stream) ->
+  class extends Op
+    setup: =>
+      @out = stream
+      super Input.hot @out
+
+    poll: =>
+
 mouse_pos = Constant.meta
   meta:
     name: 'mouse-pos'
     summary: "outputs current mouse position."
     examples: { '(love/mouse-pos)' }
+    description: "vec2~ stream of mouse position."
+
+  value: wrap_stream COPILOT.mouse_pos
+
+mouse_delta = Constant.meta
+  meta:
+    name: 'mouse-delta'
+    summary: "outputs mouse move events."
+    examples: { '(love/mouse-delta)' }
+    summary: "vec2! stream of mouse movements."
+
+  value: wrap_stream COPILOT.mouse_delta
+
+mouse_presses = Constant.meta
+  meta:
+    name: 'mouse-presses'
+    summary: "outputs mouse press events."
+    examples: { '(love/mouse-presses)' }
+    description: "!-stream of all mouse presses.
+
+Each press event is a struct with the following keys:
+- `pos` (vec2): x/y position of mouse
+- `button` (num): mouse button number"
+
+  value: wrap_stream COPILOT.mouse_presses
+
+mouse_releases = Constant.meta
+  meta:
+    name: 'mouse-releases'
+    summary: "outputs mouse release events."
+    examples: { '(love/mouse-releases)' }
+    description: "!-stream of all mouse releases.
+
+Each release event is a struct with the following keys:
+- `pos` (vec2): x/y position of mouse
+- `button` (num): mouse button number"
+
+  value: wrap_stream COPILOT.mouse_releases
+
+mouse_down = Constant.meta
+  meta:
+    name: 'mouse-down?'
+    summary: "checks whether a mouse button is down."
+    examples: { '(love/mouse-down? [button])' }
+    description: "checks whether `button` is down and returns a bool ~-stream.
+
+`button` should be a num~ stream and defaults to `1` (the left mouse button)."
 
   value: class extends Op
-    new: (...) =>
-      super ...
-      @out or= vec2\mk_evt!
-      @state = {}
+    pattern = -sig.num
+    setup: (inputs) =>
+      button = pattern\match inputs
 
-    setup: =>
-      super io: Input.hot T.bang\mk_evt!
+      super
+        button: Input.hot button or T.num\mk_const 1
+        press: Input.hot COPILOT.mouse_presses
+        release: Input.hot COPILOT.mouse_releases
+
+      @out or= T.bool\mk_sig false
 
     poll: =>
-      x, y = love.mouse.getPosition!
-      if x != @state.x or y != @state.y
-        @state.x, @state.y = x, y
-        if not @inputs.io\dirty!
-          @inputs.io.result\set true
-          true
 
     tick: =>
-      @out\set { @state.x, @state.y }
+      { :button, :press, :release } = @unwrap_all!
+      if button and @inputs.button\dirty!
+        @state = false
+
+      if press and (not button or press.button == button)
+        @state = true
+
+      if release and (not button or release.button == button)
+        @state = false
+
+      @out\set @state
+
+wheel_delta = Constant.meta
+  meta:
+    name: 'wheel-delta'
+    summary: "outputs mouse wheel move events."
+    examples: { '(love/wheel-delta)' }
+    description: "vec2! stream of mouse wheel movements."
+
+  value: wrap_stream COPILOT.wheel_delta
+
+key_presses = Constant.meta
+  meta:
+    name: 'key-presses'
+    summary: "outputs key press events."
+    examples: { '(love/key-presses)' }
+    description: "str! stream of all key presses."
+
+  value: wrap_stream COPILOT.key_presses
+
+key_releases = Constant.meta
+  meta:
+    name: 'key-releases'
+    summary: "outputs key release events."
+    examples: { '(love/key-releases)' }
+    description: "str! stream of all key releases."
+
+  value: wrap_stream COPILOT.key_releases
 
 Constant.meta
   meta:
@@ -310,3 +408,10 @@ macro [->>][]:
     :color, 'line-width': line_width
 
     'mouse-pos': mouse_pos
+    'mouse-delta': mouse_delta
+    'mouse-presses': mouse_presses
+    'mouse-releases': mouse_releases
+    'mouse-down?': mouse_down
+    'wheel-data': wheel_delta
+    'key-presses': key_presses
+    'key-releases': key_releases

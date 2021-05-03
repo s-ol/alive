@@ -3,11 +3,12 @@
 --
 -- @classmod LoveCopilot
 import CLICopilot from require 'alv.copilot.cli'
-import T, Array from require 'alv.base'
+import T, Struct, Array from require 'alv.base'
 
 export COPILOT
 
 vec2 = Array 2, T.num
+mouse_evt = Struct pos: vec2, button: T.num
 
 class LoveCopilot extends CLICopilot
   new: (arg) =>
@@ -17,8 +18,8 @@ class LoveCopilot extends CLICopilot
     @drawlist = {}
     @mouse_pos = vec2\mk_sig { love.mouse.getPosition! }
     @mouse_delta = vec2\mk_evt!
-    @mouse_presses = T['love/_click']\mk_evt!
-    @mouse_releases = T['love/_click']\mk_evt!
+    @mouse_presses = mouse_evt\mk_evt!
+    @mouse_releases = mouse_evt\mk_evt!
     @wheel_delta = vec2\mk_evt!
     @key_presses = T.str\mk_evt!
     @key_releases = T.str\mk_evt!
