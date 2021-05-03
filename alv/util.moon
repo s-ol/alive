@@ -50,11 +50,11 @@ deep_map = (val, fn) ->
 
 --- yield all leaf values in a table
 deep_iter = (table) ->
-  for k, v in pairs table
-    if is_plain_table v
+  if is_plain_table table
+    for k, v in pairs table
       deep_iter v
-    else
-      coroutine.yield v
+  else
+    coroutine.yield table
 
 {
   :opairs

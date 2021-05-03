@@ -140,19 +140,18 @@ class Op
   new: (@out, @state) =>
 
   do_setup = (old, cur) ->
-    for k, cur_val in pairs cur
-      old_val = old and old[k]
+    -- are these inputs or nested tables?
+    old_plain = old and not old.__class
+    cur_plain = cur and not cur.__class
 
-      -- are these inputs or nested tables?
-      cur_plain = cur_val and not cur_val.__class
-      old_plain = old_val and not old_val.__class
+    if cur_plain
+      -- both are tables, recurse
+      for k, cur_nest in pairs cur
+        do_setup (old and old[k]), cur_nest
+    elseif cur and not (cur_plain or old_plain)
+      -- both are streams (or nil), setup them
+      cur\setup old
 
-      if cur_plain
-        -- both are tables, recurse
-        do_setup old_val, cur_val
-      elseif not (cur_plain or old_plain)
-        -- both are streams (or nil), setup them
-        cur_val\setup old_val
   --- setup previous `inputs`, if any, with the new inputs, and write them to
   -- `inputs`. The `inputs` table can be nested with string or integer keys,
   -- but all leaf-entries must be `Input` instances. It must not contain loops
