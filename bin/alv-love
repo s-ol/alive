@@ -1,0 +1,5 @@
+#!/bin/sh
+LOVE=$(which love11 love 2>/dev/null | head -n 1)
+BASE=$(dirname "$0")
+echo "base '$BASE'"
+exec "$LOVE" "$BASE/../alv/copilot/love" "$@"
