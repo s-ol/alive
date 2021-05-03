@@ -12,8 +12,8 @@ class DrawId
 draw = Constant.meta
   meta:
     name: 'draw'
-    summary: "draw a love/shape shape."
-    examples: { '(love/draw shape)' }
+    summary: "draw one or more love/shape shapes."
+    examples: { '(love/draw shape1 …)', '(love/draw shapes)' }
 
   value: class extends Op
     new: (...) =>
@@ -22,6 +22,13 @@ draw = Constant.meta
 
     pattern = any['love/shape']*0
     setup: (inputs, scope) =>
+      if #inputs == 1
+        only = inputs[1]
+        type = only\type!
+        if type.__class == Array and type.type == T['love/shape']
+          super Input.hot only
+          return
+
       shapes = pattern\match inputs
       inputs = [Input.hot shape for shape in *shapes]
       inputs.num = Input.cold Constant.num #shapes
@@ -29,7 +36,8 @@ draw = Constant.meta
 
     tick: =>
       shapes = @unwrap_all!
-      for i=1, shapes.num do shapes[i] or= ->
+      num = shapes.num or #shapes
+      for i=1, num do shapes[i] or= ->
       COPILOT.drawlist[@state] = shapes
 
     destroy: =>
@@ -268,6 +276,41 @@ mouse_pos = Constant.meta
     tick: =>
       @out\set { @state.x, @state.y }
 
+mouse_pos = Constant.meta
+  meta:
+    name: 'mouse-pos'
+    summary: "vec2 ~-stream of the current mouse position."
+
+  value: COPILOT.mouse_pos
+
+mouse_delta = Constant.meta
+  meta:
+    name: 'mouse-delta'
+    summary: "vec2 !-stream of mouse movements."
+
+  value: COPILOT.mouse_delta
+
+wheel_delta = Constant.meta
+  meta:
+    name: 'wheel-delta'
+    summary: "vec2 !-stream of mouse wheel movements."
+
+  value: COPILOT.wheel_delta
+
+key_presses = Constant.meta
+  meta:
+    name: 'key-presses'
+    summary: "str !-stream of key presses."
+
+  value: COPILOT.key_presses
+
+key_releases = Constant.meta
+  meta:
+    name: 'key-releases'
+    summary: "str !-stream of key releases."
+
+  value: COPILOT.key_releases
+
 Constant.meta
   meta:
     name: 'love'
@@ -310,3 +353,7 @@ macro [->>][]:
     :color, 'line-width': line_width
 
     'mouse-pos': mouse_pos
+    'mouse-delta': mouse_delta
+    'wheel-data': wheel_delta
+    'key-presses': key_presses
+    'key-releases': key_releases

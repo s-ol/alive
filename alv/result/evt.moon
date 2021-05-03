@@ -66,9 +66,9 @@ class EvtStream extends Result
   --
   -- Marks this stream as dirty for the remainder of the current tick.
   -- If `event` is nil, does nothing.
-  set: (event) =>
+  set: (event, force=false) =>
     return if event == nil
-    assert not @dirty!, "#{@} is already dirty!"
+    assert force or not @dirty!, "#{@} is already dirty!"
     @updated = COPILOT.T
     @value = event
 
