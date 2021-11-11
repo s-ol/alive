@@ -328,10 +328,43 @@ Emits `bang!`s with delays `delay0`, `delay1`, … in between.
         else
           break
 
-      if bang
-        @out
-
     vis: => step: @state.i\set true
+
+smooth = Constant.meta
+  meta:
+    name: 'smooth'
+    summary: "Smooth out value transitions"
+    examples: { '(smooth [clock] value rate)' }
+    description: "
+Creates smooth transitions when `value` changes.
+
+- `clock` should be a `time/clock!` stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `value` should be a num~ or num! stream.
+- `rate` is a num~ or num= value."
+
+  value: class extends Op
+    new: (...) =>
+      super ...
+      @out = T.num\mk_sig!
+
+    pattern = -evt.clock + sig.num + (sig.num / evt.num)
+    setup: (inputs, scope) =>
+      { clock, rate, value } = pattern\match inputs
+
+      super
+        clock: Input.hot clock or scope\get '*clock*'
+        rate: Input.cold rate
+        value: Input.cold value
+
+      @out\set @inputs.value! unless @.out!
+
+    tick: =>
+      { :clock, :rate, :value } = @unwrap_all!
+      if clock
+        current = @.out!
+        delta = value - current
+        @out\set current + delta * rate
 
 RTNode
   children: { default_clock }
@@ -350,5 +383,6 @@ RTNode
       :every
       'val-seq': val_seq
       'bang-seq': bang_seq
+      :smooth
 
       '*clock*': default_clock
