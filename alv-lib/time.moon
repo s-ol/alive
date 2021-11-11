@@ -366,6 +366,56 @@ Creates smooth transitions when `value` changes.
         delta = value - current
         @out\set current + delta * rate
 
+delay = Constant.meta
+  meta:
+    name: 'delay!'
+    summary: "Delay a !-stream event"
+    examples: { '(delay! [clock] delay evt)' }
+    description: "
+Delays incoming `evt`s by `delay`.
+
+- `clock` should be a `time/clock!` stream. This argument can be omitted
+  and the stream be passed as a dynamic definition in `*clock*` instead.
+- `delay` should be a num= or num~ stream.
+- `evt` is a !-stream."
+
+  value: class extends Op
+    new: (...) =>
+      super ...
+      @state = {}
+
+    pattern = -evt.clock + (sig.num / evt.num) + (sig! / evt!)
+    setup: (inputs, scope) =>
+      { clock, delay, evt } = pattern\match inputs
+
+      super
+        clock: Input.hot clock or scope\get '*clock*'
+        delay: Input.cold delay
+        evt: Input.hot evt
+
+      if @out and @out.type != @inputs.evt\type!
+        -- clear queue if type is not compatible
+        @state = {}
+
+      @out = @inputs.evt\type!\mk_evt!
+
+    tick: =>
+      clock = @inputs.clock!
+      if clock and #@state > 0
+        delta = clock.dt
+        for item in *@state
+          item.delay -= delta
+
+        if @state[1].delay < 0
+          item = table.remove @state, 1
+          @out\set item.value
+
+      if @inputs.evt\dirty!
+        value = @inputs.evt!
+        delay = @inputs.delay!
+        table.insert @state, { :delay, :value }
+
+
 RTNode
   children: { default_clock }
 
@@ -383,6 +433,8 @@ RTNode
       :every
       'val-seq': val_seq
       'bang-seq': bang_seq
+
       :smooth
+      :delay
 
       '*clock*': default_clock
