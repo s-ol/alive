@@ -499,6 +499,31 @@ to_evt = Constant.meta
       return if setup
       @out\set @inputs.sig!
 
+merge = Constant.meta
+  meta:
+    name: 'merge!'
+    summary: "Merge !-streams."
+    examples: { '(merge! evt1 evt2 [evt3…])' }
+    description: "
+Reenters the innermost `(loop)` from the top, with `k1` bound to `nv1`, `k2`
+bound to `nv2`…
+
+`(recur nv1 [nv2…])` is equivalent to `(*recur* nv1 [nv2…])`."
+
+  value: class extends Op
+    val_or_evt = (sig! / evt!)!
+    pattern = val_or_evt\rep 2
+    setup: (inputs) =>
+      values = pattern\match inputs
+      super [Input.hot v for v in *values]
+      @out = @inputs[1]\type!\mk_evt!
+
+    tick: =>
+      for input in *@inputs
+        if input\dirty!
+          @out\set input!
+          return
+
 array = Constant.meta
   meta:
     name: 'array'
@@ -690,6 +715,7 @@ Constant.meta
     '=': to_const
     '~': to_sig
     '!': to_evt
+    'merge!': merge
 
     '->': thread_first
     '->>': thread_last
