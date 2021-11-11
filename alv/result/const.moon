@@ -189,6 +189,11 @@ class Constant extends Result
   -- @tparam table args table with keys `value` and `meta`
   -- @treturn Constant
   @meta: (args) ->
+    if args.meta and args.meta.name and
+       type(args.value) == "table" and
+       args.value and args.value.__class and args.value.__parent
+      args.value.__name = args.meta.name
+
     with Constant.wrap args.value
       .meta = args.meta if args.meta
 
