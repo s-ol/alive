@@ -14,7 +14,7 @@ describe "do", ->
     assert.is.true rt\is_const!
     assert.is.equal (Constant.num 3), rt.result
 
-    rt = COPILOT\eval_once '(do 1 2 (trace 3))'
+    rt = COPILOT\eval_once '(do 1 2 (def _ 3))'
     assert.is.true rt\is_const!
     assert.is.nil rt.result
 

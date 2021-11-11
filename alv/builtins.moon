@@ -400,12 +400,14 @@ trace = Constant.meta
           prefix: Input.cold inputs[1]
           value: Input.hot inputs[2]
 
+        @out = inputs[2].result
+
       tick: =>
         L\print "trace #{@inputs.prefix!}: #{@inputs.value.result}"
 
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
-      assert #tail == 1, "'trace!' takes exactly one parameter"
+      assert #tail == 1, "'trace' takes exactly one parameter"
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
