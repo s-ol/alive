@@ -482,20 +482,21 @@ to_evt = Constant.meta
   value: class extends Op
     pattern = (sig! + evt.bang) / (sig! / evt!)\rep(1,1)
     setup: (inputs) =>
-      { sig, trig } = pattern\match inputs
+      { sig_, trig } = pattern\match inputs
       if trig
         super
           trig: Input.hot trig
-          sig: Input.cold sig
+          sig: Input.cold sig_
       elseif sig\metatype! == '!'
         super
-          trig: Input.hot sig
+          trig: Input.hot sig_
           sig: Input.cold Constant.bang true
       else
-        super sig: Input.hot sig
+        super sig: Input.hot sig_
       @out = @inputs.sig\type!\mk_evt!
 
-    tick: =>
+    tick: (setup) =>
+      return if setup
       @out\set @inputs.sig!
 
 array = Constant.meta
