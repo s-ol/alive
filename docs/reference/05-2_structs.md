@@ -13,4 +13,4 @@ mapping to a value of type `num` and the key `b` mapping to a value of type
 `str` respectively, whereas the value notation `{a: 1 b: "hello world"}` shows
 the struct contents.
 
-The [struct][:struct/:] module provides *Op*s for working with arrays.
+The [struct-][:struct-/:] module provides *Op*s for working with arrays.

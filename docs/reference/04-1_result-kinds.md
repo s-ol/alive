@@ -57,7 +57,7 @@ traces, e.g.:
     #(trace (lfo 2): <bang! true>
       trace (lfo 2): <bang! true>)
 
-where `<num~ 1.0>` denotes an event-stream of the type `bang` that fired with a
+where `<bang! true>` denotes an event-stream of the type `bang` that fired with a
 value of `true`.
 
 The [!][] builtin can be used to convert signal streams or constants into

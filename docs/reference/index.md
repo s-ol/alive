@@ -23,5 +23,6 @@ own module or contributing to alive, check out the
 5. compound types
    1. [arrays](05-1_arrays.html)
    2. [structs](05-2_structs.html)
+   3. [scopes](05-3_scopes.html)
 6. [builtin listing](builtins.html)
 7. included modules
