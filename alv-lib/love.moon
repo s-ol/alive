@@ -251,14 +251,6 @@ shear = Constant.meta
         shape!
         love.graphics.pop!
 
-wrap_stream = (stream) ->
-  class extends Op
-    setup: =>
-      @out = stream
-      super Input.hot @out
-
-    poll: =>
-
 mouse_pos = Constant.meta
   meta:
     name: 'mouse-pos'
@@ -266,42 +258,86 @@ mouse_pos = Constant.meta
     examples: { '(love/mouse-pos)' }
     description: "vec2~ stream of mouse position."
 
-  value: wrap_stream COPILOT.mouse_pos
+  value: class extends Op
+    setup: =>
+      @out = COPILOT.mouse_pos
+      super Input.hot @out
+
+    poll: =>
 
 mouse_delta = Constant.meta
   meta:
     name: 'mouse-delta'
     summary: "outputs mouse move events."
     examples: { '(love/mouse-delta)' }
-    summary: "vec2! stream of mouse movements."
+    description: "vec2! stream of mouse movements."
 
-  value: wrap_stream COPILOT.mouse_delta
+  value: class extends Op
+    setup: =>
+      @out = COPILOT.mouse_delta
+      super Input.hot @out
 
+    poll: =>
+  
 mouse_presses = Constant.meta
   meta:
     name: 'mouse-presses'
     summary: "outputs mouse press events."
-    examples: { '(love/mouse-presses)' }
-    description: "!-stream of all mouse presses.
-
-Each press event is a struct with the following keys:
+    examples: { '(love/mouse-presses)', '(love/mouse-presses button)' }
+    description: "With no arguments, outputs a !-stream of press events with the following keys:
 - `pos` (vec2): x/y position of mouse
-- `button` (num): mouse button number"
+- `button` (num): mouse button number
 
-  value: wrap_stream COPILOT.mouse_presses
+If `button` is passed, outputs a vec2! stream."
+
+  value: class extends Op
+    setup: (inputs) =>
+      button = (-sig.num)\match inputs
+      event = Input.hot COPILOT.mouse_presses
+
+      if button
+        super :event, button: Input.cold button
+        @out = vec2\mk_evt!
+      else
+        super :event
+        @out = COPILOT.mouse_presses
+
+    poll: =>
+
+    tick: =>
+      { :button, :event } = @unwrap_all!
+      if event and event.button == button
+        @out\set event.pos
 
 mouse_releases = Constant.meta
   meta:
     name: 'mouse-releases'
     summary: "outputs mouse release events."
-    examples: { '(love/mouse-releases)' }
-    description: "!-stream of all mouse releases.
-
-Each release event is a struct with the following keys:
+    examples: { '(love/mouse-releases)', '(love/mouse-releases button)' }
+    description: "With no arguments, outputs a !-stream of release events with the following keys:
 - `pos` (vec2): x/y position of mouse
-- `button` (num): mouse button number"
+- `button` (num): mouse button number
 
-  value: wrap_stream COPILOT.mouse_releases
+If `button` is passed, outputs a vec2! stream."
+
+  value: class extends Op
+    setup: (inputs) =>
+      button = (-sig.num)\match inputs
+      event = Input.hot COPILOT.mouse_releases
+
+      if button
+        super :event, button: Input.cold button
+        @out = vec2\mk_evt!
+      else
+        super :event
+        @out = COPILOT.mouse_releases
+
+    poll: =>
+
+    tick: (setup) =>
+      { :button, :event } = @unwrap_all!
+      if event and event.button == button
+        @out\set event.pos
 
 mouse_down = Constant.meta
   meta:
@@ -346,25 +382,106 @@ wheel_delta = Constant.meta
     examples: { '(love/wheel-delta)' }
     description: "vec2! stream of mouse wheel movements."
 
-  value: wrap_stream COPILOT.wheel_delta
+  value: class extends Op
+    setup: (inputs) =>
+      assert #inputs == 0, Error "argument", "no arguments expected"
+      @out = COPILOT.wheel_delta
+      super Input.hot @out
+
+    poll: =>
 
 key_presses = Constant.meta
   meta:
     name: 'key-presses'
     summary: "outputs key press events."
-    examples: { '(love/key-presses)' }
-    description: "str! stream of all key presses."
+    examples: { '(love/key-presses)', '(love/key-presses key)' }
+    description: "With no arguments, outputs a str! stream of key names.
 
-  value: wrap_stream COPILOT.key_presses
+If `key` is passed, outputs a bang! stream."
+
+  value: class extends Op
+    setup: (inputs) =>
+      key = (-sig.str)\match inputs
+      event = Input.hot COPILOT.key_presses
+
+      if key
+        super :event, key: Input.cold key
+        @out = T.bang\mk_evt!
+      else
+        super :event
+        @out = COPILOT.key_presses
+
+    poll: =>
+
+    tick: (setup) =>
+      { :key, :event } = @unwrap_all!
+      if event and event == key
+        @out\set true
 
 key_releases = Constant.meta
   meta:
     name: 'key-releases'
     summary: "outputs key release events."
-    examples: { '(love/key-releases)' }
-    description: "str! stream of all key releases."
+    examples: { '(love/key-releases)', '(love/key-releases key)' }
+    description: "With no arguments, outputs a str! stream of key names.
 
-  value: wrap_stream COPILOT.key_releases
+If `key` is passed, outputs a bang! stream."
+
+  value: class extends Op
+    setup: (inputs) =>
+      key = (-sig.str)\match inputs
+      event = Input.hot COPILOT.key_releases
+
+      if key
+        super :event, key: Input.cold key
+        @out = T.bang\mk_evt!
+      else
+        super :event
+        @out = COPILOT.key_releases
+
+    poll: =>
+
+    tick: (setup) =>
+      { :key, :event } = @unwrap_all!
+      if event and event == key
+        @out\set true
+
+
+key_down = Constant.meta
+  meta:
+    name: 'key-down?'
+    summary: "checks whether a key is down."
+    examples: { '(love/key-down? key)' }
+    description: "checks whether `key` is down and returns a bool ~-stream.
+
+`key` should be a str~ stream."
+
+  value: class extends Op
+    pattern = sig.str
+    setup: (inputs) =>
+      key = pattern\match inputs
+
+      super
+        key: Input.hot key
+        press: Input.hot COPILOT.key_presses
+        release: Input.hot COPILOT.key_releases
+
+      @out or= T.bool\mk_sig false
+
+    poll: =>
+
+    tick: =>
+      { :key, :press, :release } = @unwrap_all!
+      if key and @inputs.key\dirty!
+        @state = false
+
+      if press and (not key or press == key)
+        @state = true
+
+      if release and (not key or release == key)
+        @state = false
+
+      @out\set @state
 
 Constant.meta
   meta:
@@ -415,3 +532,4 @@ macro [->>][]:
     'wheel-data': wheel_delta
     'key-presses': key_presses
     'key-releases': key_releases
+    'key-down?': key_down

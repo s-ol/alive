@@ -1,7 +1,26 @@
+#(
+  This example draws a rotating rectangle that follows the mouse cursor.
+  The size changes when the left mouse button is held, and the color
+  changes when space is pressed.
+)
 ([1]import* love math time)
+
+([32]trace ([33]mouse-releases))
+
+#(cycle colors when space is prssed)
+([20]def fill-color
+  ([21]switch ([22]key-presses "space")
+    ([23]array 0.3 0 0.9)
+    ([24]array 0 0.9 0.3)
+    ([27]array 0.9 0.3 0)
+    ([28]array 0.3 0.9 0)
+    ([30]array 0 0.3 0.9)
+    ([31]array 0.9 0 0.3)))
+
 ([2]draw ([3]->>
   ([8]rectangle 'fill' 100 100)
-  ([14]color 1 0 0)
+  ([14]color fill-color)
   ([15]scale ([16]switch ([17]mouse-down? 1) 0.5 1))
-  ([5]rotate ([9]ramp 2 tau))
-  ([4]translate ([10]mouse-pos))))
+  ([5]rotate ([9]ramp 2 tau)) #(rotate tau (2*PI) every 2 seconds)
+  ([4]translate ([10]mouse-pos) #(move to mouse cursor)
+)))
