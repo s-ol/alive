@@ -1,0 +1,12 @@
+([1]import midi)
+([2]import* time struct-)
+
+([3]def port ([4]midi/port 'system:midi_capture_2' 'system:midi_playback_2'))
+
+#(send a C4 note every 0.7s,
+  the velocity is set using CC 31)
+([5]midi/send-notes ([9]get port "out") ([7]every 0.7
+  ([6]struct
+    'pitch' 36
+    'vel' ([8]midi/cc ([10]get port "in") 31 'raw')
+    'dur' 0.5)))
