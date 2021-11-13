@@ -1,0 +1,7 @@
+([1]import* love math time)
+([2]draw ([3]->>
+  ([8]rectangle 'fill' 100 100)
+  ([14]color 1 0 0)
+  ([15]scale ([16]switch ([17]mouse-down? 1) 0.5 1))
+  ([5]rotate ([9]ramp 2 tau))
+  ([4]translate ([10]mouse-pos))))

@@ -35,7 +35,7 @@ The latest documentation is publicly available online at [alv.s-ol.nu][docs].
  
 ## starting the copilot
 
-    $ bin/alv <session.alv>
+    $ bin/alv examples/hello.alv
     
 For more information see the [getting started guide][guide].
 
@@ -44,7 +44,7 @@ For more information see the [getting started guide][guide].
 To use the 'love' module for relatime 2d graphics, the copilot needs to be
 started using [love2d][love] (0.11+):
 
-    $ love bin/alv-love <session.alv>
+    $ bin/alv-love examples/love2d.alv
 
 ## running the tests
 
