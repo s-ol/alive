@@ -489,7 +489,7 @@ to_evt = Constant.meta
         super
           trig: Input.hot trig
           sig: Input.cold sig_
-      elseif sig\metatype! == '!'
+      elseif sig_\metatype! == '!'
         super
           trig: Input.hot sig_
           sig: Input.cold Constant.bang true
