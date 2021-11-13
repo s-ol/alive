@@ -29,6 +29,8 @@ describe 'Primitive', ->
 
   it ':pp pretty-prints values', ->
     assert.is.equal 'true', bool\pp true
+    assert.is.equal 'false', bool\pp false
+    assert.is.equal 'nil', bool\pp nil
     assert.is.equal '4.134', num\pp 4.134
     assert.is.equal '"hello"', str\pp "hello"
 

@@ -16,6 +16,11 @@ describe 'Constant', ->
     assert.has.error -> Constant T.num
     assert.has.no.error -> Constant T.bool, false
 
+  it 'stringifies well', ->
+    assert.is.equal "<num= 4>", tostring Constant.num 4
+    assert.is.equal "<bool= true>", tostring Constant.bool true
+    assert.is.equal "<bool= false>", tostring Constant.bool false
+
   describe '.wrap', ->
     it 'wraps numbers', ->
       got = Constant.wrap 3

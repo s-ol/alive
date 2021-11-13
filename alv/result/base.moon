@@ -27,7 +27,7 @@ class Result
   -- @treturn Result
 
   __tostring: =>
-    if @value then
+    if @value != nil then
       "<#{@type}#{@metatype} #{@type\pp @value}>"
     else
       "<#{@type}#{@metatype}>"

@@ -5,6 +5,22 @@ import Op, Builtin from require 'alv.base'
 setup do_setup
 
 describe 'EvtStream', ->
+  it 'stringifies well', ->
+    number = EvtStream T.num
+    assert.is.equal "<num! nil>", tostring number
+
+    number\set 4
+    assert.is.equal "<num! 4>", tostring number
+
+    bool = EvtStream T.bool
+    bool\set true
+    assert.is.equal "<bool! true>", tostring bool
+
+    COPILOT\next_tick!
+
+    bool\set false
+    assert.is.equal "<bool! false>", tostring bool
+
   describe ':unwrap', ->
     it 'returns the set value', ->
       stream = EvtStream T.num

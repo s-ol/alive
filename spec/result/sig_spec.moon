@@ -5,6 +5,11 @@ import Op, Builtin from require 'alv.base'
 setup do_setup
 
 describe 'SigStream', ->
+  it 'stringifies well', ->
+    assert.is.equal "<num~ 4>", tostring SigStream T.num, 4
+    assert.is.equal "<bool~ true>", tostring SigStream T.bool, true
+    assert.is.equal "<bool~ false>", tostring SigStream T.bool, false
+
   describe ':unwrap', ->
     it 'returns the raw value!', ->
       assert.is.equal 3.14, (SigStream T.num, 3.14)\unwrap!
