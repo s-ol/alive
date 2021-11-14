@@ -13,4 +13,5 @@ format = 'discount'
 style = nil
 template = 'docs'
 dir = 'docs/internals'
-topics = {'docs/internals/extensions.md'}
+use_markdown_titles = true
+topics = {'docs/internals/writing_extensions.md'}

@@ -9,23 +9,73 @@ installation or somewhere else in your `LUA_PATH`.
 To write extensions, a number of classes and utilities are required. All of
 these are exported in the `base` module.
 
-## documentation metadata
-The lua module should return a `Scope` or a table that will be converted using
-`Scope.from_table`. All exports should be documented using `Constant.meta`,
-which attaches a `meta` table to the value that is used for error messages,
-documentation generation and [`(doc)`][builtins-doc].
+## alv values
+In the alv runtime, values are represented as instances of one of the three
+classes implementing the `Result` interface; `Constant`, `SigStream` or
+`EvtStream`.
 
-    import Constant from require 'alv.base'
+A `Result` contains a type, the "unwrapped" Lua value, and optional metadata.
 
-    two = Constant.meta
-      meta:
-        name: 'two'
-        summary: "the number two"
-      value: 2
+### types
+Different types are represented as instances of the `type.Type` interface.
+Such types can be @{type.Primitive|Primitive} types (which are opaque to alv
+user code), @{type.Array|Array}s or @{type.Struct|Struct}s.
 
-    {
-      :two
-    }
+@{type.Primitive|Primitive} types are identified simply as a string.
+A primitive type should have a well-defined Lua equivalent that implementations
+can expect when unwrapping a corresponding alv value. Here is how the types
+used by alv and the standard library map to Lua values:
+
+- `num`: Lua `number`
+- `str`: Lua `string`
+- `sym`: Lua `string`
+- `bool`: Lua `boolean`
+- `bang`: always Lua `true`
+- `scope`: `Scope` instance
+- `fndef`: `FnDef` instance
+- `opdef`: class inheriting from `Op` or `PureOp`
+- `builtin`: class inheriting from `Builtin`
+
+New primitive types can be created by extensions to represent values that should be
+opaque to other extensions and alv code. To avoid namespace collisions, such
+primitive types should be prefixed with the extension name and a slash.
+For example, the `love` extension uses the type `love/shape` internally.
+
+To obtain primitive type instances easily, the `type.T` "magic table" is
+provided. Simply indexing in this table will produce a cached
+@{type.Primitive|Primitive} instance:
+
+    import T from require 'alv.base'
+
+    number_type = T.num
+    shape_type = T['love/shape']
+
+@{type.Array|Array}s and @{type.Struct|Struct}s are composite types that
+contain other types.
+
+Arrays contain a fixed number of elements of a single type. For example,
+this code defines a "vec3" type that consists of three numbers:
+
+    import T, Array from require 'alv.base'
+    vec3 = Array 3, T.num
+
+Structs contain a set of labelled values that can each have a different type.
+This code snippet defines a "person" type with two keys, "name" and "age".
+
+    import T, Struct from require 'alv.base'
+    person = Struct { name: T.str, age: T.num }
+
+`Type` instances provide shorthand methods to create instances of the three
+*kinds* of `Result`:
+
+    word = T.str\mk_const "hello" -- value required 
+    odd_number = T.num\mk_sig 7   -- initial value (can be provided later)
+    emails = T["email/message"]\mk_evt!
+
+### metadata and documentation
+Using `Constant.meta`, documentation metadata can also be attached to values.
+This metadata is used for error messages, documentation generation and the
+[`(doc)`][builtins-doc] builtin.
 
 In the `meta` table `summary` is the only required key, but all of the
 information that applies should be provided.
@@ -37,6 +87,38 @@ information that applies should be provided.
   example illustrating the argument names for an Op.
 - `description`: a longer markdown-formatted description of the functionality
   of this entry.
+
+## module format
+The lua module should return a `Result` which will be returned as the result
+from [`(require)`][builtins-require]. In almost all cases, the return value
+should be a `Scope` containing individual `Result`s that can be imported
+together using [`(import)`][builtins-imp] and [`(import*)`][builtins-im_].
+
+`Constant.meta` calls `Constant.wrap`, which will automatically turn raw tables
+into `Scope`s and label other Lua primitive types correctly. 
+
+    import Constant from require 'alv.base'
+
+    -- define some values
+    one = Constant.meta
+      meta:
+        name: 'one'
+        summary: "the number one"
+      value: 1
+
+    two = Constant.meta
+      meta:
+        name: 'two'
+        summary: "the number two"
+      value: 2
+
+    -- define and return a Constant of type "scope"
+    -- that contains our exports
+    Constant.meta
+      meta:
+        name: 'numbers'
+        summary: "a module containing common numbers."
+      value: { :one, :two }
 
 ## defining `Op`s
 Most extensions will want to define a number of *Op*s to be used by the user.
@@ -66,9 +148,11 @@ the `Op:setup` and `Op:tick` methods.
           @state.total += @inputs.num!
           @out\set @state.total
 
-    {
-      'total-sum': total_sum
-    }
+    Constant.meta
+      meta:
+        name: 'my-module'
+        description: "This is my own awesome module."
+      value: { 'total-sum': total_sum }
 
 ### Op:setup
 `Op:setup` is called once every *eval cycle* to parse the Op's arguments, check
@@ -79,7 +163,7 @@ and the `Scope` the evaluation happened in. Ops generally shouldn't use the
 scope, but might look up 'magic' dynamic symbols like `\*clock\*`.
 
 #### argument parsing
-Arguments should be parsed using `base.match`. The two exports `base.match.sig`
+Arguments should be parsed using `base.match`. `base.match.const`, `base.match.sig`
 and `base.match.evt` are used to build complex patterns that can parse and
 validate the Op arguments into complex structures (see the module documentation
 for more information).
@@ -90,7 +174,7 @@ for more information).
     { trig, str, numbers, optional } = pattern\match inputs
 
 This example matches first an `EvtStream` of type `bang`, then a `SigStream`
-of type `str`, followed by one, two or three `num`-values and finally an
+of type `str`, followed by one, two or three `num`-values, and finally an
 optional argument `EvtStream` of any type. `:match` will throw an error if it
 couldn't (fully) match the arguments and otherwise return a structured mapping
 of the inputs.
@@ -125,8 +209,9 @@ should be wrapped in an `Input` instance using either `Input.hot` or
 `Input.cold`, and need to be passed to the `Op:setup` super implementation.
 To illustrate with the `send-value-when` example:
 
+    pattern = evt.bang + sig!
     setup: (inputs, scope) =>
-      { trig, value } = match 'bang! any', inputs
+      { trig, value } = pattern\match inputs
 
       super
         trig: Inputs.hot trig
@@ -148,7 +233,7 @@ delegating to the original one using `super`. In general setting it in the
 constructor is preferred, and it is only moved to `Op:setup` if the output
 type depends on the arguments received.
 
-There are four types of `Result`s that can be created:
+There are three types of `Result`s that can be created:
 
 - `SigStream`s track *continuous values*. They can only have one value per
   tick, and downstream Ops will not update when a *SigStream* has been set
@@ -156,14 +241,8 @@ There are four types of `Result`s that can be created:
 - `EvtStream`s transmit *momentary events*. They can transmit multiple events
   in a single tick. `EvtStream`s do not keep a value set on the last tick on
   the next tick. They are updated using `EvtStream:set`.
-- `IOStream`s are like `EvtStream`s, but their `IOStream:poll` method is
-  polled by the event loop at the start of every tick. This gives them a chance
-  to effectively create changes 'out of thin air' and kickstart the execution
-  of the dataflow engine. All *runtime* execution is due to an `IOStream`
-  becoming dirty somewhere. See the section on implementing `IOStream`s below
-  for more information.
 - `Constant`s do not change in-between evalcycles. Usually Ops do not output
-  `Constant`s directly, althrough `SigStream`s outputs are automatically
+  `Constant`s directly, as `SigStream`s outputs are automatically
   'downgraded' to `Constant`s when the Op has no reactive inputs.
 
 ### Op:tick
@@ -171,9 +250,19 @@ There are four types of `Result`s that can be created:
 Op's main logic will go. Generally here it should be checked which input(s)
 changed, and then internal state and the output value may be updated.
 
+- @TODO: explain `Op:tick` setup argument
+- @TODO: explain how to use `Input:dirty`
+- @TODO: explain `Op:unwrap_all`
+
+### state and forking
+- @TODO: explain `Op:fork`
+
+### IO ops and polling
+- @TODO: explain `Op:poll` and "IO Ops"
+
 ## defining `Builtin`s
-Builtins are more powerful than Ops, because they control whether, which and
-how their arguments are evaluated. They roughly correspond to *macros* in Lisps.
+Builtins are more powerful than Ops because they control whether, how and
+when their arguments are evaluated. They roughly correspond to *macros* in Lisps.
 There is less of a concrete guideline for implementing Builtins because there
 are a lot more options, and it really depends a lot on what the Builtin should
 achieve. Nevertheless, a good starting point is to read the `Builtin` class
@@ -181,44 +270,10 @@ documentation, take a look at `Builtin`s in `alv/builtins.moon` and get
 familiar with the relevant internal interfaces (especially `AST`, `Result`, and
 `Scope`).
 
-## defining `IOStream`s
-`IOStream`s are `EvtStream`s that can 'magically' create events out of
-nothing. They are the source of all processing in alv. Whenever you want to
-bring events into alv from an external protocol or application, an IOStream
-will be necessary.
-
-To implement a custom IOStream, create it as a class that inherits from the
-`IOStream` base and implement the constructor and `IOStream:poll`:
-
-    import T, IOStream from require 'alv.base'
-    
-    class UnreliableStream extends IOStream
-      new: => super T.bang
-      
-      poll: =>
-        if math.random! < 0.1
-          @set true
-
-In the constructor, you should call the super-constructor `EvtStream.new` to
-set the event type. Often this will be a custom event that is only used inside
-your extension (such as e.g. the `midi/port` type in the [midi][modules-midi]
-module), but it can also be a primitive type like `T.bang` in this example. In
-`:poll`, your IOStream is given a chance to communicate with the external world
-and create any resulting events. The example stream above randomly sends bang
-events out, with a 10% chance each 'tick' of the system. Note that there is no
-guarantee about when or how often ticks occur, so you really shouldn't rely on
-them this way in a real extension.
-
-### using `IOStream`s
-There's a couple of ways IOStreams can be used and exposed to the user of your
-extension. You can either expose an instance of your IOStream directly
-(documented using `SigStream.meta`), or offer an Op that creates and returns
-an instance in `Op.out` - that way the IOStream can be created only on demand
-and take parameters. It is also possible to not exepose the IOStream at all,
-and rather pass it as a hardcoded input into an Op's `Op.inputs`.
-
 [lua]:          https://www.lua.org/
 [moonscript]:   http://moonscript.org/
 [builtins-req]: ../../reference/index.html#require
+[builtins-imp]: ../../reference/index.html#import
+[builtins-im_]: ../../reference/index.html#import*
 [builtins-doc]: ../../reference/index.html#doc
 [modules-midi]: ../../reference/midi.html
