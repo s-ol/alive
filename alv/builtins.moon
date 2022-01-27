@@ -252,8 +252,6 @@ Evaluate `expr1`, `expr2`, … and return the value of the last expression."
       scope = Scope scope
       children = [expr\eval scope for expr in *tail]
       result = if last = children[#children] then last.result
-      if result and result.metatype == '='
-        result = result.type\mk_sig result\unwrap!
 
       super RTNode :children, :result
 
@@ -279,9 +277,9 @@ to `then-expr`, otherwise it is equivalent to `else-xpr` if given, or nil otherw
         msg = "'if'-expression needs to be constant, did you mean 'switch'?"
         error Error 'argument', msg
       xif = xif.result\unwrap!
-      @state = xif
+      @state = xif != nil and xif != false and xif != 0
 
-      super if xif
+      super if @state
         xthen\eval scope
       elseif xelse
         xelse\eval scope
@@ -309,8 +307,9 @@ to `(do then-exprs…)`, otherwise it results in nil."
         msg = "'when'-expression needs to be constant, did you mean 'switch'?"
         error Error 'argument', msg
       xif = xif.result\unwrap!
+      @state = xif != nil and xif != false and xif != 0
 
-      super if xif
+      super if @state
         scope = Scope scope
         children = [expr\eval scope for expr in *tail[2,]]
         result = if last = children[#children] then last.result
