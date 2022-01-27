@@ -226,14 +226,28 @@ long as all 'leaf values' are `Input` instances. The following are both valid:
       trigger: Inputs.hot trig
       values: { (Inputs.cold a), (Inputs.cold b), (Inputs.cold c) }
 
-#### output setup
-When `Op:setup` finishes, `@out` has to be set to a `Result` instance. The
-instance can be created in `Op:setup`, or by overriding the constructor and
-delegating to the original one using `super`. In general setting it in the
-constructor is preferred, and it is only moved to `Op:setup` if the output
-type depends on the arguments received.
+#### state and output setup
+When `Op:setup` finishes, `Op.out` has to be set to a `Result` instance. The
+instance can be created in `Op:setup`, or in an overridden constructor.
+The same is true for `Op.state`, which is an (optional) raw table of state
+that the operator keeps. `Op.state` can be nested, but must only contain
+"simple" types, so that it can be duplicated. For more complex behaviour,
+`Op:fork` can be overridden (see below).
 
-There are three types of `Result`s that can be created:
+When overriding the constructor, it is important to delegate to the `Op`
+constructor and pass on all arguments using `...`. Keep in mind that the
+Constructor is called not only when an Op is first created, but also to
+sandbox changes before potentially rolling them back (more on this below).
+
+In general, setting it `Op.out` in the constructor is preferred, and it is only
+moved to `Op:setup` if the output type depends on the arguments received.
+
+It is best to only recreate `Op.out` and `Op.state` if that is absolutely
+necessary (e.g. the output type has changed as a result of new inputs). This is
+so that the Op continues running smoothly without discontinuities when
+unrelated changes are made.
+
+There are three types of `Result`s that can be created for `Op.out`:
 
 - `SigStream`s track *continuous values*. They can only have one value per
   tick, and downstream Ops will not update when a *SigStream* has been set
@@ -250,15 +264,78 @@ There are three types of `Result`s that can be created:
 Op's main logic will go. Generally here it should be checked which input(s)
 changed, and then internal state and the output value may be updated.
 
-- @TODO: explain `Op:tick` setup argument
-- @TODO: explain how to use `Input:dirty`
-- @TODO: explain `Op:unwrap_all`
+To check whether inputs are dirty, the `Input:dirty` method can be called.
+Inputs can then be unwrapped using `Input:unwrap`, but they can also be called
+directly as a shorthand:
 
-### state and forking
-- @TODO: explain `Op:fork`
+    tick: =>
+      value = @inputs.value
+      @out\set value + 1
 
-### IO ops and polling
-- @TODO: explain `Op:poll` and "IO Ops"
+Since `Op:tick` is only called when there is a dirty input, it's often not
+necessary to check which inputs are dirty.
+
+For brevity, the helper method `Op:unwrap_all` can be used to unwrap all inputs.
+It returns a table matching the shape of `Op.inputs`:
+
+    setup: (inputs) =>
+      trig, a, b, c = pattern\match inputs
+      super
+        trigger: Inputs.hot trig
+        values: { (Inputs.cold a), (Inputs.cold b), (Inputs.cold c) }
+
+    tick: =>
+      { :values, :values } = @unwrap_all!
+
+      @out\set trigger + values[1] + values[2] + values[3]
+
+When an Op is newly created or a *hot* input changes during evaluation,
+`Op:tick` is invoked at evaltime to update `Op.out`. In this case,
+`Op:tick` receives `true` as an argument. This is useful in rare cases where
+`Op.out` is an `EvtStream` that is set both in `Op:setup` and `Op:tick`, and
+collisions must be prevented.
+
+### Op:fork
+When a running file is re-evaluated, all Ops are *forked* before re-running
+`Op:setup` on them. This is important, so that if an error occurs at any point
+in the evaluation process, the forked Ops can be discarded while the original
+Ops keep running without being affected by any changes that may have occured
+as a result (e.g. changes to `Op.out` or `Op.state`).
+
+To obtain a mutable copy of an Op, `Op:fork` is called.
+By default, this does the following:
+
+- fork `Op.out` (if it exists) using `Result:fork`
+- deep-copy `Op.state` (if it exists)
+- construct a new `Op` by invoking the constructor with these two arguments
+
+If necessary, `Op:fork` can be overridden with custom logic. This can be useful
+when it is necessary to synchronize state with external systems.
+
+### IO Ops (`Op:poll`)
+Regular Ops only update in response to Input changes, but there is a need to
+source events from outside the system to make anything happen at all.
+
+This is accomplished by *IO Op*s. *IO Op*s are `Op` classes that define the
+`Op:poll` method. Whenever the program is idle, all IO Ops will have this
+method called at a high rate.
+
+When the method is called, an IO Op should check any external conditions and
+return `true` if it wishes to trigger a tick. In this case it should also
+write to an internally-created `Result` instance to mark itself as "dirty":
+
+    class extends Op
+      setup: =>
+        super io: Input.hot T.bang\mk_evt!
+
+      poll: =>
+        -- query external state here
+        if something_changed
+          @inputs.io.result\set true
+          true
+
+      tick: =>
+        @out\set external_state
 
 ## defining `Builtin`s
 Builtins are more powerful than Ops because they control whether, how and

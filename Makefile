@@ -51,7 +51,7 @@ docs/%.html: docs/%.md $(DEPS) $(GEN)md
 docs/ldoc.ltp: $(DEPS)
 	docs/gen/ldoc $@
 
-docs/internals/index.html: alv/config.ld docs/ldoc.ltp $(CORE)
+docs/internals/index.html: alv/config.ld docs/ldoc.ltp docs/internals/*.md $(CORE)
 	ldoc alv
 
 clean:

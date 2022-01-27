@@ -123,6 +123,7 @@ class Op
   --
   -- @function poll
   -- @treturn ?boolean dirty whether processing is required
+  poll: nil
 
 --- implementation utilities.
 --
