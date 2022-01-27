@@ -1,8 +1,7 @@
 import TestPilot from require 'spec.test_setup'
-import T, Struct, Array, Constant from require 'alv'
 
 describe "thread macros", ->
-  COPILOT = TestPilot ''
+  COPILOT = TestPilot!
 
   it "thread forward (->)", ->
     rt = COPILOT\eval_once '
@@ -12,7 +11,7 @@ describe "thread macros", ->
       (+ 2)
       (/ 2))'
     assert.is.true rt\is_const!
-    assert.is.equal (Constant.num 6), rt.result
+    assert.is.equal '<num= 6.0>', tostring rt.result
 
   it "thread last forward (->>)", ->
     rt = COPILOT\eval_once '
@@ -22,4 +21,4 @@ describe "thread macros", ->
       (+ 2)
       (/ 10))'
     assert.is.true rt\is_const!
-    assert.is.equal (Constant.num 2), rt.result
+    assert.is.equal '<num= 2.0>', tostring rt.result

@@ -2,7 +2,7 @@ import TestPilot from require 'spec.test_setup'
 import T, Struct, Array, Constant from require 'alv'
 
 describe "function", ->
-  COPILOT = TestPilot ''
+  COPILOT = TestPilot!
 
   it "returns constant results when constant", ->
     rt = COPILOT\eval_once '

@@ -1,5 +1,5 @@
 import TestPilot from require 'spec.test_setup'
-import T, Array, Constant from require 'alv'
+import T, Array from require 'alv'
 
 describe "array", ->
   test = TestPilot '', '(import* array-)\n'
@@ -41,7 +41,7 @@ describe "array", ->
     it "can get a value", ->
       rt = COPILOT\eval_once '(get (array 1 2) 0)'
       assert.is.true rt\is_const!
-      assert.is.equal (Constant.num 1), rt.result
+      assert.is.equal '<num= 1>', tostring rt.result
 
     it "checks index range", ->
       err = assert.has.error -> COPILOT\eval_once '(get (array 1 2) -1)'
@@ -58,7 +58,7 @@ describe "array", ->
     it "can peek a value", ->
       rt = COPILOT\eval_once '(head (array 1 2))'
       assert.is.true rt\is_const!
-      assert.is.equal (Constant.num 1), rt.result
+      assert.is.equal '<num= 1>', tostring rt.result
 
   describe '(tail)', ->
     it "gets rest of an array", ->
@@ -141,8 +141,8 @@ describe "array", ->
   it "size can be read using (size)", ->
     rt = COPILOT\eval_once '(size (array 1))'
     assert.is.true rt\is_const!
-    assert.is.equal (Constant.num 1), rt.result
+    assert.is.equal '<num= 1>', tostring rt.result
 
     rt = COPILOT\eval_once '(size (array 1 2 3))'
     assert.is.true rt\is_const!
-    assert.is.equal (Constant.num 3), rt.result
+    assert.is.equal '<num= 3>', tostring rt.result

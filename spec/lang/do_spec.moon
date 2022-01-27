@@ -1,29 +1,27 @@
 import TestPilot from require 'spec.test_setup'
-import T, Struct, Array, Constant from require 'alv'
 
 describe "do", ->
-  COPILOT = TestPilot ''
+  COPILOT = TestPilot!
 
   it "can be empty", ->
-    rt = COPILOT\eval_once '(do)'
-    assert.is.true rt\is_const!
-    assert.is.nil rt.result
+    with COPILOT\eval_once '(do)'
+      assert.is.true \is_const!
+      assert.is.nil .result
 
   it "returns the last result, if any", ->
-    rt = COPILOT\eval_once '(do 1 2 3)'
-    assert.is.true rt\is_const!
-    assert.is.equal (Constant.num 3), rt.result
+    with COPILOT\eval_once '(do 1 2 3)'
+      assert.is.true \is_const!
+      assert.is.equal '<num= 3>', tostring .result
 
-    rt = COPILOT\eval_once '(do 1 2 (def _ 3))'
-    assert.is.true rt\is_const!
-    assert.is.nil rt.result
+    with COPILOT\eval_once '(do 1 2 (def _ 3))'
+      assert.is.true \is_const!
+      assert.is.nil .result
 
   it "passes through side-effects", ->
-    rt = COPILOT\eval_once '
-      (import* time)
-      (do
-        (every 0.5 "bang! side-effect")
-        3)'
-    assert.is.false rt\is_const!
-    assert.is.equal (Constant.num 3), rt.result
-
+    with COPILOT\eval_once '
+        (import* time)
+        (do
+          (every 0.5 "bang! side-effect")
+          3)'
+      assert.is.false \is_const!
+      assert.is.equal '<num= 3>', tostring .result

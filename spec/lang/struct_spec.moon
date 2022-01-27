@@ -1,5 +1,5 @@
 import TestPilot from require 'spec.test_setup'
-import T, Struct, Constant from require 'alv'
+import T, Struct from require 'alv'
 
 describe "struct", ->
   test = TestPilot '', '(import* struct-)\n'
@@ -24,7 +24,7 @@ describe "struct", ->
     it "can get values", ->
       rt = COPILOT\eval_once '(get (struct "a" 1 "b" false) "a")'
       assert.is.true rt\is_const!
-      assert.is.equal (Constant.num 1), rt.result
+      assert.is.equal '<num= 1>', tostring rt.result
 
     it "checks keys", ->
       err = assert.has.error -> COPILOT\eval_once '(get (struct "a" 1) "b")'
