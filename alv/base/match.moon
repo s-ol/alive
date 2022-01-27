@@ -322,7 +322,7 @@ evt = setmetatable {}, {
 --     any['midi/message'], any(Primitive 'midi/message')
 --     any()
 --
--- @table evt
+-- @table any
 any = setmetatable {}, {
   __index: (key) =>
     with v = Type nil, T[key]

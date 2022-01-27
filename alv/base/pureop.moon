@@ -6,7 +6,7 @@
 -- all inputs are hot. Passing more than one !-stream is an argument error.
 --
 -- To use `PureOp`, extend the class and set/implement only `pattern`, `type`
--- and `tick`.
+-- and `Op:tick`.
 -- @classmod PureOp
 import Op from require 'alv.base.op'
 import Input from require 'alv.base.input'

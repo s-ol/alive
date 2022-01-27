@@ -337,6 +337,65 @@ write to an internally-created `Result` instance to mark itself as "dirty":
       tick: =>
         @out\set external_state
 
+## PureOps
+[*Pure Operators*][ref-04-2-pop] share common semantics for input *kinds*.
+To implement them, the base class `PureOp` is provided and takes care of any
+boilerplate (argument parsing, kind validation, output setup).
+
+To implement a PureOp, you need to specify three parts:
+
+1. the argument types `PureOp.pattern`
+2. the output type `PureOp:type`
+3. the tick logic `PureOp:tick`
+
+
+The argument types are specified as a class member `PureOp.pattern` with a
+pattern value from `base.match`. `Op.inputs` (and therefore `Op:unwrap_all`'s
+result) will follow the shape of the match:
+
+    class PowOp extends PureOp
+      pattern: any.num + any.num
+      type: T.num
+      tick: => @out\set math.pow unpack @unwrap_all!
+
+
+The output type can either by specified directly as a class member, or
+implemented as a method that returns the type value. If `PureOp:type` is a
+method, it will receive the Op inputs as parsed by `PureOp.pattern`:
+
+    class MakeArrayOp extends PureOp
+      pattern: any!*0
+      type: (args) => Array #args, args[1]\type!
+      tick: =>
+        args = @unwrap_all!
+        @out\set args
+
+`Op:tick` is implemented just like for regular Ops. Because of the PureOp
+semantics, there is no need to check which inputs are dirty, so it's
+recommended to use `Op:unwrap_all` to access the inputs.
+
+### overriding `PureOp:setup`
+For more control, it is possible to override `PureOp:setup`. When calling
+`super`, the first argument should be a table of results that are treated
+according `PureOp.pattern` as usual. The second parameter should be
+forwarded. In the third parameter, extra `Input`s can be specified that will
+be merged into `Op.inputs`:
+
+    class LogAll extends PureOp
+      pattern: any.num*0
+
+      full_pattern = -sig.str + any.num*0
+      setup: (inputs, scope) =>
+        { name, values } = full_pattern\match inputs
+        super values, scope, {
+          name: Input.cold name or scope\get '*name*'
+        }
+
+      tick: =>
+        args = @unwrap_all!
+        for i=1,#args
+          print args.name, args[i]
+
 ## defining `Builtin`s
 Builtins are more powerful than Ops because they control whether, how and
 when their arguments are evaluated. They roughly correspond to *macros* in Lisps.
@@ -349,8 +408,9 @@ familiar with the relevant internal interfaces (especially `AST`, `Result`, and
 
 [lua]:          https://www.lua.org/
 [moonscript]:   http://moonscript.org/
-[builtins-req]: ../../reference/index.html#require
-[builtins-imp]: ../../reference/index.html#import
-[builtins-im_]: ../../reference/index.html#import*
-[builtins-doc]: ../../reference/index.html#doc
+[builtins-req]: ../../reference/builtins.html#require
+[builtins-imp]: ../../reference/builtins.html#import
+[builtins-im_]: ../../reference/builtins.html#import*
+[builtins-doc]: ../../reference/builtins.html#doc
 [modules-midi]: ../../reference/midi.html
+[ref-04-2-pop]: ../../reference/04-2_pure-operators.html
