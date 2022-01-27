@@ -1,4 +1,4 @@
-import PureOp, Constant, T, sig, evt from require 'alv.base'
+import PureOp, Constant, T, any from require 'alv.base'
 
 all_same = (first, list) ->
   for v in *list
@@ -14,10 +14,8 @@ tobool = (val) ->
     else
       true
 
-any = sig! / evt!
-
 class ReduceOp extends PureOp
-  pattern: any\rep 2, nil
+  pattern: any!\rep 2, nil
   type: T.bool
 
   tick: =>
@@ -107,7 +105,7 @@ not_ = Constant.meta
     examples: { '(not a)' }
 
   value: class extends PureOp
-    pattern: any\rep 1, 1
+    pattern: any!\rep 1, 1
     type: T.bool
     tick: => @out\set not tobool @inputs[1]!
 
@@ -119,7 +117,7 @@ bool = Constant.meta
     description: "`false` if a is `false`, `nil` or `0`, `true` otherwise."
 
   value: class extends PureOp
-    pattern: any\rep 1, 1
+    pattern: any!\rep 1, 1
     type: T.bool
     tick: => @out\set tobool @inputs[1]!
 
