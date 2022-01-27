@@ -334,7 +334,7 @@ If `button` is passed, outputs a vec2! stream."
 
     poll: =>
 
-    tick: (setup) =>
+    tick: =>
       { :button, :event } = @unwrap_all!
       if event and event.button == button
         @out\set event.pos
@@ -413,7 +413,7 @@ If `key` is passed, outputs a bang! stream."
 
     poll: =>
 
-    tick: (setup) =>
+    tick: =>
       { :key, :event } = @unwrap_all!
       if event and event == key
         @out\set true
@@ -441,7 +441,7 @@ If `key` is passed, outputs a bang! stream."
 
     poll: =>
 
-    tick: (setup) =>
+    tick: =>
       { :key, :event } = @unwrap_all!
       if event and event == key
         @out\set true

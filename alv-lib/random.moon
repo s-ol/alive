@@ -75,7 +75,7 @@ vec = (n) ->
           trig: trig and Input.hot trig
           range: Input.hot range or Constant.str 'uni'
 
-      tick: (setup) =>
+      tick: =>
         @gen! if @inputs.trig and @inputs.trig\dirty!
         @out\set [apply_range @inputs.range, v for v in *@state]
 
