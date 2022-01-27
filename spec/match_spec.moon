@@ -1,4 +1,4 @@
-import const, sig, evt from require 'alv.base.match'
+import const, sig, evt, any from require 'alv.base.match'
 import Op, Input from require 'alv.base'
 import RTNode, T, Error from require 'alv'
 
@@ -167,7 +167,7 @@ describe 'choice', ->
     assert.has.error -> same\match { bool, bool }
 
   it 'makes inner types recall', ->
-    same = (sig! / evt!)!
+    same = any!!
     same = same + same
     assert.is.same { str, str }, same\match { str, str }
     assert.is.same { num, num }, same\match { num, num }

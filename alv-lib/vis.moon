@@ -1,4 +1,4 @@
-import Constant, Op, T, Array, Input, sig, evt from require 'alv.base'
+import Constant, Op, T, Array, Input, sig, any from require 'alv.base'
 
 bar = Constant.meta
   meta:
@@ -11,7 +11,7 @@ Visualizes `val` as a bar with range `min, max`.
 `min` defaults to `0` and `max` defaults to `1`."
 
   value: class extends Op
-    pattern = (sig.num / evt.num) + -sig.num + -sig.num
+    pattern = any.num + -sig.num + -sig.num
     setup: (inputs, scope) =>
       { val, min, max } = pattern\match inputs
       if not max
@@ -52,7 +52,7 @@ Visualizes `val` as an RGB(A) color with each component in range `0 - range`.
   value: class extends Op
     a3 = (Array 3, T.num)
     a4 = (Array 4, T.num)
-    color = (sig a3) / (sig a4) / (evt a3) / (evt a4)
+    color = (any a3) / (any a4)
     pattern = color + -sig.num
     setup: (inputs, scope) =>
       { val, max } = pattern\match inputs

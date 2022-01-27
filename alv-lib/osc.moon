@@ -1,4 +1,4 @@
-import Op, PureOp, Constant, SigStream, Input, T, sig, evt from require 'alv.base'
+import Op, PureOp, Constant, SigStream, Input, T, sig, any from require 'alv.base'
 import new_message, add_item from require 'alv-lib._osc'
 import dns, udp from require 'socket'
 
@@ -47,9 +47,9 @@ send = Constant.meta
 This is a pure op, so between the values at most one !-stream input is allowed."
 
   value: class extends PureOp
-    pattern: (evt! / sig!)^0
+    pattern: any!^0
 
-    full_pattern = -sig['udp/socket'] + sig.str + (evt! / sig!)^0
+    full_pattern = -sig['udp/socket'] + sig.str + any!^0
     setup: (inputs, scope) =>
       { socket, path, values } = full_pattern\match inputs
       super values, scope, {

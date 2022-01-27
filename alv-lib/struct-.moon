@@ -1,6 +1,5 @@
-import Struct, Op, PureOp, Constant, Error, const, sig, evt from require 'alv.base'
+import Struct, Op, PureOp, Constant, Error, const, any from require 'alv.base'
 
-any = sig! / evt!
 key_type = const.str / const.sym
 
 get = Constant.meta
@@ -13,7 +12,7 @@ get = Constant.meta
 `key` has to be a constant expression."
 
   value: class extends PureOp
-    pattern: any + key_type
+    pattern: any! + key_type
     type: (inputs) =>
       { struct, key } = inputs
       struct\type!\get key.result!
@@ -33,7 +32,7 @@ set = Constant.meta
 `struct` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: any + key_type + any
+    pattern: any! + key_type + any!
     type: (inputs) =>
       { struct, key, val } = inputs
       type = struct\type!
@@ -65,7 +64,7 @@ insert = Constant.meta
 `struct` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: any + key_type + any
+    pattern: any! + key_type + any!
     type: (inputs) =>
       { struct, key, val } = inputs
       type = struct\type!
@@ -98,7 +97,7 @@ remove = Constant.meta
 `key` has to be a constant expression."
 
   value: class extends PureOp
-    pattern: any + key_type
+    pattern: any! + key_type
     type: (inputs) =>
       { struct, key } = inputs
       type = struct\type!

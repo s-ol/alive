@@ -1,4 +1,4 @@
-import Constant, Op, Input, T, sig, evt from require 'alv.base'
+import Constant, Op, Input, T, sig, evt, any from require 'alv.base'
 
 -- slower reference implementation
 bjorklund = (n, k) ->
@@ -46,7 +46,7 @@ When fed a bang! trigger, steps forward to the next step on each trigger.
 When fed a num~ or num! stream, outputs a bang if the corresponding step is on."
 
   value: class extends Op
-    pattern = (evt.bang / sig.num / evt.num) + sig.num + sig.num
+    pattern = (evt.bang / any.num) + sig.num + sig.num
     setup: (inputs) =>
       { trig, n, k } = pattern\match inputs
 
@@ -91,7 +91,7 @@ When fed a bang! trigger, steps forward to the next step on each trigger.
 When fed a num~ or num! stream, outputs a bang if the corresponding step is on."
 
   value: class extends Op
-    pattern = (evt.bang / sig.num / evt.num) + sig.bool*0
+    pattern = (evt.bang / any.num) + sig.bool*0
     setup: (inputs) =>
       { trig, steps } = pattern\match inputs
 

@@ -1,4 +1,4 @@
-import Constant, Error, Op, Input, T, sig, evt from require 'alv.base'
+import Constant, Error, Op, Input, T, sig, evt, any from require 'alv.base'
 import RTNode from require 'alv'
 import monotime from require 'system'
 
@@ -348,7 +348,7 @@ Creates smooth transitions when `value` changes.
       super ...
       @out = T.num\mk_sig!
 
-    pattern = -evt.clock + sig.num + (sig.num / evt.num)
+    pattern = -evt.clock + sig.num + any.num
     setup: (inputs, scope) =>
       { clock, rate, value } = pattern\match inputs
 
@@ -384,7 +384,7 @@ Delays incoming `evt`s by `delay`.
       super ...
       @state = {}
 
-    pattern = -evt.clock + (sig.num / evt.num) + (sig! / evt!)
+    pattern = -evt.clock + any.num + any!
     setup: (inputs, scope) =>
       { clock, delay, evt } = pattern\match inputs
 

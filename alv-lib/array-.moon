@@ -1,10 +1,9 @@
-import Array, Op, PureOp, Builtin, Constant, Error, const, sig, evt, T from require 'alv.base'
+import Array, Op, PureOp, Builtin, Constant, Error, const, any, T from require 'alv.base'
 import Cell from require 'alv.cell'
 import Tag from require 'alv.tag'
 builtins = require 'alv.builtins'
 
 unpack or= table.unpack
-any = sig! / evt!
 
 get = Constant.meta
   meta:
@@ -16,7 +15,7 @@ get = Constant.meta
 `i` has to be a constant expression."
 
   value: class extends PureOp
-    pattern: any + const.num
+    pattern: any! + const.num
     type: (inputs) =>
       { array, i } = inputs
       array\type!\get i.result!
@@ -36,7 +35,7 @@ set = Constant.meta
 `array` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: any + const.num + any
+    pattern: any! + const.num + any!
     type: (inputs) =>
       { array, i, val } = inputs
       type = array\type!
@@ -64,7 +63,7 @@ head = Constant.meta
     examples: { '(head array)' }
 
   value: class extends PureOp
-    pattern: any*1
+    pattern: any!*1
     type: (inputs) =>
       type = inputs[1]\type!
 
@@ -84,7 +83,7 @@ tail = Constant.meta
     examples: { '(tail array)' }
 
   value: class extends PureOp
-    pattern: any*1
+    pattern: any!*1
     type: (inputs) =>
       type = inputs[1]\type!
 
@@ -107,7 +106,7 @@ prepend = Constant.meta
 This is a pure op, so at most one of `array` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: any + any
+    pattern: any! + any!
     type: (inputs) =>
       { array, val } = inputs
       type = array\type!
@@ -139,7 +138,7 @@ necessary.
 `array` and `val` may be a !-stream."
 
   value: class extends PureOp
-    pattern: any + const.num + any
+    pattern: any! + const.num + any!
     type: (inputs) =>
       { array, i, val } = inputs
       type = array\type!
@@ -172,7 +171,7 @@ remove = Constant.meta
 `i` has to be a constant expression."
 
   value: class extends PureOp
-    pattern: any + const.num
+    pattern: any! + const.num
     type: (inputs) =>
       { array, i } = inputs
       type = array\type!
@@ -213,7 +212,7 @@ concat = Constant.meta
     examples: { '(concat arr1 arr2 [arr3…])' }
 
   value: class extends PureOp
-    pattern: any\rep 2
+    pattern: any!\rep 2
     type: (inputs) =>
       size = 0
       type = inputs[1]\type!.type

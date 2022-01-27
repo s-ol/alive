@@ -5,7 +5,7 @@
 -- documentation.
 --
 -- @module builtins
-import Builtin, Op, PureOp, T, FnDef, Input, const, sig, evt, Struct, Array
+import Builtin, Op, PureOp, T, FnDef, Input, const, sig, evt, any, Struct, Array
   from require 'alv.base'
 import Constant from require 'alv.result'
 import Error from require 'alv.error'
@@ -334,8 +334,7 @@ switch_ = Constant.meta
   `true` and `false` respectively. This version takes at most two argumetns."
 
   value: class extends Op
-    val_or_evt = (sig! / evt!)!
-    pattern = (sig.num / sig.bool / evt.num / evt.bool / evt.bang) + val_or_evt*0
+    pattern = (sig.num / sig.bool / evt.num / evt.bool / evt.bang) + any!!*0
     setup: (inputs) =>
       { i, values } = pattern\match inputs
 
@@ -459,7 +458,7 @@ Since ~-streams cannot be emtpy, specifying an `initial` value is necessary."
 
   value: class extends Op
     setup: (inputs) =>
-      { event, initial } = (evt! + sig!)\match inputs
+      { event, initial } = any!\match inputs
       assert event\type! == initial\type!,
         Error 'argument', "~ arguments have to be of the same type"
 
@@ -482,7 +481,7 @@ to_evt = Constant.meta
 - if `trig` is given, samples `sig` as a new event when `trig` arrives."
 
   value: class extends Op
-    pattern = (sig! + evt.bang) / (sig! / evt!)\rep(1,1)
+    pattern = (sig! + evt.bang) / any!\rep(1,1)
     setup: (inputs) =>
       { sig_, trig } = pattern\match inputs
       if trig
@@ -507,14 +506,13 @@ merge = Constant.meta
     summary: "Merge !-streams."
     examples: { '(merge! evt1 evt2 [evt3…])' }
     description: "
-Reenters the innermost `(loop)` from the top, with `k1` bound to `nv1`, `k2`
-bound to `nv2`…
+Merges two or more !-streams of the same type.
+Whenever any of the input events fires, the output fires the same value.
 
-`(recur nv1 [nv2…])` is equivalent to `(*recur* nv1 [nv2…])`."
+In case of collisions, the event that comes first in the argument list wins."
 
   value: class extends Op
-    val_or_evt = (sig! / evt!)!
-    pattern = val_or_evt\rep 2
+    pattern = any!!\rep 2
     setup: (inputs) =>
       values = pattern\match inputs
       super [Input.hot v for v in *values]
@@ -537,10 +535,8 @@ array = Constant.meta
 This is a pure op, so at most one !-stream input is allowed."
 
   value: do
-    any = sig! / evt!
-
     class extends PureOp
-      pattern: any!*0
+      pattern: any!!*0
       type: (args) =>
         Array #args, args[1]\type!
 
@@ -560,8 +556,7 @@ This is a pure op, so at most one !-stream input is allowed."
 
   value: do
     key = const.str / const.sym
-    val = sig! / evt!
-    pair = (key + val)\named 'key', 'val'
+    pair = (key + any!)\named 'key', 'val'
 
     class extends PureOp
       pattern: pair*0
