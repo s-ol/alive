@@ -69,12 +69,11 @@ scope and evaluate some expressions in it:
       (def a 3)
       (trace (.. "second: " a " " b))
     (trace (.. "third: " a " " b))
-
-This example prints the following:
-
-    trace (.. "first: " a " " b): <Value str: first: 1 2>
-    trace (.. "second: " a " " b): <Value str: second: 3 2>
-    trace (.. "third: " a " " b): <Value str: third: 1 2>
+```output
+trace (.. "first: " a " " b): <Value str: first: 1 2>
+trace (.. "second: " a " " b): <Value str: second: 3 2>
+trace (.. "third: " a " " b): <Value str: third: 1 2>
+```
 
 As you can see, within a nested scope it is possible to overwrite a definition
 from the parent scope. Symbols that are not explicitly redefined in a nested

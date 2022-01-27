@@ -12,7 +12,10 @@ message"` is found:
     
     (do
       (def hello "overwritten message")
-      (print-hello))   #(-> prints "original message")
+      (print-hello))
+```output
+original message
+```
 
 On the other hand, there are also *dynamic symbols*. Dynamic symbols are
 symbols whose name starts and ends with an asterisk, like `*clock*` and
@@ -25,6 +28,9 @@ the *function call site*:
     
     (do
       (def *hello* "overwritten message")
-      (print-hello))   #(-> prints "overwritten message")
+      (print-hello))
+```output
+overwritten message
+```
 
 This allows symbols to be *dynamically overwritten*.

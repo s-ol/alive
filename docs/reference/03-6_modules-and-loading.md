@@ -36,10 +36,11 @@ inside it:
 
     (import* string)
     (print (str "my-module's value is " (require "my-module")))
-    
-    #(output:
-      loading my-module...
-      my-module's value is 4)
+
+```output
+loading my-module...
+my-module's value is 4
+```
 
 Often it is useful to export multiple values from a file, for example when
 writing a library containing multiple functions. There are two operators to
@@ -65,10 +66,11 @@ rather the newly created scope. It can therefore be combined with [def][],
     
     (print (str "my-module/a-value is " my-module/a-value))
     (my-module/print-doubled 4)
-    
-    #(output:
-      my-module/a-value is 7
-      4 doubled is 8)
+
+```output
+my-module/a-value is 7
+4 doubled is 8
+```
 
 [export*][] on the other hand operates on the containing scope rather than
 creating a new one. When Used without any arguments, it returns the containing
@@ -92,9 +94,9 @@ mentioned are exported:
     (print (str "a is " a))
     (print (str "b is " b))
     (print (str "c is " c))
-    
-    #(output:
-      a is 1
-      b is 2
-      reference error: undefined symbol 'c')
 
+```output
+a is 1
+b is 2
+reference error: undefined symbol 'c'
+```

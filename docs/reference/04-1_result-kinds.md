@@ -11,7 +11,9 @@ Constants are denoted using the equals symbol (`=`) in documentation and
 traces, e.g:
 
     (trace 4)
-    #(trace 4: <num= 4>)
+```output
+trace 4: <num= 4>
+```
 
 where `<num= 4>` denotes a constant of the type `num` with a value of `4`.
 
@@ -30,8 +32,10 @@ e.g.:
 
     (import* time)
     (trace (lfo 2))
-    #(trace (lfo 2): <num~ 0.0>
-      trace (lfo 2): <num~ 0.0016211131633209>)
+```output
+trace (lfo 2): <num~ 0.0>
+trace (lfo 2): <num~ 0.0016211131633209>
+```
 
 where `<num~ 1.0>` denotes a signal-stream of the type `num` with a current
 value of `1.0`.
@@ -54,8 +58,10 @@ traces, e.g.:
 
     (import* time)
     (trace (every 2))
-    #(trace (lfo 2): <bang! true>
-      trace (lfo 2): <bang! true>)
+```output
+trace (lfo 2): <bang! true>
+trace (lfo 2): <bang! true>
+```
 
 where `<bang! true>` denotes an event-stream of the type `bang` that fired with a
 value of `true`.

@@ -35,12 +35,16 @@ code {
 
 pre {
   white-space: pre-wrap;
+}
+
+pre > code {
+  display: block;
   padding: 0.5rem 1rem;
   background: #cccccc;
 }
-pre > code {
-  padding: 0;
-  background: none;
+pre > code.output {
+  background: #222222;
+  color: #cccccc;
 }
 
 h1, h2, h3,

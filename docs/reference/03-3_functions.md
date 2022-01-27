@@ -11,6 +11,10 @@ code, amongst other things:
 
     (add-and-trace 1 2)
     (add-and-trace 3 4)
+```output
+trace (+ a b): <num= 3>
+trace (+ a b): <num= 7>
+```
 
 Here a *function* `add-and-trace` is defined. When defining a function, first
 the names of the parameters have to be given. The function defined here takes
@@ -38,11 +42,10 @@ example is equivalent to the following:
       (let a 3
            b 4)
       (trace (+ a b)))
-
-and the output of both is:
-
-    trace (+ a b): <num= 3>
-    trace (+ a b): <num= 7>
+```output
+trace (+ a b): <num= 3>
+trace (+ a b): <num= 7>
+```
 
 In `alv`, functions are first-class values and can be passed around just like
 numbers, strings, etc. However it is very common to define a function with a

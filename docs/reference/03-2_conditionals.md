@@ -12,6 +12,9 @@ it is not needed.
     #(prints nothing)
     (if false
       (print "Another message"))
+```output
+(empty)
+```
 
 If multiple expressions (with side effects) need to be switched, [when][] can
 be used instead: it evaluates all arguments as a block, only if the condition
@@ -23,6 +26,11 @@ is truthy:
       (print "the things are enabled.")
       (print "they should happen soon.")
       (print "thank you for enabling them."))
+```output
+the things are enabled.
+they should happen soon.
+thank you for enabling them.
+```
 
 This is equivalent to using a [do][] block inside the [if][] expression:
 

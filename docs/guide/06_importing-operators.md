@@ -16,7 +16,9 @@ operators from a module, we need to tell `alv` to load it first: We can load
 
 prints
 
-    trace (+ 1 2): <num= 3>
+```output
+trace (+ 1 2): <num= 3>
+```
 
 Because it can get a bit confusing when all imported operators are mixed in the
 global scope, it is also possible to load the module into its own scope and use

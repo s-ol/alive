@@ -42,10 +42,12 @@ as the values type. Give it a try:
 
 This will print the following:
 
-    changes to files: values.alv
-    trace "hello": <str= "hello">
-    trace 2: <num= 2>
-    trace true: <bool= true>
+```output
+changes to files: values.alv
+trace "hello": <str= "hello">
+trace 2: <num= 2>
+trace true: <bool= true>
+```
 
 On the left side of the colon, [trace][] prints the expression that it is
 evaluating. On the right side, three pieces of information are shown:
@@ -53,7 +55,7 @@ evaluating. On the right side, three pieces of information are shown:
 - the *type*: `str`, `num`, `bool`
 - the *value* itself: `"hello"`, `2`, `true` 
 - the *kind* of the result: `=`
-  
+
 `=` means that these values are *constant* - they will not change by themselves
 until the code is changed. For simple values like these that seems obvious, but
 in `alv` we can also create values tha change over time, as we will see soon.
