@@ -119,6 +119,12 @@ class Struct extends Type
   get: (key) =>
     assert @types[key], Error 'index', "#{@} has no '#{key}' key"
 
+  --- iterate over contained keys and types
+  -- each iteration, returns a key and associated type
+  -- @treturn string key
+  -- @treturn Type associated type
+  iter_keys: => next, @types, nil
+
   --- create a new struct type with a subset of keys.
   project: (keys) =>
     types = {}
@@ -160,6 +166,13 @@ class Array extends Type
     assert (type key) == 'number'
     assert key >= 0 and key < @size, Error 'index', "index '#{key}' out of range!"
     @type
+
+  array_next = (i) => if i < @size then i + 1, @type
+  --- iterate over contained types
+  -- each iteration, returns a key and associated type
+  -- @treturn number key
+  -- @treturn Type associated type
+  iter_keys: => array_next, @, 0
 
   __eq: (other) => other.__class == Array and @size == other.size and @type == other.type
   __tostring: => "#{@type}[#{@size}]"

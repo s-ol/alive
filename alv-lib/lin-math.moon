@@ -1,25 +1,67 @@
 import PureOp, Constant, T, any from require 'alv.base'
 unpack or= table.unpack
 
-num = any.num
+---
+-- (recursively) wrap/repeat a scalar value to match a (nested) array type.
+--
+-- For example `expand_to (Array 3, Array 4, T.num), 2` will return
+-- `[[2 2 2 2] [2 2 2 2] [2 2 2 2]]`.
+expand_to = (type, scalar) ->
+  return scalar unless type.iter_keys
 
-class ReduceOp extends PureOp
-  pattern: num\rep 2, nil
-  type: T.num
+  return for key, inner in type\iter_keys!
+    expand_to inner, scalar
 
-  tick: =>
-    args = @unwrap_all!
-    accum = args[1]
-    for val in *args[2,]
-      accum = @.fn accum, val
-    @out\set accum
+deep_apply = (fn, type, args) ->
+  return fn args unless type.iter_keys
 
-func_op = (func, pattern) ->
+  return for key, inner in type\iter_keys!
+    deep_apply fn, inner, [arg[key] for arg in *args]
+
+--- return a function that runs `expand_to` on all arguments
+--
+-- @treturn function
+expand_all_fn = (types) ->
+  result_type = nil
+  for type in *types
+    continue if type == T.num
+
+    result_type or= type
+    assert type == result_type
+
+  -- all scalars, don't expand
+  if not result_type
+    return T.num, (args) -> args
+
+  -- at least one non-scalar
+  result_type, (args) ->
+    -- expand all arguments
+    return for i, arg in ipairs args
+      if types[i] != result_type
+        expand_to result_type, arg
+      else
+        arg
+
+num = any!! / any.num
+
+reduce_fn = (fn) ->
+  (accum, ...) ->
+    for i=1, select '#', ...
+      accum = fn accum, select i, ...
+    accum
+
+func_op = (_func, pattern) ->
+  func = (args) -> _func unpack args
+
   class extends PureOp
     pattern: pattern
-    type: T.num
+    type: (inputs) =>
+      types = [input\type! for input in *inputs]
+      result, @expand = expand_all_fn types
+      result
 
-    tick: => @out\set func unpack @unwrap_all!
+    tick: =>
+      @out\set deep_apply func, @out.type, @.expand @unwrap_all!
 
 func_def = (name, args, func, summary, pattern) ->
    Constant.meta
@@ -31,7 +73,7 @@ func_def = (name, args, func, summary, pattern) ->
 
 evenodd_op = (remainder) ->
   class extends PureOp
-    pattern: num + -num
+    pattern: T.num + -T.num
     type: T.bool
 
     tick: =>
@@ -44,8 +86,7 @@ add = Constant.meta
     summary: "Add values."
     examples: { '(+ a b [c…])', '(add a b [c…])' }
     description: "Sum all arguments."
-  value: class extends ReduceOp
-    fn: (a, b) -> a + b
+  value: func_op (reduce_fn (a, b) -> a + b), num\rep 2, nil
 
 sub = Constant.meta
   meta:
@@ -53,16 +94,14 @@ sub = Constant.meta
     summary: "Subtract values."
     examples: { '(- a b [c…])', '(sub a b [c…])' }
     description: "Subtract all other arguments from `a`."
-  value: class extends ReduceOp
-    fn: (a, b) -> a - b
+  value: func_op (reduce_fn (a, b) -> a - b), num\rep 2, nil
 
 mul = Constant.meta
   meta:
     name: 'mul'
     summary: "Multiply values."
     examples: { '(* a b [c…])', '(mul a b [c…])' }
-  value: class extends ReduceOp
-    fn: (a, b) -> a * b
+  value: func_op (reduce_fn (a, b) -> a * b), num\rep 2, nil
 
 div = Constant.meta
   meta:
@@ -70,8 +109,7 @@ div = Constant.meta
     summary: "Divide values."
     examples: { '(/ a b [c…])', '(div a b [c…])' }
     description: "Divide `a` by all other arguments."
-  value: class extends ReduceOp
-    fn: (a, b) -> a / b
+  value: func_op (reduce_fn (a, b) -> a / b), num\rep 2, nil
 
 pow = Constant.meta
   meta:
@@ -79,8 +117,7 @@ pow = Constant.meta
     summary: "Raise to a power."
     examples: { '(^ base exp)', '(pow base exp' }
     description: "Raise `base` to the power `exp`."
-  value: class extends ReduceOp
-    fn: (a, b) -> a ^ b
+  value: func_op (reduce_fn (a, b) -> a ^ b), num\rep 2, nil
 
 mod = Constant.meta
   meta:
@@ -89,24 +126,6 @@ mod = Constant.meta
     examples: { '(% num div)', '(mod num div)' }
     description: "Calculate remainder of division by `div`."
   value: func_op ((a, b) -> a % b), num + num
-
-even = Constant.meta
-  meta:
-    name: 'even'
-    summary: 'Check whether val is even.'
-    examples: { '(even val [div])' }
-    description: "`true` if dividing `val` by `div` has remainder zero.
-`div` defaults to 2."
-  value: evenodd_op 0
-
-odd = Constant.meta
-  meta:
-    name: 'odd'
-    summary: 'Check whether val is odd.'
-    examples: { '(odd val [div])' }
-    description: "`true` if dividing `val` by `div` has remainder one.
-`div` defaults to 2."
-  value: evenodd_op 1
 
 mix = Constant.meta
   meta:
@@ -158,7 +177,22 @@ sqrt = func_def 'sqrt', 'val', math.sqrt, "Square root function."
 Constant.meta
   meta:
     name: 'math'
-    summary: "Mathematical functions."
+    summary: "Mathematical functions, expanded to vectors and matrices."
+    description: "
+These functions are like the ones in [math/][:],
+except that they can also operate componentwise on (nested) arrays of numbers.
+
+    (+ 1 2 3) #(<num= 6>)
+    (+ (array 1 2) (array 3 4)) #(<num[2]= [4 6]>)
+
+The arguments for an operator generally have to be of the same type.
+However it is also okay to pass in scalar numbers together with a different type.
+The scalars will be repeated as necessary to fit the shape of other arguments:
+
+    (* (array (array 1 2) (array 3 4))
+       2)
+    #(<num[2][2]= [[2 4] [6 8]]>)
+"
 
   value:
     :add, '+': add
