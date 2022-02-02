@@ -86,7 +86,7 @@ r = (text, ref) ->
 -- substitute markdown-style reference links
 autoref = (str) ->
   str = str\gsub '%[([^%]]-)%]%[%]', r
-  str = str\gsub '%[([^%]]-)%]%[:(.-):%]', r
+  str = str\gsub '%[([^%]]-)%]%[:([^%]]-):%]', r
   str
 
 subnav = do

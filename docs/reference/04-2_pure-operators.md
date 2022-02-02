@@ -25,18 +25,18 @@ As an example, let's consider [math/+][]:
     (trace (+ 1 2 (every 1 3)))
     (trace (+ 1 (lfo 2) (every 1 3)))
 ```output
-(+ num= num= num=) -> num=
+(+ num= num= num=) → num=
 trace (+ 1 2 3): <num= 6>
 
-(+ num= num= num~) -> num~
+(+ num= num= num~) → num~
 trace (+ 1 2 (lfo 2)): <num~ 4.0>
 trace (+ 1 2 (lfo 2)): <num~ 3.9882585630406>
 
-(+ num= num= num!) -> num!
+(+ num= num= num!) → num!
 trace (+ 1 2 (every 2 3)): <num! 6>
 trace (+ 1 2 (every 2 3)): <num! 6>
 
-(+ num= num~ num!) -> num!
+(+ num= num~ num!) → num!
 trace (+ 1 (lfo 2) (every 2 3)): <num! 4.9950529446967>
 trace (+ 1 (lfo 2) (every 2 3)): <num! 4.9950529446967>
 ```

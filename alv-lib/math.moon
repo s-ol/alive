@@ -1,25 +1,133 @@
-import PureOp, Constant, T, sig, evt from require 'alv.base'
+import PureOp, RTNode, Constant, Error, T, Array, any from require 'alv.base'
 unpack or= table.unpack
 
-num = sig.num / evt.num
+--- (recursively) wrap/repeat a scalar value to match a (nested) array type.
+--
+-- For example `expand_to (Array 3, Array 4, T.num), 2` will return
+-- `[[2 2 2 2] [2 2 2 2] [2 2 2 2]]`.
+expand_to = (want, have, val) ->
+  return val if want == have
 
-class ReduceOp extends PureOp
-  pattern: num\rep 2, nil
-  type: T.num
+  return for key, inner in want\iter_keys!
+    expand_to inner, have, val
 
-  tick: =>
-    args = @unwrap_all!
+--- apply fn componentwise
+deep_apply = (fn, type, args) ->
+  return fn args unless type.iter_keys
+
+  return for key, inner in type\iter_keys!
+    deep_apply fn, inner, [arg[key] for arg in *args]
+
+is_vec = (type) -> type.__class == Array and type.type == T.num
+is_mat = (type) -> type.__class == Array and type.type.__class == Array
+
+--- return a function that runs `expand_to` on all arguments
+--
+-- @treturn function
+deep_apply_fn = (_func, types) ->
+  func = (args) -> _func unpack args
+
+  result_type = nil
+  for type in *types
+    continue if type == T.num
+
+    result_type or= type
+    assert type == result_type
+
+  -- all scalars, don't expand
+  if not result_type
+    return T.num, func
+
+  -- at least one non-scalar
+  result_type, (args) ->
+    -- expand all arguments
+    expanded = for i, arg in ipairs args
+      if types[i] != result_type
+        expand_to result_type, types[i], arg
+      else
+        arg
+
+    deep_apply func, result_type, expanded
+
+
+multiply_mat = (ltype, rtype, lval, rval) ->
+  return for i = 1, ltype.size
+    for j = 1, rtype.type.size
+      accum = 0
+      for k = 1, rtype.size
+        accum += lval[i][k] * rval[k][j]
+      accum
+
+apply_fn_linalg = (types) ->
+  result = types[1]
+  fns = {}
+
+  for i=2, #types
+    local nextres
+    ltype = result
+    rtype = types[i]
+
+    lvec, rvec = (is_vec ltype), (is_vec rtype)
+
+    fn = if (lvec and rvec) or ltype == T.num or rtype == T.num
+      -- componentwise mult
+      nextres = if lvec or (is_mat ltype) then ltype else rtype
+      (lval, rval) ->
+        lval = expand_to nextres, ltype, lval
+        rval = expand_to nextres, rtype, rval
+        deep_apply ((args) -> args[1] * args[2]), nextres, { lval, rval }
+    else
+      -- matrix/vector multiplication or matrix/matrix multiplication
+      if lvec
+        nextres = ltype
+        ltype = Array 1, ltype
+      else if rvec
+        nextres = rtype
+        rtype = Array rtype.size, Array 1, rtype.type if rvec
+      else
+        nextres = Array ltype.size, Array rtype.type.size, T.num
+
+      assert ltype.type.size == rtype.size
+
+      (lval, rval) ->
+        lval = {lval} if lvec
+        rval = [{ v } for v in *rval] if rvec
+        res = multiply_mat ltype, rtype, lval, rval
+        if rvec
+          [v[1] for v in *res]
+        else if lvec
+          res[1]
+        else
+          res
+
+    result = nextres
+    table.insert fns, fn
+
+  result, (args) ->
     accum = args[1]
-    for val in *args[2,]
-      accum = @.fn accum, val
-    @out\set accum
+    for i, fn in ipairs fns
+      accum = fn accum, args[i + 1]
+    accum
+
+num = any.num / any!!
+
+reduce_fn = (fn) ->
+  (accum, ...) ->
+    for i=1, select '#', ...
+      accum = fn accum, select i, ...
+    accum
 
 func_op = (func, pattern) ->
   class extends PureOp
     pattern: pattern
-    type: T.num
+    type: (inputs) =>
+      types = [input\type! for input in *inputs]
+      result, @func = deep_apply_fn func, types
+      assert (is_vec result) or (is_mat result) or (result == T.num),
+        Error 'argument', "expected matrices, vectors or numbers"
+      result
 
-    tick: => @out\set func unpack @unwrap_all!
+    tick: => @out\set @.func @unwrap_all!
 
 func_def = (name, args, func, summary, pattern) ->
    Constant.meta
@@ -31,7 +139,7 @@ func_def = (name, args, func, summary, pattern) ->
 
 evenodd_op = (remainder) ->
   class extends PureOp
-    pattern: num + -num
+    pattern: T.num + -T.num
     type: T.bool
 
     tick: =>
@@ -44,8 +152,7 @@ add = Constant.meta
     summary: "Add values."
     examples: { '(+ a b [c…])', '(add a b [c…])' }
     description: "Sum all arguments."
-  value: class extends ReduceOp
-    fn: (a, b) -> a + b
+  value: func_op (reduce_fn (a, b) -> a + b), num\rep 2, nil
 
 sub = Constant.meta
   meta:
@@ -53,16 +160,38 @@ sub = Constant.meta
     summary: "Subtract values."
     examples: { '(- a b [c…])', '(sub a b [c…])' }
     description: "Subtract all other arguments from `a`."
-  value: class extends ReduceOp
-    fn: (a, b) -> a - b
+  value: class extends func_op (reduce_fn (a, b) -> a - b), num*0
+    setup: (inputs, ...) =>
+      if #inputs == 1
+        table.insert inputs, 1, RTNode result: Constant.num 0
+      super inputs, ...
 
 mul = Constant.meta
   meta:
     name: 'mul'
-    summary: "Multiply values."
+    summary: "Multiply scalars, vectors and matrices."
     examples: { '(* a b [c…])', '(mul a b [c…])' }
-  value: class extends ReduceOp
-    fn: (a, b) -> a * b
+    description: "Multiplies all arguments.
+
+For every pair of arguments, from left to right:
+
+- If either argument is a scalar, or both are vectors, multiply componentwise.
+- If either argument is a matrix and the other is a vector, apply the matrix transformation.
+  - `(* num[L][M] num[M]) → num[L]` (forward transform)
+  - `(* num[M] num[M][N]) → num[N]` (reverse transform)
+- If both arguments are matrices, multiply them using matrix multiplication.
+  - `(* num[L][M] num[M][N]) → num[M][N]`"
+  value: class extends PureOp
+    pattern: any!\rep 2, nil
+
+    type: (inputs) =>
+      types = [input\type! for input in *inputs]
+      result, @func = apply_fn_linalg types
+      assert (is_vec result) or (is_mat result) or (result == T.num),
+        Error 'argument', "expected matrices, vectors or numbers"
+      result
+
+    tick: => @out\set @.func @unwrap_all!
 
 div = Constant.meta
   meta:
@@ -70,8 +199,8 @@ div = Constant.meta
     summary: "Divide values."
     examples: { '(/ a b [c…])', '(div a b [c…])' }
     description: "Divide `a` by all other arguments."
-  value: class extends ReduceOp
-    fn: (a, b) -> a / b
+  value: func_op (reduce_fn (a, b) -> a / b), num\rep 2, nil
+  -- @TODO: block matrix-matrix division
 
 pow = Constant.meta
   meta:
@@ -79,8 +208,7 @@ pow = Constant.meta
     summary: "Raise to a power."
     examples: { '(^ base exp)', '(pow base exp' }
     description: "Raise `base` to the power `exp`."
-  value: class extends ReduceOp
-    fn: (a, b) -> a ^ b
+  value: func_op (reduce_fn (a, b) -> a ^ b), num\rep 2, nil
 
 mod = Constant.meta
   meta:
@@ -89,24 +217,6 @@ mod = Constant.meta
     examples: { '(% num div)', '(mod num div)' }
     description: "Calculate remainder of division by `div`."
   value: func_op ((a, b) -> a % b), num + num
-
-even = Constant.meta
-  meta:
-    name: 'even'
-    summary: 'Check whether val is even.'
-    examples: { '(even val [div])' }
-    description: "`true` if dividing `val` by `div` has remainder zero.
-`div` defaults to 2."
-  value: evenodd_op 0
-
-odd = Constant.meta
-  meta:
-    name: 'odd'
-    summary: 'Check whether val is odd.'
-    examples: { '(odd val [div])' }
-    description: "`true` if dividing `val` by `div` has remainder one.
-`div` defaults to 2."
-  value: evenodd_op 1
 
 mix = Constant.meta
   meta:
@@ -131,6 +241,14 @@ max = Constant.meta
     examples: { '(max a b [c…])' }
     description: "Return the highest of arguments."
   value: func_op math.max, num*0
+
+clamp = Constant.meta
+  meta:
+    name: 'clamp'
+    summary: "Clamp a value to a range."
+    examples: { '(clamp min max val)' }
+    description: "Returns `min` if `val < min`; `max` if `val > max`; and `val` otherwise."
+  value: func_op ((min, max, val) -> math.min max, math.max min, val), num*3
 
 inc = func_def 'inc', 'i', ((i) -> i + 1), "Increment by 1."
 dec = func_def 'dec', 'i', ((i) -> i - 1), "Decrement by 1."
@@ -159,6 +277,25 @@ Constant.meta
   meta:
     name: 'math'
     summary: "Mathematical functions."
+    description: "
+This module is exactly like [math-simple/][], except that the operators
+also work componentwise with vectors (`num[X]`) and matrices (`num[X][Y]`).
+All operators are PureOps.
+
+    (+ 1 2 3) #(<num= 6>)
+    (+ (array 1 2) (array 3 4)) #(<num[2]= [4 6]>)
+
+The arguments for an operator generally have to be of the same type.
+However it is also okay to pass in scalar numbers together with a different type.
+The scalars will be repeated as necessary to fit the shape of other arguments:
+
+    (* (array (array 1 2) (array 3 4))
+       2)
+    #(<num[2][2]= [[2 4] [6 8]]>)
+
+The [mul][:math/mul:] (`*`) operator is the only exception to this,
+as it handles matrix-matrix and matrix-vector multiplication according to linear algebra.
+"
 
   value:
     :add, '+': add
@@ -171,7 +308,7 @@ Constant.meta
     :even, :odd
 
     :mix
-    :min, :max
+    :min, :max, :clamp
 
     :inc, :dec
 
