@@ -1,0 +1,10 @@
+([1]import* math array-)
+
+([2]defn my-plus (a b)
+  ([13]+ a b))
+
+([3]defn apply-op (op arr)
+  ([7]op ([8]get arr 0) ([9]get arr 1)))
+
+([4]trace ([5]apply-op + ([6]array 2 3)))
+([10]trace ([11]apply-op my-plus ([12]array 2 3)))

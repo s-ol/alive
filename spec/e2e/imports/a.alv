@@ -1,0 +1,4 @@
+([4]import* string)
+([1]export
+  ([3]print "RUNNING A.ALV")
+  ([2]def hello "hello - A"))

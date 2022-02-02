@@ -1,0 +1,5 @@
+([2]trace "hello")
+([3]trace 2)
+([1]trace true)
+([4]trace ([5]struct "a" 2 "b" 3))
+([6]trace ([7]array 1 2 3 4))

@@ -1,0 +1,9 @@
+([10]import array- struct-)
+
+([2]def notes ([3]array
+  ([5]struct 'note' 'a' 'octave' 3)
+  ([6]struct 'note' 'e' 'octave' 3)
+  ([7]struct 'note' 'f' 'octave' 2)))
+
+([4]trace notes)
+([8]trace ([9]struct-/get ([11]array-/get notes 1) "octave"))

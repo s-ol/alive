@@ -101,6 +101,7 @@ build = {
   install = {
     lua = {
 $(list_modules alv)
+      ["alv.copilot.love.main"] = "alv/copilot/love/main.lua",
 
 $(list_modules alv-lib)
     },
@@ -108,6 +109,7 @@ $(list_modules alv-lib)
       "bin/alv",
       "bin/alv-wx",
       "bin/alv-fltk",
+      "bin/alv-love",
     },
   },
 }

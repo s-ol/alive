@@ -1,0 +1,3 @@
+([3]print "RUNNING B.ALV")
+([1]def hello "hello - B")
+([2]export* hello)

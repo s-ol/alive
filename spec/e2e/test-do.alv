@@ -1,0 +1,3 @@
+([1]print ([2]do
+          "fail"
+          "success"))

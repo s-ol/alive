@@ -1,0 +1,16 @@
+([1]import* math time)
+
+([18]def i ([19]every 2 1))
+
+([2]trace ([3]min i 2 3))
+([4]trace ([5]max i 2 3))
+
+([6]trace ([7]% i 3))
+([20]trace ([21]even i 4))
+
+([8]trace ([9]* i 3 4))
+([10]trace ([11]/ i 2 2))
+
+([12]trace ([13]cos i))
+([14]trace ([15]log i))
+([16]trace ([17]log i 2))

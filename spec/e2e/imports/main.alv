@@ -1,0 +1,8 @@
+([5]print "START OF MAIN")
+#([1]import a b c)
+([1]import a)
+([6]print "IMPORTS DONE")
+
+([2]print a/hello)
+#([3]print b/hello)
+#([4]print c/hello)

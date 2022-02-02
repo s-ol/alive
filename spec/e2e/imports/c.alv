@@ -1,0 +1,6 @@
+([1]print "RUNNING C.ALV")
+
+([3]import a string)
+
+([4]def hello ([5]string/.. a/hello " from C"))
+([2]export*)
