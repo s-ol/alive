@@ -2,7 +2,7 @@
   description = "alive";
 
   inputs = {
-    nixpkgs.url = github:NixOS/nixpkgs/nixos-20.09;
+    nixpkgs.url = github:NixOS/nixpkgs/nixos-unstable;
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -29,10 +29,10 @@
             };
             propagatedBuildInputs = [ lua ];
 
-            meta = with pkgs.stdenv.lib; {
-              homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
-              description = "Lua binding to FLTK, the Fast Light ToolKit";
-              license.fullName = "MIT";
+            meta = {
+              homepage = "https://github.com/osch/luarocks-build-cpp";
+              description = "A fork of built-in build system for C++ rocks";
+              license = lib.licenses.mit;
             };
           };
 
@@ -44,12 +44,14 @@
               url    = "mirror://luarocks//${pname}-${version}.src.rock";
               sha256 = "Dp3bKIG4swrD4+1NNtRTgyj68Di2cSUlh1r7Z2Rkzn0=";
             };
+            postUnpack = "sourceRoot=$sourceRoot/luarocks-fetch-gitrec-0.2";
+
             propagatedBuildInputs = with pkgs; [ lua git ];
 
-            meta = with pkgs.stdenv.lib; {
-              homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
+            meta = {
+              homepage = "https://github.com/siffiejoe/luarocks-fetch-gitrec";
               description = "Lua binding to FLTK, the Fast Light ToolKit";
-              license.fullName = "MIT";
+              license = lib.licenses.mit;
             };
           };
 
@@ -61,13 +63,14 @@
               url    = "mirror://luarocks//${pname}-${version}.src.rock";
               sha256 = "fD31FruqVriMecFcvSV4W7JRia38+bg7j3T5k5pFZec=";
             };
+            postUnpack = "sourceRoot=$sourceRoot/lua-fltk4lua";
             buildInputs = with pkgs; [ fltk libjpeg ];
             propagatedBuildInputs = [ lua luarocks-build-cpp luarocks-fetch-gitrec ];
 
-            meta = with pkgs.stdenv.lib; {
-              homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
+            meta = {
+              homepage = "https://github.com/siffiejoe/lua-fltk4lua";
               description = "Lua binding to FLTK, the Fast Light ToolKit";
-              license.fullName = "MIT";
+              license = lib.licenses.mit;
             };
           };
 
@@ -79,13 +82,15 @@
               url    = "mirror://luarocks//${pname}-${version}.src.rock";
               sha256 = "MArhj51V1awF5k2zToFYEXpS2c6o8bnNDn4wLhooHos=";
             };
+            postUnpack = "sourceRoot=$sourceRoot/losc";
+
             buildInputs = with pkgs; [ stdenv.cc.cc.lib ];
             propagatedBuildInputs = [ lua ];
 
-            meta = with pkgs.stdenv.lib; {
+            meta = {
               homepage = "https://github.com/davidgranstrom/losc";
               description = "Open Sound Control (OSC) for lua/luajit with no external dependencies.";
-              license.fullName = "MIT";
+              license = lib.licenses.mit;
             };
           };
 
@@ -106,10 +111,10 @@
             buildInputs = [ pkgs.discount ];
             propagatedBuildInputs = [ lua ];
 
-            meta = with pkgs.stdenv.lib; {
+            meta = {
               homepage = "https://github.com/craigbarnes/lua-discount";
               description = "Lua bindings for the Discount Markdown library";
-              license.fullName = "ISC";
+              license = lib.licenses.isc;
             };
           };
 
@@ -132,10 +137,30 @@
               lua penlight markdown
             ];
 
-            meta = with pkgs.stdenv.lib; {
-              homepage = "https://github.com/siffiejoe/lua-fltk4lua/";
-              description = "Lua binding to FLTK, the Fast Light ToolKit";
-              license.fullName = "MIT";
+            meta = {
+              homepage = "https://github.com/s-ol/LDoc";
+              description = "A Lua Documentation Tool";
+              license = lib.licenses.mit;
+            };
+          };
+
+          lua-rtmidi = luaPkgs.buildLuarocksPackage rec {
+            pname = "lua-rtmidi";
+            version = "dev-1";
+
+            src = pkgs.fetchFromGitHub {
+              owner = "s-ol";
+              repo = "lua-rtmidi";
+              rev = "master";
+              sha256 = "iXckraQZf6smWlxD27ktBEFKNXLzzsZFpzx2MLRQJVM=";
+            };
+            buildInputs = with pkgs; [ stdenv.cc.cc.lib ];
+            propagatedBuildInputs = with pkgs; [ lua alsa-lib pipewire.jack ];
+
+            meta = {
+              homepage = "https://github.com/s-ol/lua-rtmidi";
+              description = "Lua bindings for RtMidi";
+              license = lib.licenses.bsd2;
             };
           };
         in
@@ -143,6 +168,7 @@
             moonscript lpeg
             luafilesystem luasocket luasystem fltk4lua losc bit32
             ldoc busted discount
+            lua-rtmidi
           ]));
       in rec {
         packages.alive-env-lua53 = stdenv.mkDerivation {
