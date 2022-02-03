@@ -23,7 +23,7 @@ class Op
   fork: =>
     out = if @out then @out\fork!
     state = if @state then deep_copy @state
-    @@ out, state
+    @@ out, state, @inputs
 
   --- internal state of this Op.
   --
@@ -130,15 +130,11 @@ class Op
 -- super-methods and utilities for use by implementations.
 -- @section super
 
-  --- if `type` is passed, an output stream is instantiated.
-  -- if `init` is passed, the stream is initialized to that Lua value.
-  -- it is okay not to use this and create the output stream in :setup() if the
-  -- type is not known at this time.
-  --
   -- @classmethod
   -- @tparam ?Result out `out`
   -- @tparam ?table state `state`
-  new: (@out, @state) =>
+  -- @tparam ?table inputs `inputs`
+  new: (@out, @state, @inputs) =>
 
   do_setup = (old, cur) ->
     -- are these inputs or nested tables?
