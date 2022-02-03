@@ -69,17 +69,35 @@ class OutPort
 class PortOp extends Op
   setup: (inputs) =>
     super inputs
-    { :inp, :out } = @unwrap_all!
 
-    if inp and out
-      type = Struct in: T['midi/in'], out: T['midi/out']
-      @out = type\mk_const { 'in': InPort(inp), out: OutPort(out) }
+    { :inp, :out } = @inputs
+
+    type = if inp and out
+      Struct in: T['midi/in'], out: T['midi/out']
     elseif inp
-      @out = T['midi/in']\mk_const InPort inp
+      T['midi/in']
     elseif out
-      @out = T['midi/out']\mk_const OutPort out
+      T['midi/out']
     else
       error "no port opened"
+
+    if not @out or @out.type != type
+      @out = type\mk_sig!
+
+    @state or= {}
+
+  tick: =>
+    if @inputs.inp and @inputs.inp\dirty!
+      @state.inp = InPort @inputs.inp!
+
+    if @inputs.out and @inputs.out\dirty!
+      @state.out = OutPort @inputs.out!
+
+    { :inp, :out } = @state
+    @out\set if inp and out
+      { 'in': inp, :out }
+    else
+      inp or out
 
 input = Constant.meta
   meta:
