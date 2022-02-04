@@ -8,9 +8,9 @@ edge = Constant.meta
 
   value: class extends Op
     setup: (inputs) =>
-      @out or= T.bang\mk_evt!
       value = sig.bool\match inputs
       super value: Input.hot value
+      @out = T.bang\mk_evt!
 
     tick: =>
       now = @inputs.value!

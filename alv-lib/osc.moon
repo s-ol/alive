@@ -1,4 +1,4 @@
-import Op, PureOp, Constant, SigStream, Input, T, sig, any from require 'alv.base'
+import Op, PureOp, Constant, Input, T, sig, any from require 'alv.base'
 import new_message, add_item from require 'alv-lib._osc'
 import dns, udp from require 'socket'
 
@@ -13,11 +13,12 @@ connect = Constant.meta
   value: class extends Op
     pattern = sig.str + sig.num
     setup: (inputs) =>
-      @out or= SigStream T['udp/socket']
       { host, port } = pattern\match inputs
       super
         host: Input.hot host
         port: Input.hot port
+
+      @update_out '~', T['udp/socket']
 
     tick: =>
       { :host, :port } = @unwrap_all!

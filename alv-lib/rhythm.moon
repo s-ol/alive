@@ -50,7 +50,7 @@ When fed a num~ or num! stream, outputs a bang if the corresponding step is on."
     setup: (inputs) =>
       { trig, n, k } = pattern\match inputs
 
-      @out or= T.bang\mk_evt!
+      @out = T.bang\mk_evt!
 
       if trig\type! == T.bang
         @state or= 1
@@ -95,7 +95,7 @@ When fed a num~ or num! stream, outputs a bang if the corresponding step is on."
     setup: (inputs) =>
       { trig, steps } = pattern\match inputs
 
-      @out or= T.bang\mk_evt!
+      @out = T.bang\mk_evt!
 
       super
         trig: Input.hot trig

@@ -81,10 +81,8 @@ class PortOp extends Op
     else
       error "no port opened"
 
-    if not @out or @out.type != type
-      @out = type\mk_sig!
-
     @state or= {}
+    @update_out '~', type
 
   tick: =>
     if @inputs.inp and @inputs.inp\dirty!

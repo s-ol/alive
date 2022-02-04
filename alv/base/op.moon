@@ -170,16 +170,13 @@ class Op
   -- @tparam Type type
   -- @tparam[opt] any val initial value
   update_out: (metatype, type, val) =>
-    same_type = @out and @out.type == type
-    if same_type and @out.metatype == metatype
+    if @out and @out.type == type and @out.metatype == metatype
       -- we can just keep it. do nothing.
-      return
-
-    -- prefer last value if applicable
-    val = same_type and @.out! or val
+      return false
 
     ResultType = if metatype == '!' then EvtStream else SigStream
     @out = ResultType type, val
+    true
 
   --- `\unwrap` all `Input`s in `@inputs` and return a table with the same
   -- shape.

@@ -14,15 +14,13 @@ frame rate.
 
 - `fps` has to be a num= constant and defaults to `60` if omitted."
   value: class extends Op
-    new: (...) =>
-      super ...
-      @out or= T.clock\mk_evt!
-
     setup: (inputs) =>
       fps = (-sig.num)\match inputs
       super
         fps: Input.cold fps or Constant.num 60
         io: Input.hot T.bang\mk_evt!
+
+      @update_out '!', T.clock
 
     poll: =>
       time = monotime!
@@ -60,16 +58,14 @@ scale_time = Constant.meta
   and the stream be passed as a dynamic definition in `*clock*` instead.
 - `scale` should be a num~ stream."
   value: class extends Op
-    new: (...) =>
-      super ...
-      @out or= T.clock\mk_evt!
-
     pattern = -evt.clock + sig.num + -sig.str
     setup: (inputs, scope) =>
       { clock, scale } = pattern\match inputs
       super
         clock: Input.hot clock or scope\get '*clock*'
         scale: Input.cold scale
+
+      @update_out '!', T.clock
 
     tick: =>
       { :clock, :scale } = @unwrap_all!
@@ -90,11 +86,6 @@ lfo = Constant.meta
   - `'saw'`
   - `'tri'`"
   value: class extends Op
-    new: (...) =>
-      super ...
-      @state or= 0
-      @out or= T.num\mk_sig!
-
     default_wave = Constant.str 'sin'
     pattern = -evt.clock + sig.num + -sig.str
     setup: (inputs, scope) =>
@@ -103,6 +94,9 @@ lfo = Constant.meta
         clock: Input.hot clock or scope\get '*clock*'
         freq: Input.cold freq
         wave: Input.hot wave or default_wave
+
+      @state or= 0
+      @update_out '~', T.num
 
     tau = math.pi * 2
     tick: =>
@@ -133,11 +127,6 @@ ramp = Constant.meta
 - `period` should be a num~ stream.
 - `max` should be a num~ stream and defaults to `period` if omitted."
   value: class extends Op
-    new: (...) =>
-      super ...
-      @state or= 0
-      @out or= T.num\mk_sig 0
-
     pattern = -evt.clock + sig.num + -sig.num
     setup: (inputs, scope) =>
       { clock, period, max } = pattern\match inputs
@@ -145,6 +134,9 @@ ramp = Constant.meta
         clock: Input.hot clock or scope\get '*clock*'
         period: Input.cold period
         max: max and Input.cold max
+
+      @state or= 0
+      @update_out '~', T.num, 0
 
     tick: =>
       { :clock, :period, :max } = @unwrap_all!
@@ -175,17 +167,15 @@ tick = Constant.meta
 - `period` should be a num~ stream.
 - returns a `num~` stream that increases by 1 every `period`."
   value: class extends Op
-    new: (...) =>
-      super ...
-      @state or= { phase: 0, count: 0 }
-      @out or= T.num\mk_sig @state.count
-
     pattern = -evt.clock + sig.num
     setup: (inputs, scope) =>
       { clock, period } = pattern\match inputs
       super
         clock: Input.hot clock or scope\get '*clock*'
         period: Input.cold period
+
+      @state or= { phase: 0, count: 0 }
+      @update_out '~', T.num, @state.count
 
     tick: =>
       { :clock, :period } = @unwrap_all!
@@ -212,10 +202,6 @@ every = Constant.meta
 - `evt` can be a value of any type. It defaults to `bang`.
 - the return type will be an event stream with the same type as `evt`."
   value: class extends Op
-    new: (...) =>
-      super ...
-      @state or= 0
-
     pattern = -evt.clock + sig.num + -sig!
     setup: (inputs, scope) =>
       { clock, period, evt } = pattern\match inputs
@@ -223,7 +209,9 @@ every = Constant.meta
         clock: Input.hot clock or scope\get '*clock*'
         period: Input.cold period
         evt: Input.cold evt or T.bang\mk_const true
-      @out = @inputs.evt\type!\mk_evt!
+
+      @state or= 0
+      @update_out '!', @inputs.evt\type!
 
     tick: =>
       { :clock, :period, :evt } = @unwrap_all!
@@ -263,11 +251,13 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
 
     setup: (inputs, scope) =>
       { clock, first, steps } = pattern\match inputs
-      @out = steps[1].value\type!\mk_evt!
       table.insert steps, 1, { delay: first }
+
       super
         clock: Input.hot clock or scope\get '*clock*'
         steps: [inputify step for step in *steps]
+
+      @update_out '!', steps[1].value\type!
 
     tick: =>
       if tick = @inputs.clock!
@@ -344,10 +334,6 @@ Creates smooth transitions when `value` changes.
 - `rate` is a num~ or num= value."
 
   value: class extends Op
-    new: (...) =>
-      super ...
-      @out = T.num\mk_sig!
-
     pattern = -evt.clock + sig.num + any.num
     setup: (inputs, scope) =>
       { clock, rate, value } = pattern\match inputs
@@ -357,7 +343,7 @@ Creates smooth transitions when `value` changes.
         rate: Input.cold rate
         value: Input.cold value
 
-      @out\set @inputs.value! unless @.out!
+      @update_out '~', T.num, @inputs.value!
 
     tick: =>
       { :clock, :rate, :value } = @unwrap_all!
@@ -381,10 +367,6 @@ Delays incoming `evt`s by `delay`.
 - `evt` is a !-stream."
 
   value: class extends Op
-    new: (...) =>
-      super ...
-      @state = {}
-
     pattern = -evt.clock + any.num + any!
     setup: (inputs, scope) =>
       { clock, delay, evt } = pattern\match inputs
@@ -394,11 +376,9 @@ Delays incoming `evt`s by `delay`.
         delay: Input.cold delay
         evt: Input.hot evt
 
-      if @out and @out.type != @inputs.evt\type!
-        -- clear queue if type is not compatible
+      @state or= {}
+      if @update_out '!', @inputs.evt\type!
         @state = {}
-
-      @out = @inputs.evt\type!\mk_evt!
 
     tick: =>
       clock = @inputs.clock!

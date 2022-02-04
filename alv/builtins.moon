@@ -441,9 +441,9 @@ to_const = Constant.meta
 
   value: class extends Op
     setup: (inputs) =>
-      super {}
       input = const!\match inputs
-      @out = input\type!\mk_const input.result!
+      super value: Input.hot input
+      @out = input.result
 
 to_sig = Constant.meta
   meta:
@@ -492,7 +492,7 @@ to_evt = Constant.meta
       else
         super sig: Input.hot sig_
 
-      @out = @inputs.sig\type!\mk_evt!
+      @update_out '!', @inputs.sig\type!
 
     tick: (setup) =>
       return if setup
@@ -514,7 +514,7 @@ In case of collisions, the event that comes first in the argument list wins."
     setup: (inputs) =>
       values = pattern\match inputs
       super [Input.hot v for v in *values]
-      @out = @inputs[1]\type!\mk_evt!
+      @update_out '!', @inputs[1]\type!
 
     tick: =>
       for input in *@inputs

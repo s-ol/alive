@@ -17,15 +17,12 @@ Visualizes `val` as a bar with range `min, max`.
       if not max
         min, max = nil, min
 
-      @out = if val.result.metatype ~= '!'
-        val\type!\mk_sig!
-      else
-        val\type!\mk_evt!
-
       super
         val: Input.hot val
         min: Input.cold min or Constant.num 0
         max: Input.cold max or Constant.num 1
+
+      @update_out val.result.metatype, val\type!
 
     tick: =>
       { :val, :min, :max } = @unwrap_all!
@@ -57,14 +54,11 @@ Visualizes `val` as an RGB(A) color with each component in range `0 - range`.
     setup: (inputs, scope) =>
       { val, max } = pattern\match inputs
 
-      @out = if val.result.metatype ~= '!'
-        val\type!\mk_sig!
-      else
-        val\type!\mk_evt!
-
       super
         val: Input.hot val
         max: Input.cold max or Constant.num 1
+
+      @update_out val.result.metatype, val\type!
 
     tick: =>
       { :val, :max } = @unwrap_all!

@@ -36,7 +36,7 @@ num = Constant.meta
   value: class extends Op
     new: (...) =>
       super ...
-      @out or= T.num\mk_sig!
+      @update_out '~', T.num
       @state or @gen!
 
     gen: => @state = math.random!
@@ -64,7 +64,7 @@ vec = (n) ->
     value: class extends Op
       new: (...) =>
         super ...
-        @out or= typ\mk_sig!
+        @update_out '~', typ
         @state or @gen!
 
       gen: => @state = for i=1,n do math.random!

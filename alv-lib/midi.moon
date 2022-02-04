@@ -12,13 +12,14 @@ gate = Constant.meta
     pattern = -sig['midi/in'] + sig.num -sig.num
     setup: (inputs, scope) =>
       { port, note, chan } = pattern\match inputs
-      @out or= T.bool\mk_sig!
       super
         port: Input.cold port or scope\get '*midi*'
         note: Input.hot note
         chan: Input.hot chan or Constant.num -1
 
         internal: Input.hot T.bool\mk_sig!
+
+      @update_out '~', T.bool
 
     poll: =>
       { :port, :note, :chan, :internal } = @inputs
@@ -54,7 +55,7 @@ trig = Constant.meta
     pattern = -sig['midi/in'] + sig.num -sig.num
     setup: (inputs, scope) =>
       { port, note, chan } = pattern\match inputs
-      @out or= T.bang\mk_evt!
+      @out = T.bang\mk_evt!
       super
         port: Input.cold port or scope\get '*midi*'
         note: Input.cold note
@@ -106,7 +107,7 @@ cc = Constant.meta
         internal: Input.hot T.bang\mk_evt!
 
       @state or= 0
-      @out or= T.num\mk_sig apply_range @inputs.range, @state
+      @update_out '~', T.num, apply_range @inputs.range, @state
 
     poll: =>
       { :port, :cc, :chan, :internal } = @inputs
