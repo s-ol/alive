@@ -255,8 +255,8 @@ Invokes `fn` once for each element in `array` and returns an array of the result
       tail = [L\push t\eval, scope for t in *tail]
       { array, fn } = tail
 
-      fndef = fn.result
       assert fn\type! == T.fndef, "fn has to be a fndef"
+
       array_type = array\type!
       assert array_type.__class == Array, Error 'argument', "expected an Array"
 
@@ -264,22 +264,22 @@ Invokes `fn` once for each element in `array` and returns an array of the result
         tag_o = @tag\clone Tag.parse tostring i
         tag_i = @tag\clone tag_o
         Cell tag_o, {
-          with Constant.literal T.fndef, fndef!, 'fn'
-            .meta = fndef.meta
+          Dummy fn\make_ref!
           Cell tag_i, {
-            Constant.literal T.opdef, get!, 'get'
-            Constant.literal array_type, array.result!, 'array'
+            Dummy.literal T.opdef, get!
+            Dummy array\make_ref!
             Constant.num i-1
           }
         }
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
-        Constant.literal T.opdef, array_constr, 'array'
+        Dummy.literal T.opdef, array_constr
         unpack invocations
       }
-      super inner\eval scope
 
+      node = inner\eval scope
+      super RTNode children: { array, fn, node }, result: node.result
 
 Constant.meta
   meta:
