@@ -11,6 +11,7 @@ import Constant from require 'alv.result'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
 import Cell from require 'alv.cell'
+import Dummy from require 'alv.dummy'
 import Scope from require 'alv.scope'
 import Tag from require 'alv.tag'
 import op_invoke from require 'alv.invoke'
@@ -407,7 +408,7 @@ trace = Constant.meta
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
-        Constant.literal T.opdef, traceOp, 'trace'
+        Dummy.literal T.opdef, traceOp
         Constant.str tail[1]\stringify 2
         tail[1]
       }

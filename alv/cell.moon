@@ -17,13 +17,6 @@ class Cell
 --- members
 -- @section members
 
-  new: (@tag=Tag.blank!, @children, @white) =>
-    if not @white
-      @white = [' ' for i=1,#@children]
-      @white[0] = ''
-
-    assert #@white == #@children, "mismatched whitespace length"
-
   --- get the head of the cell.
   --
   -- @treturn AST
@@ -124,6 +117,19 @@ class Cell
 
 --- static functions
 -- @section static
+
+  --- construct a new Cell.
+  --
+  -- @classmethod
+  -- @tparam[opt] Tag tag
+  -- @tparam {AST,...} children
+  -- @tparam[opt] {string,...} white whitespace strings
+  new: (@tag=Tag.blank!, @children, @white) =>
+    if not @white
+      @white = [' ' for i=1,#@children]
+      @white[0] = ''
+
+    assert #@white == #@children, "mismatched whitespace length"
 
   parse_args = (tag, parts) ->
     if not parts

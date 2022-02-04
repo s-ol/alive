@@ -67,8 +67,6 @@ class Constant extends Result
   -- @tparam Scope scope the scope to evaluate in
   -- @treturn RTNode the evaluation result
   eval: (scope) =>
-    return RTNode result: @ if @literal
-
     switch @type
       when T.num, T.str
         RTNode result: @
@@ -172,15 +170,6 @@ class Constant extends Result
   --- create a constant bang.
   -- @treturn Constant
   @bang: -> Constant T.bang, true
-
-  --- create a forced-literal Constant.
-  --
-  -- For internal use in `Builtin`s only.
-  --
-  -- @treturn Constant
-  @literal: (...) ->
-    with Constant ...
-      .literal = true
 
   --- wrap and document a value.
   --

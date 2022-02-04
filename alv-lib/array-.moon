@@ -1,6 +1,5 @@
-import Array, Op, PureOp, Builtin, Constant, Error, const, any, T from require 'alv.base'
-import Cell from require 'alv.cell'
-import Tag from require 'alv.tag'
+import Array, Op, PureOp, Builtin, RTNode, Constant, Error, const, any, T from require 'alv.base'
+import Cell, Tag, Dummy from require 'alv.ast'
 builtins = require 'alv.builtins'
 
 unpack or= table.unpack

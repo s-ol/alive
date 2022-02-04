@@ -1,5 +1,5 @@
 import Constant, Op, Builtin, Input, Error, T, any, const from require "alv.base"
-import Tag, Cell from require "alv"
+import Cell, Tag, Dummy from require "alv.ast"
 
 assert_ = Constant.meta
   meta:
@@ -33,7 +33,7 @@ By default, the message contains the failing check expression."
 
       tag = @tag\clone Tag.parse '-1'
       inner = Cell tag, {
-        Constant.literal T.opdef, assertOp, 'assert'
+        Dummy.literal T.opdef, assertOp
         tail[1]
         tail[2] or Constant.str "assertion failed: #{tail[1]\stringify 2}"
       }
@@ -76,7 +76,7 @@ If not, throws an error."
       assert #tail > 1, "'expect=' takes at least two arguments"
 
       children = {
-        Constant.literal T.opdef, expectOp, 'assert'
+        Dummy.literal T.opdef, expectOp
         tail[1]
       }
       for arg in *tail[2,]
