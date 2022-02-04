@@ -337,10 +337,8 @@ switch_ = Constant.meta
     setup: (inputs) =>
       { i, values } = pattern\match inputs
 
-      @out = if values[1].result.metatype ~= '!'
-        values[1]\type!\mk_sig!
-      else
-        values[1]\type!\mk_evt!
+      val1 = values[1]
+      @update_out val1.result.metatype, val1.result.type
 
       if i\type! == T.bang
         @state or= 1
@@ -463,8 +461,7 @@ Since ~-streams cannot be emtpy, specifying an `initial` value is necessary."
 
       super event: Input.hot event
 
-      if not @out or @out.type != event\type!
-        @out = event\type!\mk_sig initial.result!
+      @update_out '~', event\type!, initial.result!
 
     tick: => @out\set @inputs.event!
 
@@ -493,6 +490,7 @@ to_evt = Constant.meta
           sig: Input.cold Constant.bang true
       else
         super sig: Input.hot sig_
+
       @out = @inputs.sig\type!\mk_evt!
 
     tick: (setup) =>

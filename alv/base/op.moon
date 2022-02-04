@@ -4,6 +4,7 @@
 -- @classmod Op
 import deep_copy, deep_iter, deep_map from require 'alv.util'
 import T from require 'alv.type'
+import SigStream, EvtStream from require 'alv.result'
 
 class Op
 --- members
@@ -159,6 +160,26 @@ class Op
       old_inputs = @inputs
       @inputs = inputs
       do_setup old_inputs, @inputs
+
+  --- create or update `out`.
+  --
+  -- This should be used instead of setting `out` directly.
+  -- It will try to keep the current value if possible.
+  --
+  -- @tparam string metatype (one of `!` or `~`)
+  -- @tparam Type type
+  -- @tparam[opt] any val initial value
+  update_out: (metatype, type, val) =>
+    same_type = @out and @out.type == type
+    if same_type and @out.metatype == metatype
+      -- we can just keep it. do nothing.
+      return
+
+    -- prefer last value if applicable
+    val = same_type and @.out! or val
+
+    ResultType = if metatype == '!' then EvtStream else SigStream
+    @out = ResultType type, val
 
   --- `\unwrap` all `Input`s in `@inputs` and return a table with the same
   -- shape.
