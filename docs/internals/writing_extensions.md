@@ -125,7 +125,7 @@ Most extensions will want to define a number of *Op*s to be used by the user.
 They are implemented by deriving from the `Op` class and implementing at least
 the `Op:setup` and `Op:tick` methods.
 
-    import Constant, SigStream, Op, Input, evt from require 'alv.base'
+    import Constant, Op, Input, T, evt from require 'alv.base'
 
     total_sum = Constant.meta
       meta:
@@ -135,14 +135,13 @@ the `Op:setup` and `Op:tick` methods.
         description: "Keep a total sum of incoming number events, extension-style."
 
       value: class extends Op
-        new: (...) =>
-          super ...
-          @state or= { total: 0 }
-          @out or= SigStream 'num', @state.total
-
         setup: (inputs, scope) =>
           num = evt.num\match inputs
+
           super num: Inputs.hot num
+
+          @state or= { total: 0 }
+          @update_out '~', T.num, @state.total
 
         tick: =>
           @state.total += @inputs.num!
@@ -239,14 +238,6 @@ constructor and pass on all arguments using `...`. Keep in mind that the
 Constructor is called not only when an Op is first created, but also to
 sandbox changes before potentially rolling them back (more on this below).
 
-In general, setting it `Op.out` in the constructor is preferred, and it is only
-moved to `Op:setup` if the output type depends on the arguments received.
-
-It is best to only recreate `Op.out` and `Op.state` if that is absolutely
-necessary (e.g. the output type has changed as a result of new inputs). This is
-so that the Op continues running smoothly without discontinuities when
-unrelated changes are made.
-
 There are three types of `Result`s that can be created for `Op.out`:
 
 - `SigStream`s track *continuous values*. They can only have one value per
@@ -258,6 +249,21 @@ There are three types of `Result`s that can be created for `Op.out`:
 - `Constant`s do not change in-between evalcycles. Usually Ops do not output
   `Constant`s directly, as `SigStream`s outputs are automatically
   'downgraded' to `Constant`s when the Op has no reactive inputs.
+
+It is best to only recreate `Op.out` and `Op.state` if that is absolutely
+necessary (e.g. the output type has changed as a result of new inputs).
+This is so that the Op continues running smoothly without discontinuities when
+unrelated changes are made.
+
+For this reason, in most cases `Op.state` should be set up using
+`@state or= ...`, and `Op.out` with `Op.setup_state`:
+
+    setup: =>
+      @state or= 0
+      @setup_out '~', T.num, 2
+
+Sometimes `Op.state` depends on the output type and needs to be reset when that
+changes. When the output was recreated, `Op.setup_out` returns `true`.
 
 ### Op:tick
 `Op:tick` is called whenever any of the inputs are *dirty*. This is where the
