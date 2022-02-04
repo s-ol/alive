@@ -22,7 +22,7 @@ Visualizes `val` as a bar with range `min, max`.
         min: Input.cold min or Constant.num 0
         max: Input.cold max or Constant.num 1
 
-      @update_out val.result.metatype, val\type!
+      @setup_out val.result.metatype, val\type!
 
     tick: =>
       { :val, :min, :max } = @unwrap_all!
@@ -58,7 +58,7 @@ Visualizes `val` as an RGB(A) color with each component in range `0 - range`.
         val: Input.hot val
         max: Input.cold max or Constant.num 1
 
-      @update_out val.result.metatype, val\type!
+      @setup_out val.result.metatype, val\type!
 
     tick: =>
       { :val, :max } = @unwrap_all!

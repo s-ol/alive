@@ -19,7 +19,7 @@ gate = Constant.meta
 
         internal: Input.hot T.bool\mk_sig!
 
-      @update_out '~', T.bool
+      @setup_out '~', T.bool
 
     poll: =>
       { :port, :note, :chan, :internal } = @inputs
@@ -107,7 +107,7 @@ cc = Constant.meta
         internal: Input.hot T.bang\mk_evt!
 
       @state or= 0
-      @update_out '~', T.num, apply_range @inputs.range, @state
+      @setup_out '~', T.num, apply_range @inputs.range, @state
 
     poll: =>
       { :port, :cc, :chan, :internal } = @inputs

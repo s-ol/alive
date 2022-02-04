@@ -57,7 +57,7 @@ class PureOp extends Op
     if typ
       assert (ancestor typ.__class) == Type, "not a type: #{typ}"
       metatype = if trigger then '!' else '~'
-      @update_out metatype, typ
+      @setup_out metatype, typ
 
     map_fn = if trigger then hot_if_trigger trigger else Input.hot
     inputs = deep_map args, map_fn

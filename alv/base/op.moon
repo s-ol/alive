@@ -169,7 +169,7 @@ class Op
   -- @tparam string metatype (one of `!` or `~`)
   -- @tparam Type type
   -- @tparam[opt] any val initial value
-  update_out: (metatype, type, val) =>
+  setup_out: (metatype, type, val) =>
     if @out and @out.type == type and @out.metatype == metatype
       -- we can just keep it. do nothing.
       return false

@@ -339,7 +339,7 @@ switch_ = Constant.meta
       { i, values } = pattern\match inputs
 
       val1 = values[1]
-      @update_out val1.result.metatype, val1.result.type
+      @setup_out val1.result.metatype, val1.result.type
 
       if i\type! == T.bang
         @state or= 1
@@ -462,7 +462,7 @@ Since ~-streams cannot be emtpy, specifying an `initial` value is necessary."
 
       super event: Input.hot event
 
-      @update_out '~', event\type!, initial.result!
+      @setup_out '~', event\type!, initial.result!
 
     tick: => @out\set @inputs.event!
 
@@ -492,7 +492,7 @@ to_evt = Constant.meta
       else
         super sig: Input.hot sig_
 
-      @update_out '!', @inputs.sig\type!
+      @setup_out '!', @inputs.sig\type!
 
     tick: (setup) =>
       return if setup
@@ -514,7 +514,7 @@ In case of collisions, the event that comes first in the argument list wins."
     setup: (inputs) =>
       values = pattern\match inputs
       super [Input.hot v for v in *values]
-      @update_out '!', @inputs[1]\type!
+      @setup_out '!', @inputs[1]\type!
 
     tick: =>
       for input in *@inputs

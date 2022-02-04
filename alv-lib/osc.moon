@@ -18,7 +18,7 @@ connect = Constant.meta
         host: Input.hot host
         port: Input.hot port
 
-      @update_out '~', T['udp/socket']
+      @setup_out '~', T['udp/socket']
 
     tick: =>
       { :host, :port } = @unwrap_all!

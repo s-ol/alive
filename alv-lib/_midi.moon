@@ -82,7 +82,7 @@ class PortOp extends Op
       error "no port opened"
 
     @state or= {}
-    @update_out '~', type
+    @setup_out '~', type
 
   tick: =>
     if @inputs.inp and @inputs.inp\dirty!

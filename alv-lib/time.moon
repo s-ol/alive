@@ -20,7 +20,7 @@ frame rate.
         fps: Input.cold fps or Constant.num 60
         io: Input.hot T.bang\mk_evt!
 
-      @update_out '!', T.clock
+      @setup_out '!', T.clock
 
     poll: =>
       time = monotime!
@@ -65,7 +65,7 @@ scale_time = Constant.meta
         clock: Input.hot clock or scope\get '*clock*'
         scale: Input.cold scale
 
-      @update_out '!', T.clock
+      @setup_out '!', T.clock
 
     tick: =>
       { :clock, :scale } = @unwrap_all!
@@ -96,7 +96,7 @@ lfo = Constant.meta
         wave: Input.hot wave or default_wave
 
       @state or= 0
-      @update_out '~', T.num
+      @setup_out '~', T.num
 
     tau = math.pi * 2
     tick: =>
@@ -136,7 +136,7 @@ ramp = Constant.meta
         max: max and Input.cold max
 
       @state or= 0
-      @update_out '~', T.num, 0
+      @setup_out '~', T.num, 0
 
     tick: =>
       { :clock, :period, :max } = @unwrap_all!
@@ -175,7 +175,7 @@ tick = Constant.meta
         period: Input.cold period
 
       @state or= { phase: 0, count: 0 }
-      @update_out '~', T.num, @state.count
+      @setup_out '~', T.num, @state.count
 
     tick: =>
       { :clock, :period } = @unwrap_all!
@@ -211,7 +211,7 @@ every = Constant.meta
         evt: Input.cold evt or T.bang\mk_const true
 
       @state or= 0
-      @update_out '!', @inputs.evt\type!
+      @setup_out '!', @inputs.evt\type!
 
     tick: =>
       { :clock, :period, :evt } = @unwrap_all!
@@ -257,7 +257,7 @@ Emits `evt1`, `evt2`, … as events with delays `delay0`, `delay1`, … in betwe
         clock: Input.hot clock or scope\get '*clock*'
         steps: [inputify step for step in *steps]
 
-      @update_out '!', steps[1].value\type!
+      @setup_out '!', steps[1].value\type!
 
     tick: =>
       if tick = @inputs.clock!
@@ -343,7 +343,7 @@ Creates smooth transitions when `value` changes.
         rate: Input.cold rate
         value: Input.cold value
 
-      @update_out '~', T.num, @inputs.value!
+      @setup_out '~', T.num, @inputs.value!
 
     tick: =>
       { :clock, :rate, :value } = @unwrap_all!
@@ -377,7 +377,7 @@ Delays incoming `evt`s by `delay`.
         evt: Input.hot evt
 
       @state or= {}
-      if @update_out '!', @inputs.evt\type!
+      if @setup_out '!', @inputs.evt\type!
         @state = {}
 
     tick: =>

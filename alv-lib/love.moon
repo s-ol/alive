@@ -358,7 +358,7 @@ mouse_down = Constant.meta
         press: Input.hot COPILOT.mouse_presses
         release: Input.hot COPILOT.mouse_releases
 
-      @update_out '~', T.bool, false
+      @setup_out '~', T.bool, false
 
     poll: =>
 
@@ -466,7 +466,7 @@ key_down = Constant.meta
         press: Input.hot COPILOT.key_presses
         release: Input.hot COPILOT.key_releases
 
-      @update_out '~', T.bool, false
+      @setup_out '~', T.bool, false
 
     poll: =>
 
