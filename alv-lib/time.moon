@@ -364,6 +364,7 @@ Creates smooth transitions when `value` changes.
       if clock
         current = @.out!
         delta = value - current
+        return if 1e-15 > math.abs delta
         @out\set current + delta * rate
 
 delay = Constant.meta

@@ -75,7 +75,7 @@ class op_invoke extends Builtin
       for input in @op\all_inputs!
         input\finish_setup!
 
-    super RTNode :children, result: @op.out, op: @op
+      super RTNode :children, result: @op.out, op: @op
 
   --- `Builtin:vis` implementation.
   --

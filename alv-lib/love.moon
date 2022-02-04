@@ -146,8 +146,8 @@ color = Constant.meta
     type: T['love/shape']
 
     tick: =>
-      { color, shape } = @unwrap_all!
-      { r, g, b, a } = color
+      { col, shape } = @unwrap_all!
+      { r, g, b, a } = col
 
       @out\set ->
         love.graphics.setColor r, g, b, a
