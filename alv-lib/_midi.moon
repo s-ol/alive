@@ -3,10 +3,10 @@ import RtMidiIn, RtMidiOut, RtMidi from require 'luartmidi'
 
 bit = if _VERSION == 'Lua 5.4'
   {
-    band: (a, b) -> a & b
-    bor: (a, b) -> a | b
-    lshift: (a, b) -> a << b
-    rshift: (a, b) -> a >> b
+    band: loadstring 'function (a, b) return a & b end'
+    bor: loadstring 'function (a, b) return a | b end'
+    lshift: loadstring 'function (a, b) return a << b end'
+    rshift: loadstring 'function (a, b) return a >> b end'
   }
 else
   ok, bit = pcall require, 'bit32'
