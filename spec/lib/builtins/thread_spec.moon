@@ -6,19 +6,19 @@ describe "thread macros", ->
   it "thread forward (->)", ->
     rt = COPILOT\eval_once '
     (import* math)
-    #((/ (+ 10 2) 2) = 6)
+    #((/ (+ 10 2) 8) = 1.5)
     (-> 10
       (+ 2)
-      (/ 2))'
+      (/ 8))'
     assert.is.true rt\is_const!
-    assert.is.equal '<num= 6.0>', tostring rt.result
+    assert.is.equal '<num= 1.5>', tostring rt.result
 
   it "thread last forward (->>)", ->
     rt = COPILOT\eval_once '
     (import* math)
-    #((/ 10 (+ 2 3)) = 2)
-    (->> 3
+    #((/ 10 (+ 2 2)) = 2.5)
+    (->> 2
       (+ 2)
       (/ 10))'
     assert.is.true rt\is_const!
-    assert.is.equal '<num= 2.0>', tostring rt.result
+    assert.is.equal '<num= 2.5>', tostring rt.result

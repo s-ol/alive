@@ -67,8 +67,6 @@ class SigStream extends Result
       @value = value
       @updated = COPILOT.T
 
-  :__eq
-
   --- the wrapped Lua value.
   -- @tfield any value
 
@@ -81,6 +79,8 @@ class SigStream extends Result
   -- @tparam string type the type name
   -- @tparam ?any value the Lua value to be accessed through `unwrap`
   new: (type, @value) => super type
+
+  :__eq
 
 {
   :SigStream

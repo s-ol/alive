@@ -42,11 +42,6 @@ class Constant extends Result
   --- alias for `unwrap`.
   __call: (...) => @unwrap ...
 
-  --- compare two values.
-  --
-  -- Compares two `SigStream`s by comparing their types and their Lua values.
-  __eq: (other) => other.type == @type and @type\eq other.value, @value
-
   --- Result metatype.
   -- @tfield string metatype (`=`)
   metatype: '='
@@ -185,6 +180,8 @@ class Constant extends Result
 
     with Constant.wrap args.value
       .meta = args.meta if args.meta
+
+  :__eq
 
 {
   :Constant
