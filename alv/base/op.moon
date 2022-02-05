@@ -170,6 +170,7 @@ class Op
   -- @tparam Type type
   -- @tparam[opt] any val initial value
   setup_out: (metatype, type, val) =>
+    metatype = '~' if metatype == '='
     if @out and @out.type == type and @out.metatype == metatype
       -- we can just keep it. do nothing.
       return false

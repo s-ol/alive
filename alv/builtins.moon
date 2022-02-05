@@ -354,15 +354,12 @@ switch_ = Constant.meta
       if i\type! == T.bang
         if i\dirty!
           @state += 1
-          while @state >= #values
-            @state -= #values
-        @state
+          @state = @state % (#values)
       else
         @state = switch i!
           when true then 0
           when false then 1
           else (math.floor i!) % #values
-        @state
 
       @out\set if v = values[@state + 1] then v!
 
