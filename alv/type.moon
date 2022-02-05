@@ -39,6 +39,7 @@ class Type
   --- pretty-print a value of this type.
   -- @function pp
   -- @tparam any value
+  -- @tparam[opt] bool raw whether to print "raw" (strings without quotes)
   -- @treturn string
 
   --- check two values of this type for equality.
@@ -75,7 +76,9 @@ class Type
 --
 -- @type Primitive
 class Primitive extends Type
-  pp: (value) =>
+  pp: (value, raw) =>
+    return tostring value if raw
+
     switch @name
       when 'str'
         string.format '%q', value
