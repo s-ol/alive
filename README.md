@@ -17,8 +17,7 @@ processes. For more information, visit the full [online documentation][docs].
 - [socket][socket]:         `luarocks install luasocket`
 - [system][system]:         `luarocks install luasystem`
 - [losc][losc]:             `luarocks install losc` (optional)
-- [lua-rtmidi][rtmidi]:     `luarocks install
-  https://raw.githubusercontent.com/s-ol/lua-rtmidi/master/lua-rtmidi-dev-1.rockspec` (optional)
+- [lua-rtmidi][rtmidi]:     `luarocks install lua-rtmidi` (optional)
 - [busted][busted]:         `luarocks install busted` (optional, for tests)
 - [discount][discount]:     `luarocks install discount` (optional, for docs)
 - [ldoc][ldoc]:             `luarocks install

@@ -17,15 +17,15 @@
             version = "0.2.0-1";
 
             knownRockspec = (pkgs.fetchurl {
-              url    = "mirror://luarocks//${pname}-${version}.rockspec";
-              sha256 = "AzDZV9u6V71YNJFBfj3cR1COjFFWhGmsJkGsUMErSZs=";
+              url = "mirror://luarocks/${pname}-${version}.rockspec";
+              hash = "sha256-AzDZV9u6V71YNJFBfj3cR1COjFFWhGmsJkGsUMErSZs=";
             }).outPath;
 
             src = pkgs.fetchFromGitHub {
               owner = "osch";
               repo = pname;
               rev = "v0.2.0";
-              sha256 = "PamppWdV3cQMDK+t2V09/cNRskGuRNeuyvUODmopLaQ=";
+              hash = "sha256-PamppWdV3cQMDK+t2V09/cNRskGuRNeuyvUODmopLaQ=";
             };
             propagatedBuildInputs = [ lua ];
 
@@ -41,8 +41,8 @@
             version = "0.2-2";
 
             src = pkgs.fetchurl {
-              url    = "mirror://luarocks//${pname}-${version}.src.rock";
-              sha256 = "Dp3bKIG4swrD4+1NNtRTgyj68Di2cSUlh1r7Z2Rkzn0=";
+              url = "mirror://luarocks/${pname}-${version}.src.rock";
+              hash = "sha256-Dp3bKIG4swrD4+1NNtRTgyj68Di2cSUlh1r7Z2Rkzn0=";
             };
             postUnpack = "sourceRoot=$sourceRoot/luarocks-fetch-gitrec-0.2";
 
@@ -60,8 +60,8 @@
             version = "0.2-1";
 
             src = pkgs.fetchurl {
-              url    = "mirror://luarocks//${pname}-${version}.src.rock";
-              sha256 = "fD31FruqVriMecFcvSV4W7JRia38+bg7j3T5k5pFZec=";
+              url = "mirror://luarocks/${pname}-${version}.src.rock";
+              hash = "sha256-fD31FruqVriMecFcvSV4W7JRia38+bg7j3T5k5pFZec=";
             };
             postUnpack = "sourceRoot=$sourceRoot/lua-fltk4lua";
             buildInputs = with pkgs; [ fltk libjpeg ];
@@ -79,8 +79,8 @@
             version = "1.0.0-1";
 
             src = pkgs.fetchurl {
-              url    = "mirror://luarocks//${pname}-${version}.src.rock";
-              sha256 = "MArhj51V1awF5k2zToFYEXpS2c6o8bnNDn4wLhooHos=";
+              url = "mirror://luarocks/${pname}-${version}.src.rock";
+              hash = "sha256-MArhj51V1awF5k2zToFYEXpS2c6o8bnNDn4wLhooHos=";
             };
             postUnpack = "sourceRoot=$sourceRoot/losc";
 
@@ -99,13 +99,13 @@
             version = "0.4-1";
 
             knownRockspec = (pkgs.fetchurl {
-              url    = https://luarocks.org/discount-0.4-1.rockspec;
-              sha256 = "0mc2mwkprf8li2v91vga77rwi0xhv989nxshi66z2d45lbl1dcpd";
+              url = mirror://luarocks/discount-0.4-1.rockspec;
+              hash = "sha256-7bIW6KKFNPGNiVB3m1DasIPI8znq7ZC2iBS5fCevglU=";
             }).outPath;
 
             src = pkgs.fetchurl {
-              url    = https://craigbarnes.gitlab.io/dist/lua-discount/lua-discount-0.4.tar.gz;
-              sha256 = "1bfyrxjr26gbahawdynlbp48ma01gyd3b6xbljvxb2aavvfywc9m";
+              url = https://craigbarnes.gitlab.io/dist/lua-discount/lua-discount-0.4.tar.gz;
+              hash = "sha256-NTHu3d5KidW3pKubNZp/AaiKyF3U+sYVVOsZkWXP3q0=";
             };
 
             buildInputs = [ pkgs.discount ];
@@ -123,15 +123,15 @@
             version = "scm-2";
 
             knownRockspec = (pkgs.fetchurl {
-              url    = "mirror://luarocks//${pname}-${version}.rockspec";
-              sha256 = "PHQhpQPfmlPhwIXoce5WZ+eoARmSecy1ac7Bfu4zg38=";
+              url = "mirror://luarocks/${pname}-${version}.rockspec";
+              hash = "sha256-PHQhpQPfmlPhwIXoce5WZ+eoARmSecy1ac7Bfu4zg38=";
             }).outPath;
 
             src = pkgs.fetchFromGitHub {
               owner = "s-ol";
               repo = "LDoc";
               rev = "moonscript";
-              sha256 = "3jieGp9++cWtLMKccP+xqrtdCiNG/9BYZlHmH1l8XV8=";
+              hash = "sha256-3jieGp9++cWtLMKccP+xqrtdCiNG/9BYZlHmH1l8XV8=";
             };
             propagatedBuildInputs = with luaPkgs; [
               lua penlight markdown
@@ -146,16 +146,21 @@
 
           lua-rtmidi = luaPkgs.buildLuarocksPackage rec {
             pname = "lua-rtmidi";
-            version = "dev-1";
+            version = "1.0.0-1";
 
+            # src = pkgs.fetchurl {
+            #   url = "mirror://luarocks/${pname}-${version}.src.rock";
+            #   hash = "sha256-DmSfrQRX8oziH+vvwq3KIdvjTX7P4zeKc6NeTygoU3A=";
+            # };
             src = pkgs.fetchFromGitHub {
               owner = "s-ol";
               repo = "lua-rtmidi";
-              rev = "master";
-              sha256 = "iXckraQZf6smWlxD27ktBEFKNXLzzsZFpzx2MLRQJVM=";
+              rev = "v1.0.0";
+              hash = "sha256-DmSfrQRX8oziH+vvwq3KIdvjTX7P4zeKc6NeTygoU3A=";
             };
+
             buildInputs = with pkgs; [ stdenv.cc.cc.lib ];
-            propagatedBuildInputs = with pkgs; [ lua alsa-lib pipewire.jack ];
+            propagatedBuildInputs = with pkgs; [ lua alsa-lib libjack2 ];
 
             meta = {
               homepage = "https://github.com/s-ol/lua-rtmidi";

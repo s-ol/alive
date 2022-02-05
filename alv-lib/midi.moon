@@ -1,5 +1,5 @@
 import Constant, Op, Input, T, Struct, sig, evt from require 'alv.base'
-import input, output, port, apply_range from require 'alv-lib._midi'
+import input, output, port, port_names, apply_range from require 'alv-lib._midi'
 import monotime from require 'system'
 
 gate = Constant.meta
@@ -52,7 +52,7 @@ trig = Constant.meta
     examples: { '(midi/trig [port] note [chan])' }
 
   value: class extends Op
-    pattern = -sig['midi/in'] + sig.num -sig.num
+    pattern = -sig['midi/in'] + sig.num + -sig.num
     setup: (inputs, scope) =>
       { port, note, chan } = pattern\match inputs
       @out = T.bang\mk_evt!
@@ -72,6 +72,39 @@ trig = Constant.meta
         if msg.a == note! and (chan! == -1 or msg.chan == chan!)
           if msg.status == 'note-on'
             internal.result\set true
+            return true
+
+      false
+
+    tick: =>
+      @out\set @inputs.internal!
+
+trigs = Constant.meta
+  meta:
+    name: 'trigs'
+    summary: "`bang`s from note-on messages."
+    examples: { '(midi/trigs [port] [chan])' }
+
+  value: class extends Op
+    pattern = -sig['midi/in'] + -sig.num
+    setup: (inputs, scope) =>
+      { port, chan } = pattern\match inputs
+      @out = T.num\mk_evt!
+      super
+        port: Input.cold port or scope\get '*midi*'
+        chan: Input.cold chan or Constant.num -1
+
+        internal: Input.hot T.num\mk_evt!
+
+    poll: =>
+      { :port, :chan, :internal } = @inputs
+
+      msgs = port!.msgs
+      for i = #msgs, 1, -1
+        msg = msgs[i]
+        if (chan! == -1 or msg.chan == chan!)
+          if msg.status == 'note-on'
+            internal.result\set msg.a
             return true
 
       false
@@ -200,8 +233,10 @@ Constant.meta
     :input
     :output
     :port
+    'port-names': port_names
 
     :gate
     :trig
+    :trigs
     :cc
     'send-notes': send_notes
