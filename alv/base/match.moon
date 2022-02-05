@@ -88,32 +88,62 @@ class Pattern
 
 --- Base Result Pattern.
 --
--- When instantiated with `type`, only succeeds for `Result`s whose value and
--- meta types match.
+-- When instantiated with `type`, only succeeds for `Result`s whose type and
+-- metatypes match.
 --
 -- Otherwise, matches Streams based only on `metatype` for the first match, but
 -- using both afterwards (recall mode).
 --
 -- @function Type
--- @tparam string metatype `'~', '!' or '='
+-- @tparam ?string metatype `'~', '!' or '='
 -- @tparam ?string type type name
 class Type extends Pattern
   new: (@metatype, @type, @recall=false) =>
 
   casts = { '!!': true, '==': true, '~~': true, '~=': true }
   capture: (seq, i) =>
-    return unless seq[i]
-    type, mt = seq[i]\type!, seq[i]\metatype!
+    elem = seq[i]
+    return unless elem
+
+    typ, mt = elem\type!, elem\metatype!
 
     if @metatype and not casts[@metatype .. mt]
       return
 
-    match = if @type then type == @type else @remember type
+    match = if @type then typ == @type else @remember typ
     if match
-      1, seq[i]
+      1, elem
 
   __call: => @@ @metatype, @type, true
   __tostring: => "#{@type or 'any'}#{@metatype or ''}"
+
+--- Predicate function Pattern.
+--
+-- Only succeeds for `Result`s whose metatype matches and for which the
+-- predicate function returns true.
+--
+-- @function Predicate
+-- @tparam ?string metatype `'~', '!' or '='
+-- @tparam function predicate gets `type` as an argument
+-- @tparam string name printable alias for error reporting
+class Predicate extends Pattern
+  new: (@metatype, @fn, @name, @recall=false) =>
+
+  casts = { '!!': true, '==': true, '~~': true, '~=': true }
+  capture: (seq, i) =>
+    elem = seq[i]
+    return unless elem
+
+    typ, mt = elem\type!, elem\metatype!
+
+    if @metatype and not casts[@metatype .. mt]
+      return
+
+    if (@.fn typ) and @remember typ
+      1, elem
+
+  __call: => @@ @metatype, @fn, @name, true
+  __tostring: => "#{@name or '[predicate]'}#{@metatype or ''}"
 
 --- Repeat a pattern.
 --
@@ -207,7 +237,6 @@ class Sequence extends Pattern
 --
 -- @function Choice
 -- @tparam {Pattern,...} elements the inner patterns
--- @tparam ?{string,...} keys the keys to use when capturing matches
 class Choice extends Pattern
   new: (@elements, @recall=false) =>
 
@@ -261,11 +290,13 @@ class Optional extends Pattern
 
 --- `Type` shorthands for matching `Constant`s.
 --
--- Call or index with a string to obtain an `Type` instance.
+-- Call or index with a type or string to obtain an `Type` instance.
+-- Call with a function and name to obtain a `Predicate` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     const.bang, const.str, const.num
 --     const['midi/message'], const(Primitive 'midi/message')
+--     const(function(typ) return typ.__class == Array end, "array")
 --     const()
 --
 -- @table const
@@ -274,16 +305,22 @@ const = setmetatable {}, {
     with v = Type '=', T[key]
       @[key] = v
 
-  __call: (...) => Type '=', ...
+  __call: (t, ...) =>
+    if 'function' == type t
+      Predicate '=', t, ...
+    else
+      Type '=', t, ...
 }
 
 --- `Type` shorthands for matching `ValueStream`s and `Constant`s.
 --
 -- Call or index with a type or string to obtain a `Type` instance.
+-- Call with a function and name to obtain a `Predicate` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     sig.str, sig.num
 --     sig['vec3'], sig(T.vec3)
+--     sig(function(typ) return typ.__class == Array end, "array")
 --     sig()
 --
 -- @table sig
@@ -292,16 +329,22 @@ sig = setmetatable {}, {
     with v = Type '~', T[key]
       @[key] = v
 
-  __call: (...) => Type '~', ...
+  __call: (t, ...) =>
+    if 'function' == type t
+      Predicate '~', t, ...
+    else
+      Type '~', t, ...
 }
 
 --- `Type` shorthands for matching `EvtStream`s.
 --
 -- Call or index with a type or string to obtain an `Type` instance.
+-- Call with a function and name to obtain a `Predicate` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     evt.bang, evt.str, evt.num
 --     evt['midi/message'], evt(Primitive 'midi/message')
+--     evt(function(typ) return typ.__class == Struct end, "struct")
 --     evt()
 --
 -- @table evt
@@ -310,16 +353,22 @@ evt = setmetatable {}, {
     with v = Type '!', T[key]
       @[key] = v
 
-  __call: (...) => Type '!', ...
+  __call: (t, ...) =>
+    if 'function' == type t
+      Predicate '!', t, ...
+    else
+      Type '!', t, ...
 }
 
 --- `Type` shorthands for matching any `Result`s.
 --
 -- Call or index with a type or string to obtain an `Type` instance.
+-- Call with a function and name to obtain a `Predicate` instance.
 -- Call to obtain a wildcard pattern.
 --
 --     any.bang, any.str, any.num
 --     any['midi/message'], any(Primitive 'midi/message')
+--     any(function(typ) return typ.__class == Array end, "array")
 --     any()
 --
 -- @table any
@@ -328,10 +377,14 @@ any = setmetatable {}, {
     with v = Type nil, T[key]
       @[key] = v
 
-  __call: (...) => Type nil, ...
+  __call: (t, ...) =>
+    if 'function' == type t
+      Predicate nil, t, ...
+    else
+      Type nil, t, ...
 }
 
 {
-  :Type, :Repeat, :Sequence, :Choice, :Optional
+  :Type, :Predicate, :Repeat, :Sequence, :Choice, :Optional
   :const, :sig, :evt, :any
 }

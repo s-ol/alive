@@ -29,6 +29,8 @@ describe 'sig and evt', ->
       assert.has.error -> const!\match { num }
       assert.has.error -> evt!\match { str }
       assert.has.error -> evt!\match { num }
+      assert.is.equal str, any!\match { str }
+      assert.is.equal num, any!\match { num }
 
       str = mk_evt 'str'
       num = mk_evt 'num'
@@ -38,6 +40,10 @@ describe 'sig and evt', ->
       assert.has.error -> const!\match { num }
       assert.is.equal str, evt!\match { str }
       assert.is.equal num, evt!\match { num }
+      assert.is.equal str, any!\match { str }
+      assert.is.equal num, any!\match { num }
+      assert.is.equal str, any!\match { str }
+      assert.is.equal num, any!\match { num }
 
       str = mk_const 'str'
       num = mk_const 'num'
@@ -47,12 +53,18 @@ describe 'sig and evt', ->
       assert.is.equal num, const!\match { num }
       assert.has.error -> evt!\match { str }
       assert.has.error -> evt!\match { num }
+      assert.is.equal str, any!\match { str }
+      assert.is.equal num, any!\match { num }
+      assert.is.equal str, any!\match { str }
+      assert.is.equal num, any!\match { num }
 
     it 'can recall the type', ->
       value = sig!!
       event = evt!!
+      thing = any!!
       two_equal_values = value + value
       two_equal_events = event + event
+      two_equal_things = thing + thing
 
       str1 = mk_val 'str'
       str2 = mk_val 'str'
@@ -60,8 +72,13 @@ describe 'sig and evt', ->
       assert.is.same { str1, str2 }, two_equal_values\match { str1, str2 }
       assert.is.same { str2, str1 }, two_equal_values\match { str2, str1 }
       assert.is.same { num, num }, two_equal_values\match { num, num }
+      assert.is.same { str1, str2 }, two_equal_things\match { str1, str2 }
+      assert.is.same { str2, str1 }, two_equal_things\match { str2, str1 }
+      assert.is.same { num, num }, two_equal_things\match { num, num }
       assert.has.error -> two_equal_values\match { str1, num }
       assert.has.error -> two_equal_values\match { num, str2 }
+      assert.has.error -> two_equal_things\match { str1, num }
+      assert.has.error -> two_equal_things\match { num, str2 }
       assert.has.error -> two_equal_events\match { str1, str2 }
 
       str1 = mk_evt 'str'
@@ -70,14 +87,20 @@ describe 'sig and evt', ->
       assert.is.same { str1, str2 }, two_equal_events\match { str1, str2 }
       assert.is.same { str2, str1 }, two_equal_events\match { str2, str1 }
       assert.is.same { num, num }, two_equal_events\match { num, num }
+      assert.is.same { str1, str2 }, two_equal_things\match { str1, str2 }
+      assert.is.same { str2, str1 }, two_equal_things\match { str2, str1 }
+      assert.is.same { num, num }, two_equal_things\match { num, num }
       assert.has.error -> two_equal_events\match { str1, num }
       assert.has.error -> two_equal_events\match { num, str2 }
+      assert.has.error -> two_equal_things\match { str1, num }
+      assert.has.error -> two_equal_things\match { num, str2 }
       assert.has.error -> two_equal_values\match { str1, str2 }
 
     it 'stringifies well', ->
       assert.is.equal 'any=', tostring const!
       assert.is.equal 'any!', tostring evt!
       assert.is.equal 'any~', tostring sig!
+      assert.is.equal 'any', tostring any!
 
   describe 'typed shorthand', ->
     it 'matches by metatype', ->
@@ -89,6 +112,8 @@ describe 'sig and evt', ->
       assert.has.error -> const.num\match { num }
       assert.has.error -> evt.str\match { str }
       assert.has.error -> evt.num\match { num }
+      assert.is.equal str, any.str\match { str }
+      assert.is.equal num, any.num\match { num }
 
       str = mk_evt 'str'
       num = mk_evt 'num'
@@ -98,6 +123,8 @@ describe 'sig and evt', ->
       assert.has.error -> const.num\match { num }
       assert.is.equal str, evt.str\match { str }
       assert.is.equal num, evt.num\match { num }
+      assert.is.equal str, any.str\match { str }
+      assert.is.equal num, any.num\match { num }
 
       str = mk_const 'str'
       num = mk_const 'num'
@@ -107,6 +134,8 @@ describe 'sig and evt', ->
       assert.is.equal num, const.num\match { num }
       assert.has.error -> evt.str\match { str }
       assert.has.error -> evt.num\match { num }
+      assert.is.equal str, any.str\match { str }
+      assert.is.equal num, any.num\match { num }
 
     it 'matches by type', ->
       str = mk_const 'str'
@@ -143,6 +172,82 @@ describe 'sig and evt', ->
       assert.is.equal 'num~', tostring sig.num
       assert.is.equal 'str=', tostring const.str
       assert.is.equal 'num=', tostring const.num
+
+  describe 'predicate shorthand', ->
+    sig_str = sig ((typ) -> typ == T.str), "str"
+    sig_num = sig ((typ) -> typ == T.num), "num"
+    const_str = const ((typ) -> typ == T.str), "str"
+    const_num = const ((typ) -> typ == T.num), "num"
+    evt_str = evt ((typ) -> typ == T.str), "str"
+    evt_num = evt ((typ) -> typ == T.num), "num"
+    any_str = any ((typ) -> typ == T.str), "str"
+    any_num = any ((typ) -> typ == T.num), "num"
+
+    it 'matches by metatype', ->
+      str = mk_val 'str'
+      num = mk_val 'num'
+      assert.is.equal str, sig_str\match { str }
+      assert.is.equal num, sig_num\match { num }
+      assert.has.error -> const_str\match { str }
+      assert.has.error -> const_num\match { num }
+      assert.has.error -> evt_str\match { str }
+      assert.has.error -> evt_num\match { num }
+      assert.is.equal str, any_str\match { str }
+      assert.is.equal num, any_num\match { num }
+
+      str = mk_evt 'str'
+      num = mk_evt 'num'
+      assert.has.error -> sig_str\match { str }
+      assert.has.error -> sig_num\match { num }
+      assert.has.error -> const_str\match { str }
+      assert.has.error -> const_num\match { num }
+      assert.is.equal str, evt_str\match { str }
+      assert.is.equal num, evt_num\match { num }
+      assert.is.equal str, any_str\match { str }
+      assert.is.equal num, any_num\match { num }
+
+      str = mk_const 'str'
+      num = mk_const 'num'
+      assert.is.equal str, sig_str\match { str }
+      assert.is.equal num, sig_num\match { num }
+      assert.is.equal str, const_str\match { str }
+      assert.is.equal num, const_num\match { num }
+      assert.has.error -> evt_str\match { str }
+      assert.has.error -> evt_num\match { num }
+      assert.is.equal str, any_str\match { str }
+      assert.is.equal num, any_num\match { num }
+
+    it 'matches by type', ->
+      str = mk_const 'str'
+      num = mk_const 'num'
+      assert.is.equal str, sig_str\match { str }
+      assert.is.equal num, sig_num\match { num }
+      assert.is.equal str, const_str\match { str }
+      assert.is.equal num, const_num\match { num }
+      assert.is.equal str, any_str\match { str }
+      assert.is.equal num, any_num\match { num }
+      assert.has.error -> sig_num\match { str }
+      assert.has.error -> sig_str\match { num }
+
+      str = mk_val 'str'
+      num = mk_val 'num'
+      assert.is.equal str, sig_str\match { str }
+      assert.is.equal num, sig_num\match { num }
+      assert.has.error -> const_num\match { str }
+      assert.has.error -> const_str\match { num }
+      assert.has.error -> sig_num\match { str }
+      assert.has.error -> sig_str\match { num }
+
+      str = mk_evt 'str'
+      num = mk_evt 'num'
+      assert.is.equal str, evt_str\match { str }
+      assert.is.equal num, evt_num\match { num }
+      assert.has.error -> const_num\match { str }
+      assert.has.error -> const_str\match { num }
+      assert.has.error -> evt_num\match { str }
+      assert.has.error -> evt_str\match { num }
+
+      assert.has.error -> any_str\match { num }
 
 describe 'choice', ->
   str = mk_val 'str'
