@@ -10,7 +10,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       with import nixpkgs { inherit system; };
       let
-        mkLua = { lua, luaPkgs }:
+        mkDeps = { lua, luaPkgs }:
         let
           luarocks-build-cpp = luaPkgs.buildLuarocksPackage rec {
             pname = "luarocks-build-cpp";
@@ -169,42 +169,65 @@
             };
           };
         in
-          (lua.withPackages (p: with p; [
+          with luaPkgs; [
             moonscript lpeg
             luafilesystem luasocket luasystem fltk4lua losc bit32
             ldoc busted discount
             lua-rtmidi
-          ]));
-      in rec {
-        packages.alive-env-lua53 = stdenv.mkDerivation {
-          name = "alive-env-lua53";
-          src = self;
-
-          nativeBuildInputs = with pkgs; [ (mkLua { lua = lua5_3; luaPkgs = lua53Packages; }) ];
-
-          shellHook = ''
-            export LUA_PATH="?.lua;?/init.lua"
-          '';
-        };
-
-        packages.alive-env-luajit = stdenv.mkDerivation {
-          name = "alive-env-luajit";
-          src = self;
-
-          nativeBuildInputs = with pkgs; [
-            (mkLua { lua = luajit; luaPkgs = luajitPackages; })
-            love_11
           ];
+      in rec {
+        packages.alive = lua53Packages.buildLuarocksPackage rec {
+          pname = "alive";
+          version = "scm-10";
 
-          shellHook = ''
-            source <(
-              LUA_PATH="?.lua;?/init.lua" luajit -e \
-              "print(string.format('export LUA_PATH=%q; export LUA_CPATH=%q', package.path, package.cpath))"
-            )
-          '';
+          src = ./.;
+          knownRockspec = ./dist/rocks/${pname}-${version}.rockspec;
+
+          propagatedBuildInputs = with pkgs; [ lua5_3 ]
+            ++ (mkDeps { lua = lua5_3; luaPkgs = lua53Packages; });
+
+          meta = {
+            homepage = "https://github.com/s-ol/lua-rtmidi";
+            description = "Lua bindings for RtMidi";
+            license = lib.licenses.bsd2;
+          };
         };
+        defaultPackage = packages.alive;
+        defaultApp = { type = "app"; program = "${defaultPackage}/bin/alv-fltk"; };
 
-        defaultPackage = packages.alive-env-luajit;
+        devShells.lua53 =
+          let
+            lua = pkgs.lua5_3;
+            deps = (mkDeps { lua = lua; luaPkgs = pkgs.lua53Packages; });
+          in stdenv.mkDerivation {
+            name = "alive-env-lua53";
+            src = self;
+
+            propagatedBuildInputs = [ (lua.withPackages (o: deps)) ] ++ deps;
+
+            shellHook = ''
+              export LUA_PATH="?.lua;?/init.lua"
+            '';
+          };
+
+        devShells.luajit =
+          let
+            lua = pkgs.lua5_3;
+            deps = (mkDeps { lua = lua; luaPkgs = pkgs.lua53Packages; });
+          in stdenv.mkDerivation {
+            name = "alive-env-luajit";
+            src = self;
+
+            propagatedBuildInputs = [ (lua.withPackages (o: deps)) love_11 ] ++ deps;
+
+            shellHook = ''
+              source <(
+                LUA_PATH="?.lua;?/init.lua" luajit -e \
+                "print(string.format('export LUA_PATH=%q; export LUA_CPATH=%q', package.path, package.cpath))"
+              )
+            '';
+          };
+        devShell = devShells.lua53;
       }
     );
 }

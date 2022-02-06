@@ -1,4 +1,3 @@
 luarocks.lock
 /*.alv
-!/hello.alv
-!/examples/*
+result
