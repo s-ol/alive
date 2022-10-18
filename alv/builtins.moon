@@ -38,7 +38,7 @@ doc = Constant.meta
       assert #tail == 1, "'doc' takes exactly one parameter"
 
       node = L\push tail[1]\eval, scope
-      super with RTNode children: { def }
+      super with RTNode!
         meta = node.result.meta
         L\print "(doc #{tail[1]}):\n#{format_meta meta}\n"
 
@@ -60,6 +60,8 @@ Define the symbols `sym1`, `sym2`, … to resolve to the values of `val-expr1`,
       children = L\push ->
         return for i=1,#tail,2
           name, val_expr = tail[i], tail[i+1]
+
+          assert name.__class == Constant, "name is not a symbol"
           name = name\unwrap T.sym
 
           with val_expr\eval scope
@@ -116,9 +118,10 @@ current scope."
   value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
-      assert #tail > 0, "'import' requires at least one arguments"
+      assert #tail > 0, "'import' requires at least one argument"
 
       children = for i, child in ipairs tail
+        assert child.__class == Constant, "'import' arguments need to be symbols"
         name = child\unwrap T.sym
         with COPILOT\require name
           scope\set name, \make_ref!
@@ -135,9 +138,10 @@ Requires modules `sym1`, `sym2`, … and merges them into the current scope."
   value: class extends Builtin
     eval: (scope, tail) =>
       L\trace "evaling #{@}"
-      assert #tail > 0, "'import' requires at least one arguments"
+      assert #tail > 0, "'import*' requires at least one argument"
 
       children = for i, child in ipairs tail
+        assert child.__class == Constant, "'import*' arguments need to be symbols"
         with COPILOT\require child\unwrap T.sym
           scope\use .result\unwrap T.scope
       super RTNode :children
@@ -177,6 +181,7 @@ Copies the containing scope if no symbols are given."
           node
       else
         for child in *tail
+          assert child.__class == Constant, "'export*' arguments need to be symbols"
           name = child\unwrap T.sym
           with node = scope\get name
             new_scope\set name, node
