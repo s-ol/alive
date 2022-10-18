@@ -20,7 +20,7 @@ class Scope
   -- @tparam any val
   set_raw: (key, val) =>
     result = Constant.wrap val, key
-    @values[key] = RTNode :result
+    @set key, RTNode :result
 
   --- set a symbol to a `RTNode`.
   --
@@ -70,7 +70,7 @@ class Scope
   use: (other) =>
     L\trace "using defs from #{other} in #{@}"
     for k, v in pairs other.values
-      @values[k] = v
+      @set k, v
 
   __tostring: =>
     buf = "<Scope"

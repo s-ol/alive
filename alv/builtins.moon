@@ -82,7 +82,7 @@ All arguments have to be evaltime constant."
       for child in *tail
         node = L\push child\eval, scope
         value = node\const!
-        scope\use value\unwrap 'scope', "'use' only works on scopes"
+        scope\use value\unwrap T.scope, "'use' only works on scopes"
 
       super RTNode!
 
