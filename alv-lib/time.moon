@@ -416,6 +416,6 @@ RTNode
       'bang-seq': bang_seq
 
       :smooth
-      :delay
+      'delay!': delay
 
       '*clock*': default_clock

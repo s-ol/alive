@@ -314,15 +314,15 @@ as it handles matrix-matrix and matrix-vector multiplication according to linear
 
     pi: Constant.meta
       value: math.pi
-      meta: summary: 'The pi constant.'
+      meta: name: 'pi', summary: "The pi constant."
 
     tau: Constant.meta
       value: math.pi*2
-      meta: summary: 'The tau constant.'
+      meta: name: 'tau', summary: "The tau constant."
 
     huge: Constant.meta
       value: math.huge
-      meta: summary: 'Positive infinity constant.'
+      meta: name: 'huge', summary: "Positive infinity constant."
 
     :sin, :cos, :tan
     :asin, :acos, :atan, :atan2

@@ -529,7 +529,7 @@ macro [->>][]:
     'mouse-presses': mouse_presses
     'mouse-releases': mouse_releases
     'mouse-down?': mouse_down
-    'wheel-data': wheel_delta
+    'wheel-delta': wheel_delta
     'key-presses': key_presses
     'key-releases': key_releases
     'key-down?': key_down
