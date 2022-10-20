@@ -24,8 +24,7 @@ By default, the message contains the failing check expression."
       tick: =>
         { :check, :msg } = @unwrap_all!
 
-        if not check
-          error Error 'assertion', msg or "assertion failed"
+        assert check, Error 'assertion', msg or "assertion failed"
 
     eval: (scope, tail) =>
       L\trace "evaling #{@}"

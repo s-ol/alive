@@ -4,6 +4,7 @@ import Module, StringModule from require 'alv.module'
 import Logger from require 'alv.logger'
 import Error from require 'alv.error'
 import RTNode from require 'alv.rtnode'
+busted = require "busted"
 
 Logger\init 'error'
 os.time = do
@@ -34,7 +35,13 @@ class TestPilot extends Copilot
 
   eval_once: (code) =>
     @active_module\spit @preamble .. code
-    @tick!
+    ok, err = pcall @tick, @
+    if not ok
+      if (type err) == 'table' and err.__class == Error and err.kind == 'assertion'
+        busted.fail err, 0
+
+      error err, 0
+
     @active_module.root
 
   --- poll for changes and tick.

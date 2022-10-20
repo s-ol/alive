@@ -1,267 +1,118 @@
 import TestPilot from require 'spec.test_setup'
-import T, Array, Constant from require 'alv'
 
 describe "logic", ->
   test = TestPilot '', '(import* testing logic)\n'
-  TRUE = T.bool\mk_const true
-  FALSE = T.bool\mk_const false
 
   describe "==", ->
-    it "can compare any type", ->
-      with COPILOT\eval_once '(== 1 1)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(== 1 2)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(== 1 "hello")'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(== "hello" "hello")'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(== (array 1 2 3) (array 1 2 3))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(== (array 1 2 3) (array 1 2 1))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(== (array 1 2 3) (array 1 2))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(== (array 1 2 3) (array 1 2 3 4))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(==
+    it "can compare any type", -> COPILOT\eval_once '
+      (expect= true (== 1 1))
+      (expect= false (== 1 2))
+      (expect= false (== 1 "hello"))
+      (expect= true (== "hello" "hello"))
+      (expect= true (== (array 1 2 3) (array 1 2 3)))
+      (expect= false (== (array 1 2 3) (array 1 2 1)))
+      (expect= false (== (array 1 2 3) (array 1 2)))
+      (expect= false (== (array 1 2 3) (array 1 2 3 4)))
+      (expect= true (==
           (struct "a" 1 "b" true "c" (array "test"))
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(==
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= false (==
           (struct "a" 1 "b" false "c" (array "test"))
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(==
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= false (==
           (struct "a" 1 "b" true "c" (array "test" "toast"))
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(==
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= false (==
           (struct "a" 1 "b" true)
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(==
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= false (==
           (struct "a" 1 "b" true)
-          (struct "a" 1))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
+          (struct "a" 1)))
+      (expect= true (== print print))
+      (expect= false (== print ==))
+    '
 
-      with COPILOT\eval_once '(== print print)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(== print ==)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-    it "is aliased as eq", ->
-      with COPILOT\eval_once '(== eq ==)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
+    it "is aliased as eq", -> COPILOT\eval_once '
+      (expect= true (== eq ==))
+    '
 
   describe "!=", ->
-    it "can compare any type", ->
-      with COPILOT\eval_once '(!= 1 1)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(!= 1 2)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!= 1 "hello")'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!= "hello" "hello")'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(!= (array 1 2 3) (array 1 2 3))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(!= (array 1 2 3) (array 1 2 1))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!= (array 1 2 3) (array 1 2))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!= (array 1 2 3) (array 1 2 3 4))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!=
+    it "can compare any type", -> COPILOT\eval_once '
+      (expect= false (!= 1 1))
+      (expect= true (!= 1 2))
+      (expect= true (!= 1 "hello"))
+      (expect= false (!= "hello" "hello"))
+      (expect= false (!= (array 1 2 3) (array 1 2 3)))
+      (expect= true (!= (array 1 2 3) (array 1 2 1)))
+      (expect= true (!= (array 1 2 3) (array 1 2)))
+      (expect= true (!= (array 1 2 3) (array 1 2 3 4)))
+      (expect= false (!=
           (struct "a" 1 "b" true "c" (array "test"))
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(!=
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= true (!=
           (struct "a" 1 "b" false "c" (array "test"))
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!=
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= true (!=
           (struct "a" 1 "b" true "c" (array "test" "toast"))
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!=
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= true (!=
           (struct "a" 1 "b" true)
-          (struct "a" 1 "b" true "c" (array "test")))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(!=
+          (struct "a" 1 "b" true "c" (array "test"))))
+      (expect= true (!=
           (struct "a" 1 "b" true)
-          (struct "a" 1))'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
+          (struct "a" 1)))
+      (expect= false (!= print print))
+      (expect= true (!= print ==))
+    '
 
-      with COPILOT\eval_once '(!= print print)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(!= print ==)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-    it "is aliased as note-eq", ->
-      with COPILOT\eval_once '(== not-eq !=)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
+    it "is aliased as not-eq", -> COPILOT\eval_once '
+      (expect= true (== not-eq !=))
+    '
 
   describe "bool", ->
-    it "coerces numbers", ->
-      with COPILOT\eval_once '(bool 0)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
+    it "coerces numbers", -> COPILOT\eval_once '
+      (expect= false (bool 0))
+      (expect= true (bool 1))
+      (expect= true (bool -1))
+      (expect= true (bool 1024))
+    '
 
-      with COPILOT\eval_once '(bool 1)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(bool -1)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(bool 1024)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-    it "accepts booleans", ->
-      with COPILOT\eval_once '(bool false)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(bool true)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
+    it "accepts booleans", -> COPILOT\eval_once '
+      (expect= false (bool false))
+      (expect= true (bool true))
+    '
 
   describe "not", ->
-    it "accepts booleans", ->
-      with COPILOT\eval_once '(not false)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
+    it "accepts booleans", -> COPILOT\eval_once '
+      (expect= true (not false))
+      (expect= false (not true))
+    '
 
-      with COPILOT\eval_once '(not true)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-    it "coerces numbers", ->
-      with COPILOT\eval_once '(not 0)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(not 1)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(not -1)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(not 1024)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
+    it "coerces numbers", -> COPILOT\eval_once '
+      (expect= true (not 0))
+      (expect= false (not 1))
+      (expect= false (not -1))
+      (expect= false (not 1024))
+    '
 
   describe "or", ->
-    it "accepts any number of mixed arguments", ->
-      with COPILOT\eval_once '(or false 0)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(or 1 0)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(or 0 false 0 0 0 0)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(or 0 0 0 true 0 0)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(or 0 true 0 1 0 0)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
+    it "accepts any number of mixed arguments", -> COPILOT\eval_once '
+      (expect= false (or false 0))
+      (expect= true (or 1 0))
+      (expect= false (or 0 false 0 0 0 0))
+      (expect= true (or 0 0 0 true 0 0))
+      (expect= true (or 0 true 0 1 0 0))
+    '
 
   describe "and", ->
-    it "accepts any number of mixed arguments", ->
-      with COPILOT\eval_once '(and false 1)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(and 1 true)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(and false 0)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(and 1 1 true 0)'
-        assert.is.true \is_const!
-        assert.is.equal FALSE, .result
-
-      with COPILOT\eval_once '(and 1 1 true true 1)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
-
-      with COPILOT\eval_once '(and 1 1 1)'
-        assert.is.true \is_const!
-        assert.is.equal TRUE, .result
+    it "accepts any number of mixed arguments", -> COPILOT\eval_once '
+      (expect= false (and false 1))
+      (expect= true (and 1 true))
+      (expect= false (and false 0))
+      (expect= false (and 1 1 true 0))
+      (expect= true (and 1 1 true true 1))
+      (expect= true (and 1 1 1))
+    '
 
   describe "<", ->
     it "is aliased as asc?", -> COPILOT\eval_once '
