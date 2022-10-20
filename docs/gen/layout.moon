@@ -20,10 +20,14 @@ render_meta = (meta) ->
 render = (name, result, prefix=nil, index=false) ->
   import div, label, code, ul, li, i, a, pre from dom
 
-  id = if prefix then "#{prefix}/#{name}" else name
+  prefix = if prefix then prefix .. "/" else ""
+  id = prefix .. name
   typestr = i tostring result.type
   assert result.meta, "#{id} doesn't have any metadata!"
   summary = assert result.meta.summary, "#{id} doesn't have a summary!"
+
+  if result.meta.name != name
+    summary = i "alias of ", a (code result.meta.name), href: "##{prefix}#{result.meta.name}"
 
   if index
     div {

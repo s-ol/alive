@@ -45,5 +45,8 @@ spit OUT, layout
       li render key, node.result, nil, true
     h3 'details'
     ul for key, node in opairs raw.values
+      if node.result.meta and node.result.meta.name != key
+        continue
+
       li render key, node.result
   }, ''

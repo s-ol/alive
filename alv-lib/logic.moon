@@ -135,9 +135,9 @@ bool = Constant.meta
 
 asc = Constant.meta
   meta:
-    name: 'asc?'
+    name: '<'
     summary: "Check if values are in ascending order."
-    examples: { '(asc? a b [c…])', '(< a b [c…])' }
+    examples: { '(< a b [c…])', '(asc? a b [c…])' }
   value: class extends CompareOp
     fn: (a, b) -> a < b
 
@@ -151,9 +151,9 @@ lte = Constant.meta
 
 desc = Constant.meta
   meta:
-    name: 'desc?'
+    name: '>'
     summary: "Check if values are in descending order."
-    examples: { '(desc? a b [c…])', '(> a b [c…])' }
+    examples: { '(> a b [c…])', '(desc? a b [c…])' }
   value: class extends CompareOp
     fn: (a, b) -> a > b
 
