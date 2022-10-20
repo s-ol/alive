@@ -2,7 +2,7 @@ import TestPilot from require 'spec.test_setup'
 import T, Array, Constant from require 'alv'
 
 describe "logic", ->
-  test = TestPilot '', '(import* logic)\n'
+  test = TestPilot '', '(import* testing logic)\n'
   TRUE = T.bool\mk_const true
   FALSE = T.bool\mk_const false
 
@@ -262,3 +262,91 @@ describe "logic", ->
       with COPILOT\eval_once '(and 1 1 1)'
         assert.is.true \is_const!
         assert.is.equal TRUE, .result
+
+  describe "<", ->
+    it "is aliased as asc?", -> COPILOT\eval_once '
+      (expect= < asc?)
+    '
+
+    it "compares numbers as expected", -> COPILOT\eval_once '
+      (assert (< -2 5))
+      (assert (not (< 3 1)))
+      (assert (not (< 1 1)))
+    '
+
+    it "can handle multiple arguments", -> COPILOT\eval_once '
+      (assert (< 1 2 3))
+      (assert (not (< 2 3.5 3 4)))
+      (assert (not (< 3 2 1)))
+    '
+
+  describe "<=", ->
+    it "compares numbers as expected", -> COPILOT\eval_once '
+      (assert (<= 1 1))
+      (assert (<= -2 2))
+      (assert (not (<= 3 2)))
+    '
+
+    it "can handle multiple arguments", -> COPILOT\eval_once '
+      (assert (<= 1 2 3))
+      (assert (<= 1 2 2 3))
+      (assert (not (<= 2 3 2.5 4)))
+      (assert (not (<= 3 2 2 1)))
+    '
+
+  describe ">", ->
+    it "is aliased as desc?", -> COPILOT\eval_once '
+      (expect= > desc?)
+    '
+
+    it "compares numbers as expected", -> COPILOT\eval_once '
+      (assert (> 3 1))
+      (assert (not (> -2 5)))
+      (assert (not (> 1 1)))
+    '
+
+    it "can handle multiple arguments", -> COPILOT\eval_once '
+      (assert (> 3 2 1))
+      (assert (not (> 5 4 3 3.5 2)))
+      (assert (not (> 1 2 3)))
+    '
+
+  describe ">=", ->
+    it "compares numbers as expected", -> COPILOT\eval_once '
+      (assert (>= 1 1))
+      (assert (>= 5 1))
+      (assert (not (>= 2 3)))
+    '
+
+    it "can handle multiple arguments", -> COPILOT\eval_once '
+      (assert (>= 3 2 1))
+      (assert (>= 3 2 2 1))
+      (assert (not (>= 5 4 3 3 3.5 2)))
+      (assert (not (>= 1 2 2 3)))
+    '
+
+  describe "<, <=, >, >=", ->
+    each = (fn) ->
+      fn '<'
+      fn '<='
+      fn '>'
+      fn '>='
+
+    it "need at least two arguments", ->
+      each =>
+        err = assert.has.error -> COPILOT\eval_once "(#{@})"
+        assert.matches "couldn't match arguments", err
+
+        err = assert.has.error -> COPILOT\eval_once "(#{@} 1)"
+        assert.matches "couldn't match arguments", err
+
+    it "only work on numbers", ->
+      each =>
+        err = assert.has.error -> COPILOT\eval_once "(#{@} 1 'b')"
+        assert.matches "couldn't match arguments", err
+
+        err = assert.has.error -> COPILOT\eval_once "(#{@} 'c' 'd')"
+        assert.matches "couldn't match arguments", err
+
+        err = assert.has.error -> COPILOT\eval_once "(#{@} true 3)"
+        assert.matches "couldn't match arguments", err

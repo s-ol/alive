@@ -26,6 +26,18 @@ class ReduceOp extends PureOp
 
     @out\set accum
 
+class CompareOp extends PureOp
+  pattern: any.num\rep 2, nil
+  type: T.bool
+
+  tick: =>
+    args = @unwrap_all!
+    accum = true
+    for i = 1, #args - 1
+      accum = accum and @.fn args[i], args[i+1]
+
+    @out\set accum
+
 eq = Constant.meta
   meta:
     name: 'eq'
@@ -121,6 +133,38 @@ bool = Constant.meta
     type: T.bool
     tick: => @out\set tobool @inputs[1]!
 
+asc = Constant.meta
+  meta:
+    name: 'asc?'
+    summary: "Check if values are in ascending order."
+    examples: { '(asc? a b [c…])', '(< a b [c…])' }
+  value: class extends CompareOp
+    fn: (a, b) -> a < b
+
+lte = Constant.meta
+  meta:
+    name: '<='
+    summary: "Check if values are in ascending order."
+    examples: { '(<= a b [c…])' }
+  value: class extends CompareOp
+    fn: (a, b) -> a <= b
+
+desc = Constant.meta
+  meta:
+    name: 'desc?'
+    summary: "Check if values are in descending order."
+    examples: { '(desc? a b [c…])', '(> a b [c…])' }
+  value: class extends CompareOp
+    fn: (a, b) -> a > b
+
+gte = Constant.meta
+  meta:
+    name: '>='
+    summary: "Check if values are in descending order."
+    examples: { '(>= a b [c…])' }
+  value: class extends CompareOp
+    fn: (a, b) -> a >= b
+
 Constant.meta
   meta:
     name: 'logic'
@@ -132,4 +176,8 @@ Constant.meta
     and: and_
     or: or_
     not: not_
+
+    'asc?': asc, '<': asc, '<=': lte
+    'desc?': desc, '>': desc, '>=': gte
+
     :bool
